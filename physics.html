@@ -1,0 +1,1058 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — Physics Unit P2 (CCEA Foundation)</title>
+  <style>
+    :root {
+      --bg-base:#070b14; --bg-surface:#0f172a; --bg-elevated:#162033; --bg-card:#111b2e; --bg-input:#090f1d;
+      --border-subtle:rgba(148,163,184,0.16); --border-strong:rgba(148,163,184,0.32);
+      --text-primary:#f1f5f9; --text-secondary:#94a3b8; --text-muted:#64748b;
+      --accent-blue:#38bdf8; --accent-indigo:#6366f1; --accent-emerald:#10b981;
+      --accent-emerald-bg:rgba(16,185,129,0.1); --accent-emerald-border:rgba(16,185,129,0.5);
+      --accent-rose:#f43f5e; --accent-rose-bg:rgba(244,63,94,0.1); --accent-rose-border:rgba(244,63,94,0.5);
+      --accent-amber:#f59e0b; --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --font-mono:"JetBrains Mono","Fira Code",ui-monospace,Menlo,Consolas,monospace;
+      --hud-height:68px; --radius-lg:14px; --radius-md:10px; --shadow-panel:0 20px 50px rgba(0,0,0,0.45);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; background:var(--bg-base); color:var(--text-primary); font-family:var(--font-sans); line-height:1.55; }
+    .hidden { display:none !important; }
+    .page-shell { min-height:100vh; padding:36px 24px 70px; background:radial-gradient(circle at 15% 15%,rgba(56,189,248,0.1),transparent 40%),radial-gradient(circle at 85% 85%,rgba(99,102,241,0.1),transparent 45%),var(--bg-base); }
+    .container-md { max-width:960px; margin:0 auto; }
+    .container-lg { max-width:1120px; margin:0 auto; }
+    .top-nav-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
+    .btn-ghost { padding:9px 16px; border-radius:9px; font-size:0.88rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-surface); color:var(--text-primary); display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+    .btn-ghost:hover { background:var(--bg-elevated); }
+    .badge-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; font-size:0.76rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent-blue); background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); }
+    .badge-pill.emerald { color:#6ee7b7; background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.35); }
+    .badge-pill.amber { color:#fcd34d; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); }
+    #home-view { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px 20px; background:radial-gradient(circle at 20% 20%,rgba(56,189,248,0.12),transparent 42%),radial-gradient(circle at 80% 80%,rgba(99,102,241,0.11),transparent 45%),var(--bg-base); }
+    .home-wrapper { width:100%; max-width:920px; text-align:center; }
+    .home-top-links { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .home-title { font-size:clamp(2rem,4vw,2.9rem); font-weight:800; letter-spacing:-0.03em; margin:12px 0; line-height:1.15; }
+    .home-subtitle { color:var(--text-secondary); font-size:1.04rem; max-width:660px; margin:0 auto 36px; }
+    .mode-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:22px; text-align:left; }
+    .mode-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:32px; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:20px; box-shadow:var(--shadow-panel); transition:transform 0.16s ease,border-color 0.16s ease; position:relative; overflow:hidden; }
+    .mode-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; }
+    .mode-card.learn-card::before { background:linear-gradient(90deg,#38bdf8,#6366f1); }
+    .mode-card.test-card::before { background:linear-gradient(90deg,#10b981,#38bdf8); }
+    .mode-card:hover { transform:translateY(-4px); border-color:var(--accent-blue); }
+    .mode-icon { width:52px; height:52px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:1.65rem; margin-bottom:14px; }
+    .learn-card .mode-icon { background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.35); }
+    .test-card .mode-icon { background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); }
+    .mode-card h2 { font-size:1.55rem; font-weight:800; margin-bottom:8px; }
+    .mode-card p { color:var(--text-secondary); font-size:0.96rem; line-height:1.6; }
+    .mode-cta { font-weight:700; font-size:0.95rem; color:var(--accent-blue); }
+    .test-card .mode-cta { color:#6ee7b7; }
+    .section-header { margin-bottom:24px; }
+    .section-header h1 { font-size:clamp(1.6rem,3vw,2.15rem); font-weight:800; margin-bottom:6px; }
+    .section-header p { color:var(--text-secondary); font-size:0.96rem; }
+    .learn-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+    .filter-pill { padding:7px 14px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-secondary); font-size:0.83rem; font-weight:600; cursor:pointer; }
+    .filter-pill.active { background:rgba(56,189,248,0.16); border-color:var(--accent-blue); color:var(--accent-blue); }
+    .topics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(265px,1fr)); gap:14px; }
+    .topic-btn { background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; text-align:left; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px; transition:transform 0.12s ease,border-color 0.12s ease; }
+    .topic-btn:hover { transform:translateY(-2px); border-color:var(--accent-blue); background:var(--bg-elevated); }
+    .topic-btn-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .topic-num { font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); }
+    .topic-section-tag { font-family:var(--font-mono); font-size:0.69rem; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid; }
+    .tag-waves { color:#bae6fd; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.35); }
+    .tag-elec { color:#fcd34d; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.35); }
+    .tag-mag { color:#6ee7b7; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.35); }
+    .tag-space { color:#fda4af; background:rgba(244,63,94,0.1); border-color:rgba(244,63,94,0.35); }
+    .topic-btn-title { font-size:1rem; font-weight:700; color:var(--text-primary); line-height:1.35; }
+    .topic-btn-sub { font-size:0.8rem; color:var(--text-secondary); }
+    .learn-detail-grid { display:grid; grid-template-columns:1fr; gap:20px; }
+    .study-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .study-card-title { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent-blue); font-weight:800; margin-bottom:10px; }
+    .study-body { color:var(--text-primary); font-size:0.98rem; line-height:1.7; }
+    .study-body code,.q-prompt code { font-family:var(--font-mono); background:rgba(30,41,59,0.9); padding:2px 7px; border-radius:5px; color:#bae6fd; font-size:0.93em; }
+    .key-rule-box { margin-top:14px; padding:13px 16px; background:var(--bg-input); border-left:3px solid var(--accent-blue); border-radius:0 8px 8px 0; font-family:var(--font-mono); font-size:0.92rem; color:#e0f2fe; line-height:1.6; }
+    .diagram-box { margin-top:16px; padding:16px; background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; display:flex; justify-content:center; }
+    .steps-ol { padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+    .worked-example-box { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:18px; }
+    .worked-q { font-weight:700; color:#bae6fd; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border-subtle); }
+    .learn-practice-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .mcq-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:18px; }
+    .mcq-option { width:100%; text-align:left; padding:13px 16px; border-radius:var(--radius-md); border:1.5px solid var(--border-strong); background:var(--bg-input); color:var(--text-primary); font-size:0.97rem; cursor:pointer; display:flex; align-items:center; gap:12px; }
+    .mcq-option:hover:not(:disabled) { background:var(--bg-elevated); border-color:var(--accent-blue); }
+    .mcq-option.selected { border-color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .mcq-option.correct-opt { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.18); }
+    .mcq-option.wrong-opt { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.18); }
+    .mcq-letter { width:28px; height:28px; border-radius:7px; background:var(--bg-elevated); border:1px solid var(--border-subtle); display:inline-flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:0.85rem; flex-shrink:0; color:var(--text-secondary); }
+    .mcq-option.selected .mcq-letter { background:var(--accent-blue); color:#031120; }
+    .mcq-option.correct-opt .mcq-letter { background:var(--accent-emerald); color:#03150e; }
+    .mcq-option.wrong-opt .mcq-letter { background:var(--accent-rose); color:#fff; }
+    .bio-input-box { width:100%; padding:14px 16px; background:var(--bg-input); border:1.5px solid var(--border-strong); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:1.08rem; color:var(--text-primary); outline:none; margin-bottom:14px; }
+    .bio-input-box.locked-correct { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.08); }
+    .bio-input-box.locked-incorrect { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.08); }
+    .paper-choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; }
+    .paper-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:30px; display:flex; flex-direction:column; justify-content:space-between; gap:22px; box-shadow:var(--shadow-panel); }
+    .paper-specs { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .paper-spec-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:8px; padding:11px 13px; }
+    .paper-spec-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); }
+    .paper-spec-val { font-family:var(--font-mono); font-weight:700; font-size:1rem; margin-top:2px; }
+    .btn-primary-lg { width:100%; padding:15px 22px; font-size:1rem; font-weight:700; color:#04101d; background:linear-gradient(135deg,#38bdf8,#60a5fa); border:none; border-radius:11px; cursor:pointer; }
+    .btn-primary-lg.emerald { color:#03150e; background:linear-gradient(135deg,#10b981,#34d399); }
+    #hud-bar { position:fixed; top:0; left:0; right:0; height:var(--hud-height); background:rgba(15,23,42,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-strong); padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; z-index:100; }
+    .hud-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .hud-dot { width:10px; height:10px; border-radius:50%; background:var(--accent-blue); box-shadow:0 0 10px var(--accent-blue); flex-shrink:0; }
+    .hud-title { font-weight:700; font-size:0.96rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hud-meta { font-size:0.76rem; color:var(--text-secondary); font-family:var(--font-mono); }
+    .hud-controls { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .timer-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 15px; background:var(--bg-input); border:1px solid var(--border-strong); border-radius:10px; font-family:var(--font-mono); font-size:1.05rem; font-weight:700; color:var(--accent-blue); min-width:120px; justify-content:center; }
+    .timer-pill.warning { color:var(--accent-amber); border-color:rgba(245,158,11,0.55); }
+    .timer-pill.critical { color:var(--accent-rose); border-color:rgba(244,63,94,0.65); }
+    .btn-hud { padding:9px 14px; border-radius:9px; font-size:0.86rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); text-decoration:none; }
+    .btn-submit { background:linear-gradient(135deg,#10b981,#059669); border-color:rgba(16,185,129,0.6); color:#03150e; font-weight:700; }
+    #workspace-view { padding-top:var(--hud-height); height:100vh; display:grid; grid-template-columns:minmax(0,1fr) 360px; overflow:hidden; }
+    #questions-pane { height:calc(100vh - var(--hud-height)); overflow-y:auto; padding:24px 34px 56px; }
+    .exam-shell { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+    .q-progress-bar { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 18px; display:flex; flex-direction:column; gap:12px; }
+    .q-progress-meta { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; font-size:0.85rem; color:var(--text-secondary); }
+    .q-progress-meta strong { color:var(--text-primary); font-family:var(--font-mono); }
+    .q-dots-row { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .q-dot-btn { height:32px; border-radius:7px; border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8rem; font-weight:700; cursor:pointer; }
+    .q-dot-btn.current { border-color:var(--accent-blue); color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .q-dot-btn.correct { background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.55); color:#6ee7b7; }
+    .q-dot-btn.incorrect { background:rgba(244,63,94,0.2); border-color:rgba(244,63,94,0.55); color:#fda4af; }
+    .q-dot-btn.skipped { background:rgba(245,158,11,0.14); border-color:rgba(245,158,11,0.45); color:#fcd34d; }
+    .question-card { background:var(--bg-card); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .q-top-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .q-number-group { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+    .q-badge { background:rgba(56,189,248,0.14); color:var(--accent-blue); border:1px solid rgba(56,189,248,0.32); font-family:var(--font-mono); font-weight:700; font-size:0.84rem; padding:4px 11px; border-radius:6px; }
+    .q-topic { font-size:0.82rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; }
+    .q-marks { font-family:var(--font-mono); font-size:0.82rem; color:var(--text-secondary); background:var(--bg-elevated); border:1px solid var(--border-subtle); padding:4px 11px; border-radius:999px; }
+    .q-prompt { font-size:1.07rem; margin-bottom:10px; line-height:1.65; }
+    .q-hint { font-size:0.84rem; color:var(--accent-amber); margin-bottom:14px; }
+    .feedback-panel { border-radius:var(--radius-md); padding:18px 20px; margin-bottom:18px; border:1.5px solid; }
+    .feedback-panel.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .feedback-panel.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .feedback-heading { font-weight:800; font-size:1.05rem; margin-bottom:10px; }
+    .feedback-heading.correct { color:#6ee7b7; }
+    .feedback-heading.incorrect { color:#fda4af; }
+    .feedback-answer-line { background:rgba(9,15,29,0.72); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-family:var(--font-mono); font-size:0.96rem; display:flex; flex-wrap:wrap; gap:10px; }
+    .feedback-answer-line strong { color:#6ee7b7; }
+    .feedback-steps-title { font-size:0.78rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom:6px; font-weight:700; }
+    .feedback-steps-list { padding-left:20px; font-size:0.94rem; display:flex; flex-direction:column; gap:5px; }
+    .q-nav-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding-top:6px; }
+    .q-nav-left,.q-nav-right { display:flex; flex-wrap:wrap; gap:10px; }
+    .btn-action { padding:11px 18px; border-radius:9px; font-size:0.92rem; font-weight:700; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); }
+    .btn-action:disabled { opacity:0.38; cursor:not-allowed; }
+    .btn-skip { background:rgba(245,158,11,0.1); color:#fcd34d; border-color:rgba(245,158,11,0.35); }
+    .btn-check { background:linear-gradient(135deg,#38bdf8,#3b82f6); color:#031120; border:none; }
+    .btn-next,.btn-finish-test { background:linear-gradient(135deg,#10b981,#059669); color:#03150e; border:none; }
+    #calculator-pane { height:calc(100vh - var(--hud-height)); background:var(--bg-surface); border-left:1px solid var(--border-strong); padding:18px 20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+    .calc-header { display:flex; align-items:center; justify-content:space-between; }
+    .calc-title { font-size:0.82rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); }
+    .calc-badge { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:5px; background:rgba(56,189,248,0.14); color:var(--accent-blue); border:1px solid rgba(56,189,248,0.35); }
+    .calc-screen { background:var(--bg-input); border:1px solid var(--border-strong); border-radius:var(--radius-md); padding:13px 16px; min-height:98px; display:flex; flex-direction:column; justify-content:space-between; word-break:break-all; }
+    .calc-expr { font-family:var(--font-mono); font-size:0.95rem; color:var(--text-secondary); text-align:right; min-height:22px; }
+    .calc-output { font-family:var(--font-mono); font-size:1.65rem; font-weight:700; text-align:right; }
+    .calc-output.error { color:var(--accent-rose); font-size:1.2rem; }
+    .calc-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .calc-btn { height:43px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-primary); font-family:var(--font-mono); font-size:0.95rem; font-weight:600; cursor:pointer; }
+    .calc-btn.op { background:rgba(56,189,248,0.12); color:var(--accent-blue); }
+    .calc-btn.sci { background:rgba(99,102,241,0.14); color:#c7d2fe; }
+    .calc-btn.danger { background:rgba(244,63,94,0.14); color:#fda4af; }
+    .calc-btn.equals { background:linear-gradient(135deg,#38bdf8,#3b82f6); color:#031120; font-weight:800; border:none; }
+    .calc-tip { font-size:0.76rem; color:var(--text-muted); }
+    .report-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:18px; padding:32px; box-shadow:var(--shadow-panel); margin-bottom:32px; }
+    .report-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding-bottom:22px; border-bottom:1px solid var(--border-subtle); margin-bottom:24px; }
+    .report-title { font-size:1.65rem; font-weight:800; }
+    .report-sub { color:var(--text-secondary); font-size:0.92rem; margin-top:4px; }
+    .report-actions { display:flex; flex-wrap:wrap; gap:10px; }
+    .report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+    .stat-tile { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; }
+    .stat-tile-label { font-size:0.74rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+    .stat-tile-value { font-family:var(--font-mono); font-size:1.55rem; font-weight:800; }
+    .stat-tile-value.highlight { color:var(--accent-blue); }
+    .stat-tile-sub { font-size:0.76rem; color:var(--text-muted); margin-top:4px; }
+    .graded-sheet-title { font-size:1.1rem; font-weight:700; margin-bottom:16px; color:var(--text-secondary); text-transform:uppercase; }
+    .graded-list { display:flex; flex-direction:column; gap:18px; }
+    .graded-card { border-radius:var(--radius-lg); padding:22px 24px; border:1.5px solid; }
+    .graded-card.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .graded-card.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .graded-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .status-pill { font-family:var(--font-mono); font-size:0.78rem; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; }
+    .status-pill.correct { background:rgba(16,185,129,0.22); color:#6ee7b7; border:1px solid rgba(16,185,129,0.5); }
+    .status-pill.incorrect { background:rgba(244,63,94,0.22); color:#fda4af; border:1px solid rgba(244,63,94,0.5); }
+    .graded-answers-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:14px; }
+    .ans-box { background:rgba(9,15,29,0.78); border:1px solid var(--border-subtle); border-radius:8px; padding:12px 14px; }
+    .ans-box-label { font-size:0.73rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+    .ans-box-value { font-family:var(--font-mono); font-size:1.02rem; font-weight:700; }
+    .ans-box-value.model { color:#6ee7b7; }
+    .ans-box-value.wrong { color:#fda4af; }
+    .mark-scheme-note { margin-top:14px; font-size:0.9rem; color:var(--text-secondary); padding-top:12px; border-top:1px solid rgba(148,163,184,0.16); }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(4,7,15,0.78); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:200; }
+    .modal-panel { width:100%; max-width:760px; max-height:86vh; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:16px; padding:28px; }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border-subtle); margin-bottom:18px; }
+    .modal-close { background:var(--bg-elevated); border:1px solid var(--border-subtle); color:var(--text-primary); width:34px; height:34px; border-radius:8px; font-size:1.2rem; cursor:pointer; }
+    .formula-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+    .formula-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:14px 16px; }
+    .formula-name { font-size:0.78rem; text-transform:uppercase; color:var(--accent-blue); margin-bottom:6px; font-weight:700; }
+    .formula-expr { font-family:var(--font-mono); font-size:0.86rem; line-height:1.55; }
+    @media (max-width:980px) { #workspace-view{grid-template-columns:1fr;height:auto;overflow:visible;} #questions-pane{height:auto;overflow-y:visible;padding:20px 16px 32px;} #calculator-pane{height:auto;border-left:none;border-top:1px solid var(--border-strong);} .hud-meta{display:none;} }
+  </style>
+</head>
+<body>
+  <section id="home-view">
+    <div class="home-wrapper">
+      <div class="home-top-links">
+        <a href="index.html" class="btn-ghost">← All Subjects</a>
+        <div class="badge-pill">CCEA (NI) Double Award Science • Physics Unit P2 (Foundation)</div>
+      </div>
+      <h1 class="home-title">Physics Unit P2 Revision Engine</h1>
+      <p class="home-subtitle">Waves, Light, Electricity, Magnetism, Electromagnetism &amp; Space Physics (<code>[GDW61]</code>). Revise all 12 CCEA topics or sit a randomised 70-mark mock paper.</p>
+      <div class="mode-grid">
+        <button type="button" class="mode-card learn-card" id="btn-go-learn">
+          <div><div class="mode-icon">⚡</div><h2>Learn</h2><p>Browse all 12 CCEA Unit P2 Foundation topics (2.1–2.5) with equations, diagrams, worked calculations, and non-repeating RNG practice.</p></div>
+          <span class="mode-cta">Open 12 CCEA Topics →</span>
+        </button>
+        <button type="button" class="mode-card test-card" id="btn-go-test">
+          <div><div class="mode-icon">📝</div><h2>Test</h2><p>Sit a fresh randomised 70-mark, 1h 15m CCEA Unit P2 Foundation mock exam (<code>[GDW61]</code>) or a 7-question Blitz test with Formula Sheet &amp; calculator.</p></div>
+          <span class="mode-cta">Choose Mock Paper Mode →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="learn-menu-view" class="page-shell hidden">
+    <div class="container-lg">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="index.html" class="btn-ghost">🏠 All Subjects</a><button type="button" class="btn-ghost" id="btn-learn-home">← Physics Home</button></div>
+        <span class="badge-pill">CCEA Unit P2 • Foundation Learn Hub</span>
+      </div>
+      <div class="section-header"><h1>CCEA Unit P2 Topic Hub (12 Topics)</h1><p>Strictly matched to Northern Ireland CCEA Double Award Physics Unit P2 Foundation (2.1–2.5).</p></div>
+      <div class="learn-filter-bar">
+        <button type="button" class="filter-pill active" data-filter="all">All 12 Topics</button>
+        <button type="button" class="filter-pill" data-filter="waves">2.1–2.2 Waves &amp; Light</button>
+        <button type="button" class="filter-pill" data-filter="elec">2.3 Electricity</button>
+        <button type="button" class="filter-pill" data-filter="mag">2.4 Magnetism &amp; Electromagnetism</button>
+        <button type="button" class="filter-pill" data-filter="space">2.5 Space Physics</button>
+      </div>
+      <div id="topics-grid" class="topics-grid"></div>
+    </div>
+  </section>
+
+  <section id="learn-detail-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn-ghost" id="btn-back-to-topics">← All Topics</button><button type="button" class="btn-ghost" id="btn-detail-home">⚡ Phys Home</button><a href="index.html" class="btn-ghost">🏠 Subjects</a></div>
+        <span id="detail-section-badge" class="badge-pill">Topic</span>
+      </div>
+      <div class="section-header"><h1 id="detail-title">Topic Title</h1><p id="detail-subtitle">CCEA Unit P2 Foundation</p></div>
+      <div class="learn-detail-grid">
+        <div class="study-card"><div class="study-card-title">1. What You Need to Know</div><div id="detail-what" class="study-body"></div><div id="detail-rule" class="key-rule-box"></div><div id="detail-diagram" class="diagram-box hidden"></div></div>
+        <div class="study-card"><div class="study-card-title">2. Key Exam Points (CCEA Mark Scheme)</div><ol id="detail-howto" class="steps-ol"></ol></div>
+        <div class="study-card"><div class="study-card-title">3. Worked Exam-Style Example</div><div class="worked-example-box"><div id="detail-example-q" class="worked-q"></div><ol id="detail-example-steps" class="steps-ol"></ol></div></div>
+        <div class="study-card"><div class="learn-practice-header"><div><div class="study-card-title" style="margin-bottom:2px;">4. Topic RNG Practice</div><p style="font-size:0.86rem;color:var(--text-secondary);">Randomised CCEA Foundation questions on this topic.</p></div><button type="button" class="btn-action btn-next" id="btn-new-learn-q">🎲 New Random Question</button></div><div id="learn-practice-slot"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="test-select-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn-ghost" id="btn-test-home">← Physics Home</button><a href="index.html" class="btn-ghost">🏠 All Subjects</a></div>
+        <span class="badge-pill emerald">CCEA Unit P2 • Foundation Exam Mode</span>
+      </div>
+      <div class="section-header"><h1>Choose Your Unit P2 Mock Paper</h1><p>Every paper generates a fresh question order, non-repeating questions, shuffled options, and dynamic numbers for CCEA Northern Ireland <code>[GDW61]</code> Foundation Tier.</p></div>
+      <div class="paper-choice-grid">
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill" style="margin-bottom:14px;">Full Paper • [GDW61]</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Unit P2 Foundation Full Paper</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">Official CCEA structure: 70 marks, 1h 15m, scientific calculator &amp; Formula Sheet enabled.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">70 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 15m (75:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">14 Structured</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg" id="btn-start-full">⚡ Generate Full 70-Mark P2 Paper</button>
+        </div>
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill emerald" style="margin-bottom:14px;">Quick Revision</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Unit P2 Quick Blitz (7 Qs)</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">7 random topics from Unit P2 in 25 minutes with instant mark-scheme feedback.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">~35 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">25m (25:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">7 Randomised</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg emerald" id="btn-start-blitz">⚡ Generate Quick Blitz Paper</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <header id="hud-bar" class="hidden">
+    <div class="hud-brand"><div class="hud-dot"></div><div><div class="hud-title" id="hud-title">CCEA Physics P2</div><div class="hud-meta" id="hud-paper-id">PAPER ID: GDW61-0000</div></div></div>
+    <div class="hud-controls">
+      <div id="timer-display" class="timer-pill"><span>⏱</span><span id="timer-clock">75:00</span></div>
+      <button id="btn-open-sheet" class="btn-hud" type="button">⚡ P2 Formula Sheet</button>
+      <button id="btn-hud-submit" class="btn-hud btn-submit" type="button">Submit Test</button>
+    </div>
+  </header>
+
+  <main id="workspace-view" class="hidden">
+    <section id="questions-pane">
+      <div class="exam-shell">
+        <div class="q-progress-bar">
+          <div class="q-progress-meta"><span>Question <strong id="prog-current">1</strong> of <strong id="prog-total">14</strong></span><span>Tier: <strong>CCEA Foundation [GDW61]</strong></span><span>Checked: <strong id="prog-checked">0 / 14</strong></span><span>Score: <strong id="prog-score">0 / 70</strong></span></div>
+          <div id="q-dots-row" class="q-dots-row"></div>
+        </div>
+        <div id="active-question-slot"></div>
+      </div>
+    </section>
+    <aside id="calculator-pane">
+      <div class="calc-header"><span class="calc-title">Physics Calc Helper</span><span class="calc-badge">CCEA P2 ALLOWED</span></div>
+      <div class="calc-screen"><div id="calc-expr" class="calc-expr"></div><div id="calc-output" class="calc-output">0</div></div>
+      <div class="calc-grid">
+        <button class="calc-btn sci" data-calc="(">(</button><button class="calc-btn sci" data-calc=")">)</button><button class="calc-btn danger" data-action="del">DEL</button><button class="calc-btn danger" data-action="ac">AC</button>
+        <button class="calc-btn" data-calc="7">7</button><button class="calc-btn" data-calc="8">8</button><button class="calc-btn" data-calc="9">9</button><button class="calc-btn op" data-calc="÷">÷</button>
+        <button class="calc-btn" data-calc="4">4</button><button class="calc-btn" data-calc="5">5</button><button class="calc-btn" data-calc="6">6</button><button class="calc-btn op" data-calc="×">×</button>
+        <button class="calc-btn" data-calc="1">1</button><button class="calc-btn" data-calc="2">2</button><button class="calc-btn" data-calc="3">3</button><button class="calc-btn op" data-calc="-">−</button>
+        <button class="calc-btn" data-calc="0">0</button><button class="calc-btn" data-calc=".">.</button><button class="calc-btn equals" data-action="eval">=</button><button class="calc-btn op" data-calc="+">+</button>
+      </div>
+      <p class="calc-tip">Use for <strong>v = f × λ</strong>, <strong>V = I × R</strong>, <strong>Q = I × t</strong>, <strong>P = I × V</strong>, <strong>Cost = kWh × price</strong>, and <strong>Echo distance</strong>.</p>
+    </aside>
+  </main>
+
+  <section id="results-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="report-card">
+        <div class="report-header">
+          <div><h2 class="report-title">CCEA Physics Unit P2 Report Card</h2><p class="report-sub" id="report-submission-meta">Submitted</p></div>
+          <div class="report-actions"><button id="btn-retry-same" class="btn-hud btn-submit" type="button">⚡ New Random Paper</button><button id="btn-switch-paper" class="btn-hud" type="button">Switch Mode</button><button id="btn-results-home" class="btn-hud" type="button">⚡ Phys Home</button><a href="index.html" class="btn-hud">🏠 All Subjects</a></div>
+        </div>
+        <div class="report-stats">
+          <div class="stat-tile"><div class="stat-tile-label">Paper Score</div><div class="stat-tile-value highlight" id="stat-marks">0 / 70</div><div class="stat-tile-sub" id="stat-paper-type">Unit P2 Foundation</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Percentage</div><div class="stat-tile-value" id="stat-percent">0%</div><div class="stat-tile-sub" id="stat-percent-sub">Overall</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Time Taken</div><div class="stat-tile-value" id="stat-time">00m 00s</div><div class="stat-tile-sub" id="stat-allowed-time">Allowed: 75m 00s</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Indicative CCEA Grade</div><div class="stat-tile-value" id="stat-grade">—</div><div class="stat-tile-sub" id="stat-q-correct">0 / 14 correct</div></div>
+        </div>
+      </div>
+      <h3 class="graded-sheet-title">Full Question Review &amp; CCEA Mark Scheme Notes</h3>
+      <div id="graded-sheet" class="graded-list"></div>
+    </div>
+  </section>
+
+  <div id="sheet-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div class="modal-header"><h3>⚡ CCEA Unit P2 Foundation Formulae &amp; Facts</h3><button id="btn-close-sheet" class="modal-close" type="button">×</button></div>
+      <div class="formula-grid">
+        <div class="formula-item"><div class="formula-name">Wave Equations (2.1)</div><div class="formula-expr">v = f × λ (speed = frequency × wavelength)<br/>Echo: Distance = (speed × time) ÷ 2</div></div>
+        <div class="formula-item"><div class="formula-name">EM Spectrum Order (2.1)</div><div class="formula-expr">Radio → Micro → Infrared → Visible → UV → X-rays → Gamma<br/>(All travel at same speed in a vacuum)</div></div>
+        <div class="formula-item"><div class="formula-name">Electricity Equations (2.3)</div><div class="formula-expr">Q = I × t (Charge in C = Current × time)<br/>V = I × R (Voltage = Current × Resistance)<br/>P = I × V | Energy (kWh) = kW × hours</div></div>
+        <div class="formula-item"><div class="formula-name">Series &amp; Parallel (2.3)</div><div class="formula-expr">Series: I same, V splits, R_total = R₁ + R₂<br/>Parallel: I splits, V same across branches</div></div>
+        <div class="formula-item"><div class="formula-name">3-Pin Plug Wiring (2.3)</div><div class="formula-expr">Live = Brown (right, fuse)<br/>Neutral = Blue (left) | Earth = Green/Yellow (top)</div></div>
+        <div class="formula-item"><div class="formula-name">Transformers &amp; Space (2.4–2.5)</div><div class="formula-expr">Step-up: more turns on secondary (↑V)<br/>Planets: MVEMJSUN | Big Bang: Redshift &amp; CMBR</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* ============================================================
+       ANTI-REPEAT CRYPTO RNG ENGINE (Persisted in localStorage)
+       ============================================================ */
+    const DECK_STORAGE_KEY = "calum_phys_p2_decks_v1";
+    const PAPER_HISTORY_KEY = "calum_phys_p2_history_v1";
+    const memDecks = {};
+    const memHistory = {};
+
+    function cryptoFloat() {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+      return Math.random();
+    }
+    function randInt(min, max) { return Math.floor(cryptoFloat() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadStore(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) return obj;
+        }
+      } catch (_) {}
+      return null;
+    }
+    function saveStore(key, obj) {
+      try { window.localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
+    }
+
+    function resolveEntry(entry) {
+      const q = typeof entry === "function" ? entry() : { ...entry };
+      if (q.type === "mcq" && Array.isArray(q.options)) {
+        const mixed = shuffle(q.options.map((opt, idx) => ({ opt, ok: idx === q.correctIndex })));
+        q.options = mixed.map((x) => x.opt);
+        q.correctIndex = mixed.findIndex((x) => x.ok);
+      }
+      return q;
+    }
+
+    function drawFromDeck(deckKey, pool) {
+      if (!pool || !pool.length) return null;
+      const decks = loadStore(DECK_STORAGE_KEY) || memDecks;
+      let deck = decks[deckKey];
+      const valid = deck && deck.len === pool.length && Array.isArray(deck.remaining) &&
+        deck.remaining.every((i) => Number.isInteger(i) && i >= 0 && i < pool.length) &&
+        new Set(deck.remaining).size === deck.remaining.length;
+
+      if (!valid) deck = { len: pool.length, remaining: [], last: null };
+      if (deck.remaining.length === 0) {
+        deck.remaining = shuffle(Array.from({ length: pool.length }, (_, i) => i));
+        if (pool.length > 1 && deck.remaining[deck.remaining.length - 1] === deck.last) {
+          const last = deck.remaining.length - 1;
+          [deck.remaining[last], deck.remaining[0]] = [deck.remaining[0], deck.remaining[last]];
+        }
+      }
+
+      const idx = deck.remaining.pop();
+      deck.last = idx;
+      decks[deckKey] = deck;
+      memDecks[deckKey] = deck;
+      saveStore(DECK_STORAGE_KEY, decks);
+      return resolveEntry(pool[idx]);
+    }
+
+    function buildUniquePaper(mode, pools, count) {
+      const history = loadStore(PAPER_HISTORY_KEY) || memHistory;
+      const recentPrompts = Array.isArray(history.recentPrompts) ? history.recentPrompts : [];
+      const lastFirstPool = history["firstPool_" + mode];
+
+      let ordered = shuffle(Array.from({ length: pools.length }, (_, i) => i));
+      if (ordered.length > 1 && ordered[0] === lastFirstPool) {
+        ordered.push(ordered.shift());
+      }
+      if (count && count < ordered.length) ordered = ordered.slice(0, count);
+
+      const paper = ordered.map((poolIdx, pos) => {
+        const pool = pools[poolIdx];
+        let q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        for (let attempt = 0; attempt < 5; attempt++) {
+          if (!recentPrompts.includes(q.prompt)) break;
+          q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        }
+        return { qNum: pos + 1, ...q };
+      });
+
+      history.recentPrompts = paper.map((q) => q.prompt).concat(recentPrompts).slice(0, 45);
+      history["firstPool_" + mode] = ordered[0];
+      memHistory.recentPrompts = history.recentPrompts;
+      memHistory["firstPool_" + mode] = ordered[0];
+      saveStore(PAPER_HISTORY_KEY, history);
+      return paper;
+    }
+
+    /* ============================================================
+       PROCEDURAL PHYSICS UNIT P2 QUESTION GENERATORS
+       ============================================================ */
+    function genWaveEq(marks = 4) {
+      const f = pick([2, 4, 5, 8, 10, 12, 20]);
+      const lam = pick([0.5, 1.5, 2, 2.5, 3, 4, 5]);
+      const v = Number((f * lam).toFixed(2));
+      const askType = randInt(0, 2);
+      if (askType === 0) {
+        return {
+          topic: "2.1 Wave Equation", marks, type: "input",
+          prompt: `A wave has frequency <code>${f} Hz</code> and wavelength <code>${lam} m</code>. Calculate its wave speed in m/s.`,
+          hint: "v = f × λ", modelAnswer: String(v), acceptedAnswers: [String(v)],
+          steps: [`v = ${f} × ${lam} = ${v} m/s.`]
+        };
+      } else if (askType === 1) {
+        return {
+          topic: "2.1 Wave Equation", marks, type: "input",
+          prompt: `A wave travels at <code>${v} m/s</code> with a frequency of <code>${f} Hz</code>. Calculate its wavelength in metres.`,
+          hint: "λ = v ÷ f", modelAnswer: String(lam), acceptedAnswers: [String(lam)],
+          steps: [`λ = ${v} ÷ ${f} = ${lam} m.`]
+        };
+      }
+      return {
+        topic: "2.1 Wave Equation", marks, type: "input",
+        prompt: `A wave travels at <code>${v} m/s</code> with a wavelength of <code>${lam} m</code>. Calculate its frequency in Hz.`,
+        hint: "f = v ÷ λ", modelAnswer: String(f), acceptedAnswers: [String(f), f + "hz"],
+        steps: [`f = ${v} ÷ ${lam} = ${f} Hz.`]
+      };
+    }
+
+    function genSonarDepth(marks = 5) {
+      const halfT = pick([0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.2]);
+      const totalT = Number((halfT * 2).toFixed(1));
+      const isWater = randInt(0, 1) === 0;
+      const speed = isWater ? 1500 : 340;
+      const depth = Math.round(speed * halfT);
+      return {
+        topic: "2.1 Sonar / Echoes", marks, type: "input",
+        prompt: isWater
+          ? `An ultrasound pulse (speed <code>1500 m/s</code>) takes <code>${totalT} s</code> to travel to the seabed and back. Calculate the depth of the seabed in metres.`
+          : `A student claps near a cliff and hears the echo <code>${totalT} s</code> later (speed of sound = <code>340 m/s</code>). Calculate the distance to the cliff in metres.`,
+        hint: "Distance = (speed × total time) ÷ 2",
+        modelAnswer: String(depth), acceptedAnswers: [String(depth), depth + "m"],
+        steps: [`(${speed} × ${totalT}) ÷ 2 = ${depth} m.`]
+      };
+    }
+
+    function genReflection(marks = 6) {
+      const ang = pick([18, 25, 32, 35, 42, 48, 55, 62, 68]);
+      if (randInt(0, 1) === 0) {
+        return {
+          topic: "2.2 Reflection", marks, type: "input",
+          prompt: `A ray of light hits a plane mirror at an angle of incidence of <code>${ang}°</code> to the normal. State the angle of reflection in degrees.`,
+          hint: "Number only", modelAnswer: String(ang), acceptedAnswers: [String(ang), ang + "°"],
+          steps: [`Angle of reflection = angle of incidence = ${ang}°.`]
+        };
+      }
+      const surf = 90 - ang;
+      return {
+        topic: "2.2 Reflection", marks, type: "input",
+        prompt: `A ray of light strikes a plane mirror making an angle of <code>${surf}°</code> with the <strong>mirror surface</strong>. Calculate the angle of reflection (measured to the normal) in degrees.`,
+        hint: "Subtract from 90° first", modelAnswer: String(ang), acceptedAnswers: [String(ang), ang + "°"],
+        steps: [`Angle of incidence to normal = 90° - ${surf}° = ${ang}°.`, `Angle of reflection = ${ang}°.`]
+      };
+    }
+
+    function genCharge(marks = 5) {
+      const I = pick([2, 3, 4, 5, 6, 8]);
+      const t = pick([10, 15, 20, 25, 30, 40]);
+      const Q = I * t;
+      return {
+        topic: "2.3 Charge (Q = I × t)", marks, type: "input",
+        prompt: `A current of <code>${I} A</code> flows through a lamp for <code>${t} seconds</code>. Calculate the total charge <code>Q</code> in Coulombs.`,
+        hint: "Q = I × t", modelAnswer: String(Q), acceptedAnswers: [String(Q), Q + "c"],
+        steps: [`${I} × ${t} = ${Q} C.`]
+      };
+    }
+
+    function genOhmsLaw(marks = 5) {
+      const I = randInt(2, 6);
+      const R = pick([3, 4, 5, 6, 8, 10, 12]);
+      const V = I * R;
+      const ask = randInt(0, 2);
+      if (ask === 0) {
+        return {
+          topic: "2.3 Ohm's Law (V = I × R)", marks, type: "input",
+          prompt: `A <code>${V} V</code> battery is connected across a <code>${R} Ω</code> resistor. Calculate the current <code>I</code> in Amps.`,
+          hint: "I = V ÷ R", modelAnswer: String(I), acceptedAnswers: [String(I), I + "a"],
+          steps: [`${V} ÷ ${R} = ${I} A.`]
+        };
+      } else if (ask === 1) {
+        return {
+          topic: "2.3 Ohm's Law (V = I × R)", marks, type: "input",
+          prompt: `A current of <code>${I} A</code> flows through a <code>${R} Ω</code> resistor. Calculate the voltage <code>V</code> across it in Volts.`,
+          hint: "V = I × R", modelAnswer: String(V), acceptedAnswers: [String(V), V + "v"],
+          steps: [`${I} × ${R} = ${V} V.`]
+        };
+      }
+      return {
+        topic: "2.3 Ohm's Law (V = I × R)", marks, type: "input",
+        prompt: `When <code>${V} V</code> is applied across a resistor, a current of <code>${I} A</code> flows. Calculate its resistance <code>R</code> in Ω.`,
+        hint: "R = V ÷ I", modelAnswer: String(R), acceptedAnswers: [String(R)],
+        steps: [`${V} ÷ ${I} = ${R} Ω.`]
+      };
+    }
+
+    function genSeriesParallel(marks = 4) {
+      if (randInt(0, 1) === 0) {
+        const r1 = randInt(4, 18), r2 = randInt(5, 22), tot = r1 + r2;
+        return {
+          topic: "2.3 Series Resistance", marks, type: "input",
+          prompt: `Two resistors of <code>${r1} Ω</code> and <code>${r2} Ω</code> are connected in SERIES. Calculate their total resistance in Ω.`,
+          hint: "Add them", modelAnswer: String(tot), acceptedAnswers: [String(tot)],
+          steps: [`${r1} + ${r2} = ${tot} Ω.`]
+        };
+      }
+      const i1 = pick([1.5, 2.0, 2.5, 3.0, 3.5]), i2 = pick([1.5, 2.0, 2.5, 3.5, 4.0]);
+      const tot = Number((i1 + i2).toFixed(1));
+      return {
+        topic: "2.3 Parallel Circuits", marks, type: "input",
+        prompt: `In a parallel circuit, branch 1 carries <code>${i1} A</code> and branch 2 carries <code>${i2} A</code>. Calculate the total current from the battery in Amps.`,
+        hint: "Add branch currents", modelAnswer: String(tot), acceptedAnswers: [String(tot), tot + "a"],
+        steps: [`${i1} + ${i2} = ${tot} A.`]
+      };
+    }
+
+    function genPowerOrCost(marks = 5) {
+      if (randInt(0, 1) === 0) {
+        const V = pick([230, 12]), I = pick([2, 3, 4, 5, 8, 10, 12]), P = V * I;
+        return {
+          topic: "2.3 Electrical Power", marks, type: "input",
+          prompt: `A <code>${V} V</code> appliance draws a current of <code>${I} A</code>. Calculate its electrical power in Watts.`,
+          hint: "P = I × V", modelAnswer: String(P), acceptedAnswers: [String(P), P + "w"],
+          steps: [`${I} × ${V} = ${P} W.`]
+        };
+      }
+      const kw = pick([1.5, 2, 2.5, 3]), hrs = pick([2, 4, 6]), price = pick([20, 24, 28, 30]);
+      const cost = Math.round(kw * hrs * price);
+      return {
+        topic: "2.3 Cost of Electricity (kWh)", marks, type: "input",
+        prompt: `A <code>${kw} kW</code> electric heater runs for <code>${hrs} hours</code>. At <code>${price}p</code> per kWh, calculate the total cost in pence.`,
+        hint: "kW × hours × price", modelAnswer: String(cost), acceptedAnswers: [String(cost), cost + "p"],
+        steps: [`${kw} × ${hrs} = ${kw * hrs} kWh. ${kw * hrs} × ${price}p = ${cost}p.`]
+      };
+    }
+
+    /* ============================================================
+       12 CCEA UNIT P2 LEARN TOPICS
+       ============================================================ */
+    const LEARN_TOPICS = [
+      {
+        id:"waves-properties", title:"2.1 Waves, Echoes & Wave Equation", section:"waves", sectionLabel:"2.1 Waves",
+        shortDesc:"Transverse vs longitudinal waves, amplitude, wavelength, frequency, v = fλ, and echoes/sonar.",
+        whatItIs:"Waves transfer energy without transferring matter. In <strong>transverse</strong> waves (light, water) vibrations are perpendicular to travel; in <strong>longitudinal</strong> waves (sound, ultrasound) vibrations are parallel to travel.",
+        keyRule:"v = f × λ   (m/s = Hz × m)   |   Echo distance to wall/seabed = (speed × total time) ÷ 2",
+        diagramSvg:`<svg width="260" height="120" viewBox="0 0 260 120" xmlns="http://www.w3.org/2000/svg"><line x1="15" y1="60" x2="245" y2="60" stroke="#64748b" stroke-width="1.5"/><path d="M 20 60 Q 45 15, 70 60 T 120 60 T 170 60 T 220 60" fill="none" stroke="#38bdf8" stroke-width="2.4"/><line x1="45" y1="37" x2="45" y2="60" stroke="#10b981" stroke-width="1.8"/><line x1="45" y1="22" x2="145" y2="22" stroke="#fcd34d" stroke-width="1.8"/><text x="49" y="54" fill="#6ee7b7" font-size="10" font-family="monospace">Amp</text><text x="72" y="16" fill="#fcd34d" font-size="10" font-family="monospace">Wavelength λ</text></svg>`,
+        howToSolve:["Always check units: frequency in Hz, wavelength in metres (m), wave speed in m/s.", "For echoes or sonar: the sound goes THERE and BACK, so divide total time by 2."],
+        workedExample:{ q:"A wave has frequency 5 Hz and wavelength 3 m. Find its speed.", steps:["v = f × λ = 5 × 3 = 15 m/s."] },
+        practicePool:[
+          () => genWaveEq(4),
+          () => genSonarDepth(5),
+          { type:"mcq", prompt:"Which statement correctly describes a LONGITUDINAL wave such as sound?", options:["Vibrations are parallel to the direction of wave travel","Vibrations are at 90° to the direction of wave travel","It travels only in a vacuum","It transfers matter instead of energy"], correctIndex:0, steps:["Sound waves are longitudinal: particles vibrate parallel to energy flow."] }
+        ]
+      },
+      {
+        id:"em-spectrum", title:"2.1 The Electromagnetic Spectrum", section:"waves", sectionLabel:"2.1 Waves",
+        shortDesc:"Order from Radio to Gamma, common properties, uses (cooking, imaging, sterilising) & dangers.",
+        whatItIs:"All 7 <strong>electromagnetic (EM) waves</strong> are transverse and travel at the <strong>same speed in a vacuum</strong> (3 × 10⁸ m/s). Going Radio → Gamma, wavelength decreases and frequency/energy increases.",
+        keyRule:"Radio → Microwaves → Infrared → Visible → Ultraviolet → X-rays → Gamma Rays",
+        howToSolve:["Uses: Radio (TV/radio), Microwaves (phones, cooking), Infrared (heaters, remotes), UV (sunbeds, security), X-rays (broken bones), Gamma (sterilising & radiotherapy).", "UV, X-rays & Gamma are ionising and can damage cells / cause cancer."],
+        workedExample:{ q:"Which EM wave is used to sterilise surgical instruments and kill cancer cells?", steps:["Gamma rays (high-energy ionising radiation)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which property do ALL electromagnetic waves share in a vacuum?", options:["Same wavelength","Same frequency","Same speed","Same ionising danger"], correctIndex:2, steps:["All EM waves travel at the speed of light in a vacuum."] },
+          { type:"mcq", prompt:"Which EM wave is used for hospital imaging of broken bones?", options:["Infrared","Microwaves","X-rays","Radio waves"], correctIndex:2, steps:["X-rays pass through soft tissue but are absorbed by dense bone."] },
+          { type:"mcq", prompt:"Which EM wave has the HIGHEST frequency and greatest ionising energy?", options:["Radio waves","Visible light","Ultraviolet","Gamma rays"], correctIndex:3, steps:["Gamma rays sit at the highest-frequency end of the EM spectrum."] }
+        ]
+      },
+      {
+        id:"reflection-refraction", title:"2.2 Reflection, Refraction & Dispersion", section:"waves", sectionLabel:"2.2 Light",
+        shortDesc:"Law of reflection, plane mirror images, refraction in glass blocks, and white light prism dispersion.",
+        whatItIs:"In <strong>reflection</strong>, angle of incidence equals angle of reflection (measured to the <strong>normal</strong>). In <strong>refraction</strong>, light slows down and bends <strong>towards the normal</strong> when entering glass/water.",
+        keyRule:"Angle i = Angle r (to Normal) | Plane mirror image: upright, same size, virtual, laterally inverted",
+        howToSolve:["Always measure angles between the ray and the NORMAL (90° dashed line), NOT the mirror surface!", "Dispersion splits white light (ROYGBIV): violet bends most, red bends least."],
+        workedExample:{ q:"A light ray strikes a plane mirror at 35° to the normal. What is the angle of reflection?", steps:["Angle of reflection = angle of incidence = 35°."] },
+        practicePool:[
+          () => genReflection(6),
+          { type:"mcq", prompt:"When a ray of light passes from air into a rectangular glass block at an angle, what happens?", options:["It speeds up and bends away from the normal","It slows down and bends towards the normal","It speeds up and bends towards the normal","It reflects completely"], correctIndex:1, steps:["Light slows down in denser glass and bends towards the normal."] },
+          { type:"mcq", prompt:"When white light undergoes dispersion through a glass prism, which colour of light is refracted the MOST?", options:["Red","Yellow","Green","Violet"], correctIndex:3, steps:["Violet slows down the most in glass and bends the most."] }
+        ]
+      },
+      {
+        id:"lenses", title:"2.2 Converging (Convex) Lenses", section:"waves", sectionLabel:"2.2 Light",
+        shortDesc:"Focal point, focal length practical, real vs virtual images, camera/projector vs magnifying glass.",
+        whatItIs:"A <strong>converging (convex) lens</strong> brings parallel rays of light together at the <strong>principal focus</strong>. The distance from lens centre to focus is the <strong>focal length (f)</strong>.",
+        keyRule:"Focal length practical: focus distant object (window) onto screen → measure lens-to-screen distance",
+        howToSolve:["Object further than 2f → real, inverted, diminished image (Camera).", "Object closer than f → virtual, upright, magnified image (Magnifying glass)."],
+        workedExample:{ q:"How do you measure the focal length of a convex lens in the lab?", steps:["Focus a distant window sharply onto a white screen and measure the distance from lens to screen."] },
+        practicePool:[
+          { type:"mcq", prompt:"What type of lens is thicker in the middle and brings parallel rays of light together to a focus?", options:["Diverging (concave) lens","Converging (convex) lens","Plane mirror","Triangular prism"], correctIndex:1, steps:["A converging (convex) lens bends parallel rays inward to meet at the focal point."] },
+          { type:"mcq", prompt:"When a converging lens is used as a MAGNIFYING GLASS (object closer than focal length), the image is:", options:["Real, inverted and diminished","Virtual, upright and magnified","Real, upright and same size","Virtual, inverted and diminished"], correctIndex:1, steps:["Inside 1 focal length, a convex lens forms a virtual, upright, magnified image."] },
+          { type:"mcq", prompt:"In the lab focal-length experiment using a distant window, what property of the image on the screen proves it is REAL?", options:["It can be projected onto a screen","It is always upright","It is behind the lens","It has no colour"], correctIndex:0, steps:["A real image is formed where rays meet and can be projected onto a screen."] }
+        ]
+      },
+      {
+        id:"charge-ohms-law", title:"2.3 Charge, Current, Voltage & Ohm's Law", section:"elec", sectionLabel:"2.3 Electricity",
+        shortDesc:"Static electricity, Q = I × t, V = I × R, and I–V graphs for resistors & filament lamps.",
+        whatItIs:"<strong>Electric current (I)</strong> is rate of flow of charge (ammeter in series). <strong>Voltage (V)</strong> is measured with a voltmeter in parallel.",
+        keyRule:"Q = I × t (Coulombs = Amps × seconds)   |   V = I × R (Volts = Amps × Ohms)",
+        howToSolve:["Static electricity: rubbing insulators transfers negative ELECTRONS only.", "Filament lamp I–V graph curves because resistance increases as temperature rises."],
+        workedExample:{ q:"A current of 2.5 A flows through a 12 Ω resistor. Calculate voltage.", steps:["V = I × R = 2.5 × 12 = 30 V."] },
+        practicePool:[
+          () => genCharge(5),
+          () => genOhmsLaw(5),
+          { type:"mcq", prompt:"When a polythene rod is rubbed with a dry cloth and becomes negatively charged, what moved?", options:["Positive protons moved onto the rod","Negative electrons moved from cloth onto the rod","Neutrons moved onto the rod","Positive electrons moved"], correctIndex:1, steps:["Only negatively charged electrons transfer by friction."] }
+        ]
+      },
+      {
+        id:"series-parallel", title:"2.3 Series & Parallel Circuits", section:"elec", sectionLabel:"2.3 Electricity",
+        shortDesc:"Rules for current, voltage, and total resistance in series and parallel circuits.",
+        whatItIs:"In a <strong>series circuit</strong> current is the same everywhere and voltage splits. In a <strong>parallel circuit</strong> voltage across each branch is the same and current splits.",
+        keyRule:"Series: R_total = R₁ + R₂ (I same, V splits) | Parallel: V same across branches, I_total = I₁ + I₂",
+        howToSolve:["Series resistors add up.", "Adding a parallel branch lowers total resistance."],
+        workedExample:{ q:"Two resistors of 6 Ω and 9 Ω are connected in series. Find total resistance.", steps:["R_total = 6 + 9 = 15 Ω."] },
+        practicePool:[
+          () => genSeriesParallel(4),
+          { type:"mcq", prompt:"Why are house lights wired in PARALLEL rather than series?", options:["So all lights share the same current","If one bulb breaks, the others stay on and each gets full mains voltage","Parallel circuits use less wire","Parallel bulbs are always dimmer"], correctIndex:1, steps:["Each branch gets full 230 V and works independently if another bulb blows."] }
+        ]
+      },
+      {
+        id:"domestic-power", title:"2.3 Electrical Power, kWh & 3-Pin Plugs", section:"elec", sectionLabel:"2.3 Electricity",
+        shortDesc:"P = I × V, calculating electricity cost in kWh, 3-pin plug wires, fuses & earth safety.",
+        whatItIs:"<strong>Electrical power (P)</strong> in Watts = <code>I × V</code>. Domestic meters measure energy in <strong>kilowatt-hours (kWh)</strong>.",
+        keyRule:"P = I × V | Units (kWh) = kW × hours | Plug: Live=Brown, Neutral=Blue, Earth=Green/Yellow",
+        howToSolve:["Fuse melts on Live wire if current exceeds rating; Earth wire + metal case stops electric shock; Double insulation needs no Earth."],
+        workedExample:{ q:"A 2 kW heater runs for 3 hours at 25p per kWh. Find the cost.", steps:["Energy = 6 kWh. Cost = 6 × 25 = 150p (£1.50)."] },
+        practicePool:[
+          () => genPowerOrCost(5),
+          { type:"mcq", prompt:"In a standard UK 3-pin plug, what colour is the LIVE wire (connected to the fuse)?", options:["Blue","Brown","Green and yellow","Black"], correctIndex:1, steps:["Live = Brown (bottom right, attached to fuse); Neutral = Blue; Earth = Green/Yellow."] }
+        ]
+      },
+      {
+        id:"magnets-electromagnets", title:"2.4 Magnetism & Electromagnets", section:"mag", sectionLabel:"2.4 Magnetism",
+        shortDesc:"Bar magnet field lines (N → S), plotting compasses, and factors strengthening electromagnets.",
+        whatItIs:"Magnetic field lines point <strong>North to South</strong>. A solenoid with a <strong>soft iron core</strong> forms an <strong>electromagnet</strong>.",
+        keyRule:"Strengthen electromagnet: ↑ Current | ↑ Number of turns/coils | Add a soft IRON core",
+        diagramSvg:`<svg width="240" height="115" viewBox="0 0 240 115" xmlns="http://www.w3.org/2000/svg"><rect x="65" y="42" width="55" height="30" fill="#f43f5e" stroke="#f1f5f9"/><rect x="120" y="42" width="55" height="30" fill="#38bdf8" stroke="#f1f5f9"/><text x="87" y="62" fill="#fff" font-size="14" font-family="monospace" font-weight="bold">N</text><text x="142" y="62" fill="#031120" font-size="14" font-family="monospace" font-weight="bold">S</text><path d="M 85 42 C 85 8, 155 8, 155 42" fill="none" stroke="#fcd34d" stroke-width="1.8"/><path d="M 85 72 C 85 106, 155 106, 155 72" fill="none" stroke="#fcd34d" stroke-width="1.8"/></svg>`,
+        howToSolve:["Magnetic materials: Iron, Steel, Nickel, Cobalt.", "Soft iron loses magnetism quickly when current turns off."],
+        workedExample:{ q:"State three ways to make an electromagnet stronger.", steps:["1. Increase current.", "2. Increase coil turns.", "3. Insert a soft iron core."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which metal is best for the core of an electromagnet because it magnetises and demagnetises easily?", options:["Copper","Aluminium","Soft iron","Plastic"], correctIndex:2, steps:["Soft iron concentrates the magnetic field and loses magnetism when switched off."] },
+          { type:"mcq", prompt:"Which direction do magnetic field lines always point outside a bar magnet?", options:["South to North","North to South","East to West","Upwards only"], correctIndex:1, steps:["Field lines point from North pole to South pole."] },
+          { type:"mcq", prompt:"Which change will WEAKEN an electromagnet?", options:["Increasing the current","Adding more turns of wire","Removing the iron core","Using a higher voltage battery"], correctIndex:2, steps:["Removing the iron core greatly reduces magnetic field strength."] }
+        ]
+      },
+      {
+        id:"motor-induction", title:"2.4 Motor Effect, Generators & Transformers", section:"mag", sectionLabel:"2.4 Magnetism",
+        shortDesc:"Force on a wire in a magnetic field, inducing voltage (generators), and step-up/step-down transformers.",
+        whatItIs:"Current in a magnetic field feels a force (<strong>motor effect</strong>). Moving a magnet into a coil <strong>induces</strong> voltage. <strong>Transformers</strong> change AC voltages.",
+        keyRule:"Step-up transformer: more turns on secondary (↑ V, ↓ I) | Transformers ONLY work on AC!",
+        howToSolve:["To increase induced voltage: move magnet faster, stronger magnet, more coil turns.", "National Grid steps voltage UP (low current → less heat wasted in cables)."],
+        workedExample:{ q:"Why does the National Grid step voltage UP to 400,000 V along pylons?", steps:["High voltage means lower current, reducing energy lost as heat in the cables."] },
+        practicePool:[
+          { type:"mcq", prompt:"Why do transformers ONLY work with alternating current (AC) and NOT steady direct current (DC)?", options:["DC has too high a voltage","AC creates a continuously changing magnetic field needed to induce voltage in the secondary coil","DC melts the iron core","Transformers only work in batteries"], correctIndex:1, steps:["A changing magnetic field is required to induce an alternating voltage."] },
+          { type:"mcq", prompt:"A transformer has 100 turns on the primary coil and 500 turns on the secondary coil. This is a:", options:["Step-down transformer","Step-up transformer","Direct current motor","Battery"], correctIndex:1, steps:["More turns on the secondary coil increases (steps up) voltage."] },
+          { type:"mcq", prompt:"Which action will NOT increase the voltage induced when a magnet is pushed into a coil?", options:["Moving the magnet faster","Using a stronger magnet","Using a coil with more turns","Holding the magnet completely still inside the coil"], correctIndex:3, steps:["Relative motion is essential; a stationary magnet induces 0 V."] }
+        ]
+      },
+      {
+        id:"solar-system-orbits", title:"2.5 The Solar System & Orbits", section:"space", sectionLabel:"2.5 Space",
+        shortDesc:"8 planets in order, moons, asteroids, comets, gravity, day/night & seasons.",
+        whatItIs:"8 planets: <strong>Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune</strong>. <strong>Gravity</strong> keeps planets in orbit.",
+        keyRule:"Order: My Very Easy Method Just Speeds Up Naming (MVEMJSUN) | Gravity keeps planets in orbit",
+        howToSolve:["Inner 4 = small rocky; Outer 4 = gas/ice giants.", "24h spin = Day/Night; 365.25d orbit = Year; Axial tilt = Seasons."],
+        workedExample:{ q:"What force keeps the Moon orbiting Earth and planets orbiting the Sun?", steps:["Gravitational attraction (gravity)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which list puts the four planets closest to the Sun in the CORRECT order?", options:["Mercury, Mars, Venus, Earth","Mercury, Venus, Earth, Mars","Venus, Mercury, Earth, Mars","Earth, Venus, Mars, Mercury"], correctIndex:1, steps:["Mercury, Venus, Earth, Mars (MVEM)."] },
+          { type:"mcq", prompt:"What causes the different seasons (summer/winter) on Earth?", options:["The Earth spinning on its axis every 24 hours","The tilt of the Earth's axis as it orbits the Sun","The Moon blocking sunlight","Changes in the Sun's mass"], correctIndex:1, steps:["Earth's tilted axis changes the angle and duration of sunlight during its orbit."] },
+          { type:"mcq", prompt:"Where is the main asteroid belt located?", options:["Between Mercury and Venus","Between Mars and Jupiter","Beyond Neptune","Between Earth and the Moon"], correctIndex:1, steps:["Most asteroids orbit between Mars and Jupiter."] }
+        ]
+      },
+      {
+        id:"life-cycle-stars", title:"2.5 Life Cycle of a Star", section:"space", sectionLabel:"2.5 Space",
+        shortDesc:"Nebula → protostar → main sequence (nuclear fusion) → red giant → white dwarf / supernova & black hole.",
+        whatItIs:"Stars form from a <strong>nebula</strong> pulled together by gravity. Inside a <strong>main sequence</strong> star, <strong>nuclear fusion</strong> joins hydrogen into helium.",
+        keyRule:"Sun-like star: Nebula → Protostar → Main Sequence → Red Giant → White Dwarf (→ Black Dwarf)",
+        howToSolve:["Massive stars: Main Sequence → Red Supergiant → SUPERNOVA → Neutron Star or Black Hole."],
+        workedExample:{ q:"What nuclear process powers a Main Sequence star like our Sun?", steps:["Nuclear fusion of hydrogen nuclei into helium nuclei."] },
+        practicePool:[
+          { type:"mcq", prompt:"What is the name of the giant cloud of dust and gas from which a star first forms?", options:["Galaxy","Nebula","Supernova","White dwarf"], correctIndex:1, steps:["Gravity pulls dust and gas in a nebula together to form a protostar."] },
+          { type:"mcq", prompt:"What is the next stage for a star about the same size as our Sun after it runs out of hydrogen in its core (leaving Main Sequence)?", options:["Black hole","Red giant","Neutron star","Nebula"], correctIndex:1, steps:["A Sun-sized star expands into a Red Giant, then cools into a White Dwarf."] },
+          { type:"mcq", prompt:"Which giant explosion occurs at the end of a very MASSIVE star's red supergiant stage?", options:["Big Bang","Supernova","Nuclear fission","Refraction"], correctIndex:1, steps:["Massive stars explode as a supernova, leaving a neutron star or black hole."] }
+        ]
+      },
+      {
+        id:"big-bang-redshift", title:"2.5 The Big Bang, Redshift & CMBR", section:"space", sectionLabel:"2.5 Space",
+        shortDesc:"Expanding Universe, Redshift of distant galaxies, and Cosmic Microwave Background Radiation (CMBR).",
+        whatItIs:"The <strong>Big Bang theory</strong> is supported by <strong>redshift</strong> of distant galaxies (Universe expanding) and <strong>CMBR</strong> (leftover microwave radiation).",
+        keyRule:"Evidence 1: Redshift (galaxies moving away; further = faster) | Evidence 2: CMBR (leftover heat)",
+        howToSolve:["Further galaxy = bigger redshift = moving away faster.", "CMBR fills all of space as leftover heat from the early Big Bang."],
+        workedExample:{ q:"Give two pieces of scientific evidence supporting the Big Bang theory.", steps:["1. Redshift of light from distant galaxies.", "2. Cosmic Microwave Background Radiation (CMBR)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Light from distant galaxies is shifted towards the red end of the spectrum. What does this 'redshift' show?", options:["Galaxies are cooling down to red giants","Galaxies are moving away from us and the Universe is expanding","Light speeds up in space","Galaxies are moving towards Earth"], correctIndex:1, steps:["Wavelength stretching (redshift) shows galaxies are receding as space expands."] },
+          { type:"mcq", prompt:"Alongside redshift, what is the second major piece of evidence supporting the Big Bang theory?", options:["Fossils on Mars","Cosmic Microwave Background Radiation (CMBR)","Solar eclipses","Earth's magnetic field"], correctIndex:1, steps:["CMBR is uniform microwave radiation left over from the hot Big Bang."] },
+          { type:"mcq", prompt:"Which galaxy would show the LARGEST redshift?", options:["The closest galaxy to Earth","A galaxy 100 million light years away","The furthest galaxy observed from Earth","Our own Milky Way"], correctIndex:2, steps:["The further away a galaxy is, the greater its redshift."] }
+        ]
+      }
+    ];
+
+    /* 14 CCEA UNIT P2 [GDW61] EXAM POOLS (Sum = 70 Marks) */
+    const FULL_P2_POOLS = [
+      [
+        () => genWaveEq(4),
+        { topic:"2.1 Transverse vs Longitudinal", marks:4, type:"mcq", prompt:"Which statement correctly describes a LONGITUDINAL wave such as sound?", options:["Vibrations are parallel to the direction of travel","Vibrations are at 90° to the direction of travel","It travels fastest in a vacuum","It transfers matter"], correctIndex:0, steps:["Sound waves vibrate parallel to wave direction."] }
+      ],
+      [
+        () => genSonarDepth(5),
+        { topic:"2.1 EM Spectrum", marks:5, type:"mcq", prompt:"Which EM wave has the HIGHEST frequency and greatest ionising energy?", options:["Radio waves","Infrared","Visible light","Gamma rays"], correctIndex:3, steps:["Gamma rays are at the highest-frequency end of the EM spectrum."] },
+        { topic:"2.1 EM Properties", marks:5, type:"mcq", prompt:"Which property is IDENTICAL for all electromagnetic waves travelling in a vacuum?", options:["Wavelength","Frequency","Speed","Ionising energy"], correctIndex:2, steps:["All EM waves travel at the speed of light in a vacuum."] }
+      ],
+      [
+        () => genReflection(6),
+        { topic:"2.2 Refraction & Dispersion", marks:6, type:"mcq", prompt:"When white light passes through a glass prism (dispersion), which colour bends the MOST?", options:["Red","Orange","Green","Violet"], correctIndex:3, steps:["Violet slows down the most and bends the most; red bends least."] }
+      ],
+      [
+        { topic:"2.2 Converging Lenses", marks:5, type:"mcq", prompt:"When a converging (convex) lens is used as a magnifying glass, the image formed is:", options:["Real, inverted and diminished","Virtual, upright and magnified","Real, upright and diminished","Virtual, inverted and same size"], correctIndex:1, steps:["Inside 1 focal length, a convex lens acts as a magnifying glass (virtual, upright, magnified)."] },
+        { topic:"2.2 Refraction", marks:5, type:"mcq", prompt:"When light travels from air into a glass block at an angle, it:", options:["Speeds up and bends away from the normal","Slows down and bends towards the normal","Slows down and bends away from the normal","Stops completely"], correctIndex:1, steps:["Light slows down in optically denser glass and bends towards the normal."] },
+        { topic:"2.2 Lenses Practical", marks:5, type:"mcq", prompt:"How is the focal length of a convex lens measured in a school lab?", options:["Focus a distant window onto a screen and measure lens-to-screen distance","Heat the lens in water","Shine light through a prism","Measure the lens thickness"], correctIndex:0, steps:["Parallel rays from a distant object meet at the focal point."] }
+      ],
+      [
+        () => genCharge(5),
+        { topic:"2.3 Static Electricity", marks:5, type:"mcq", prompt:"When a polythene rod is rubbed with a cloth and becomes negatively charged, what has transferred?", options:["Positive protons onto the rod","Negative electrons onto the rod","Neutrons from the rod","Positive ions"], correctIndex:1, steps:["Only negatively charged electrons transfer by friction."] }
+      ],
+      [
+        () => genOhmsLaw(5),
+        { topic:"2.3 Filament Lamp I–V", marks:5, type:"mcq", prompt:"Why does the resistance of a filament lamp INCREASE as the current through it increases?", options:["The filament gets hotter so metal ions vibrate more","The battery runs flat","Protons escape the wire","Voltage becomes negative"], correctIndex:0, steps:["Higher temperature makes lattice ions vibrate more, obstructing electron flow."] }
+      ],
+      [() => genSeriesParallel(4)],
+      [() => genPowerOrCost(5)],
+      [
+        { topic:"2.3 3-Pin Plug Wiring", marks:6, type:"mcq", prompt:"In a UK 3-pin plug, what colour is the LIVE wire connected to the fuse?", options:["Blue","Brown","Green and yellow","White"], correctIndex:1, steps:["Live = Brown; Neutral = Blue; Earth = Green/Yellow."] },
+        { topic:"2.3 Parallel Household Lights", marks:6, type:"mcq", prompt:"Why are domestic house lights wired in PARALLEL rather than series?", options:["So if one bulb breaks, the others stay on and each gets full 230 V","So they share current equally in one loop","So they use less current","To increase total resistance"], correctIndex:0, steps:["Parallel branches are independent and receive full mains voltage."] },
+        { topic:"2.3 Electrical Safety", marks:6, type:"mcq", prompt:"Why does a hairdryer with an all-plastic outer casing NOT need an earth wire?", options:["It is double insulated so no metal case can become live","Plastic conducts electricity safely","It uses a 12 V battery","Fuses do not fit plastic plugs"], correctIndex:0, steps:["Double insulation removes the risk of an outer metal case becoming live."] }
+      ],
+      [
+        { topic:"2.4 Electromagnets", marks:4, type:"mcq", prompt:"Which material is best for the core of an electromagnet because it magnetises and demagnetises easily?", options:["Copper","Aluminium","Soft iron","Plastic"], correctIndex:2, steps:["Soft iron loses magnetism quickly when the current is turned off."] },
+        { topic:"2.4 Magnetic Fields", marks:4, type:"mcq", prompt:"Which direction do magnetic field lines always point outside a bar magnet?", options:["South to North","North to South","Upwards only","In circles around the South pole only"], correctIndex:1, steps:["Field lines point from North to South."] },
+        { topic:"2.4 Strengthening Electromagnets", marks:4, type:"mcq", prompt:"Which change will WEAKEN an electromagnet?", options:["Increasing the current","Adding more turns","Removing the iron core","Using a higher voltage"], correctIndex:2, steps:["Removing the iron core weakens the magnetic field."] }
+      ],
+      [
+        { topic:"2.4 Transformers", marks:5, type:"mcq", prompt:"Why do transformers ONLY work with alternating current (AC) and NOT steady direct current (DC)?", options:["DC voltage is too low","AC produces a continuously changing magnetic field needed to induce voltage in the secondary coil","DC melts copper","Transformers contain batteries"], correctIndex:1, steps:["Electromagnetic induction requires a changing magnetic field."] },
+        { topic:"2.4 Step-Up Transformers", marks:5, type:"mcq", prompt:"A transformer has 100 turns on its primary coil and 500 turns on its secondary coil. This is a:", options:["Step-down transformer","Step-up transformer","DC motor","Voltmeter"], correctIndex:1, steps:["More secondary turns step UP the voltage."] },
+        { topic:"2.4 Induced Voltage", marks:5, type:"mcq", prompt:"Which action produces ZERO induced voltage in a coil?", options:["Pushing a magnet in fast","Pulling a magnet out","Holding a magnet completely still inside the coil","Using a stronger moving magnet"], correctIndex:2, steps:["A stationary magnet gives no changing magnetic field."] }
+      ],
+      [
+        { topic:"2.5 Solar System", marks:5, type:"mcq", prompt:"Which list gives the four inner rocky planets in correct order from the Sun?", options:["Mercury, Mars, Venus, Earth","Mercury, Venus, Earth, Mars","Venus, Mercury, Earth, Mars","Earth, Mars, Venus, Mercury"], correctIndex:1, steps:["Mercury, Venus, Earth, Mars."] },
+        { topic:"2.5 Seasons & Tilt", marks:5, type:"mcq", prompt:"What causes the seasons (summer and winter) on Earth?", options:["Earth spinning once every 24 hours","The tilt of Earth's axis as it orbits the Sun","The Moon's orbit","Solar flares"], correctIndex:1, steps:["Earth's axial tilt causes seasonal changes in sunlight."] },
+        { topic:"2.5 Asteroid Belt", marks:5, type:"mcq", prompt:"Where is the main asteroid belt in our Solar System located?", options:["Between Mercury and Venus","Between Mars and Jupiter","Beyond Neptune","Between Earth and Moon"], correctIndex:1, steps:["The main asteroid belt lies between Mars and Jupiter."] }
+      ],
+      [
+        { topic:"2.5 Star Life Cycle", marks:6, type:"mcq", prompt:"What is the next stage for a Sun-sized star after it leaves the Main Sequence?", options:["Black hole","Red giant","Neutron star","Nebula"], correctIndex:1, steps:["Sun-sized stars expand into a Red Giant before becoming a White Dwarf."] },
+        { topic:"2.5 Star Formation", marks:6, type:"mcq", prompt:"What nuclear process inside a Main Sequence star releases its huge energy?", options:["Nuclear fission of uranium","Nuclear fusion of hydrogen into helium","Combustion of oxygen","Radioactive decay"], correctIndex:1, steps:["Main Sequence stars fuse hydrogen nuclei into helium."] },
+        { topic:"2.5 Massive Stars", marks:6, type:"mcq", prompt:"What giant explosion occurs at the end of a very MASSIVE star's red supergiant stage?", options:["Big Bang","Supernova","Refraction","Fission"], correctIndex:1, steps:["Massive stars end in a supernova explosion."] }
+      ],
+      [
+        { topic:"2.5 Big Bang & Redshift", marks:5, type:"mcq", prompt:"Light from distant galaxies is redshifted. What does this provide evidence for?", options:["Galaxies are moving away from us and the Universe is expanding","Galaxies are moving towards us","Stars are turning red","Light travels slower in space"], correctIndex:0, steps:["Redshift shows distant galaxies are receding."] },
+        { topic:"2.5 Big Bang Evidence", marks:5, type:"mcq", prompt:"Alongside redshift, what is the second major piece of evidence for the Big Bang theory?", options:["Ocean tides","Cosmic Microwave Background Radiation (CMBR)","Moon craters","Magnetic north"], correctIndex:1, steps:["CMBR is leftover radiation from the hot early Big Bang."] },
+        { topic:"2.5 Expanding Universe", marks:5, type:"mcq", prompt:"Which galaxy shows the GREATEST redshift?", options:["The closest galaxy","A nearby dwarf galaxy","The furthest galaxy observed from Earth","The Milky Way"], correctIndex:2, steps:["Further galaxies recede faster and show greater redshift."] }
+      ]
+    ];
+
+    /* ============================================================
+       APP STATE & UI LOGIC
+       ============================================================ */
+    const state = {
+      examMode:"full", durationSeconds:75*60, activePaper:[], responses:[], checked:[], isCorrect:[], skipped:[],
+      currentIdx:0, timeRemaining:75*60, timerId:null, paperSubmitted:false, paperCode:"",
+      learnFilter:"all", activeTopic:null, learnQuestion:null, learnResponse:"", learnChecked:false, learnIsCorrect:false
+    };
+    const views = {
+      home:document.getElementById("home-view"), learnMenu:document.getElementById("learn-menu-view"),
+      learnDetail:document.getElementById("learn-detail-view"), testSelect:document.getElementById("test-select-view"),
+      hud:document.getElementById("hud-bar"), workspace:document.getElementById("workspace-view"), results:document.getElementById("results-view")
+    };
+
+    function showOnlyViews(...keys) {
+      stopCountdownTimer();
+      Object.entries(views).forEach(([k,el]) => el.classList.toggle("hidden", !keys.includes(k)));
+      window.scrollTo({top:0, behavior:"auto"});
+    }
+    function escapeHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+    function normAns(s) {
+      return String(s||"").toLowerCase().trim()
+        .replace(/(?:\s*(?:m\/s|ohms|hz|°|c|a|v|w|p|m|ω))+$/i, "")
+        .replace(/\s+/g, "");
+    }
+    function isRight(q, r) {
+      if (q.type === "mcq") return r !== "" && r !== null && Number(r) === q.correctIndex;
+      const n = normAns(r);
+      return Boolean(n) && q.acceptedAnswers.some((a) => normAns(a) === n);
+    }
+    function modelDisp(q) { return q.type==="mcq" ? `${["A","B","C","D"][q.correctIndex]}: ${q.options[q.correctIndex]}` : q.modelAnswer; }
+    function userDisp(q, r) { return q.type==="mcq" ? (r===""||r===null?"[No Option Selected]":`${["A","B","C","D"][Number(r)]}: ${q.options[Number(r)]}`) : (String(r||"").trim()||"[No Response]"); }
+
+    function renderTopicsGrid() {
+      const grid = document.getElementById("topics-grid");
+      grid.innerHTML = "";
+      LEARN_TOPICS.filter((t) => state.learnFilter==="all" || t.section===state.learnFilter).forEach((topic) => {
+        const idx = LEARN_TOPICS.indexOf(topic)+1, btn = document.createElement("button");
+        btn.type = "button"; btn.className = "topic-btn";
+        btn.innerHTML = `<div><div class="topic-btn-top"><span class="topic-num">TOPIC ${String(idx).padStart(2,"0")}</span><span class="topic-section-tag tag-${topic.section}">${escapeHtml(topic.sectionLabel)}</span></div><div class="topic-btn-title" style="margin-top:8px;">${escapeHtml(topic.title)}</div></div><div class="topic-btn-sub">${escapeHtml(topic.shortDesc)}</div>`;
+        btn.addEventListener("click", () => openLearnTopic(topic.id));
+        grid.appendChild(btn);
+      });
+    }
+
+    document.querySelectorAll(".filter-pill").forEach((p) => p.addEventListener("click", () => {
+      state.learnFilter = p.dataset.filter;
+      document.querySelectorAll(".filter-pill").forEach((x) => x.classList.remove("active"));
+      p.classList.add("active");
+      renderTopicsGrid();
+    }));
+
+    function openLearnTopic(id) {
+      const t = LEARN_TOPICS.find((x) => x.id === id); if (!t) return;
+      state.activeTopic = t; showOnlyViews("learnDetail");
+      const badge = document.getElementById("detail-section-badge");
+      badge.textContent = t.sectionLabel;
+      badge.className = "badge-pill " + (t.section==="elec" ? "amber" : t.section==="mag" ? "emerald" : "");
+      document.getElementById("detail-title").textContent = t.title;
+      document.getElementById("detail-subtitle").textContent = t.shortDesc;
+      document.getElementById("detail-what").innerHTML = t.whatItIs;
+      document.getElementById("detail-rule").textContent = t.keyRule;
+      const d = document.getElementById("detail-diagram");
+      if (t.diagramSvg) { d.innerHTML = t.diagramSvg; d.classList.remove("hidden"); } else { d.innerHTML = ""; d.classList.add("hidden"); }
+      document.getElementById("detail-howto").innerHTML = t.howToSolve.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      document.getElementById("detail-example-q").textContent = t.workedExample.q;
+      document.getElementById("detail-example-steps").innerHTML = t.workedExample.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      drawLearnPracticeQuestion();
+    }
+
+    function drawLearnPracticeQuestion() {
+      const t = state.activeTopic; if (!t) return;
+      state.learnQuestion = drawFromDeck(`learn:${t.id}`, t.practicePool);
+      state.learnResponse = ""; state.learnChecked = false; state.learnIsCorrect = false;
+      renderLearnPracticeCard();
+    }
+
+    function renderLearnPracticeCard() {
+      const slot = document.getElementById("learn-practice-slot"), q = state.learnQuestion; if (!q) return;
+      const isC = state.learnChecked, isOk = state.learnIsCorrect, letters = ["A","B","C","D"];
+      let ui = q.type==="mcq"
+        ? `<div class="mcq-grid">` + q.options.map((o,i) => { let cls="mcq-option"; if(!isC&&state.learnResponse===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(state.learnResponse===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`; }).join("") + `</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="learn-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(state.learnResponse)}" ${isC?"disabled":""} />`;
+
+      const fb = isC ? `<div class="feedback-panel ${isOk?"correct":"incorrect"}" style="margin-top:16px;margin-bottom:0;"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?"✓ Correct!":"✗ Incorrect — check the CCEA mark scheme:"}</div>${!isOk?`<div class="feedback-answer-line"><span>Right Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">Explanation:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>` : "";
+      slot.innerHTML = `<div class="worked-example-box"><p class="q-prompt">${q.prompt}</p>${ui}<div class="q-nav-actions"><div></div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-learn-q">✓ Check Answer</button>`:`<button type="button" class="btn-action btn-next" id="btn-next-learn-q">🎲 Another Random Question</button>`}</div></div>${fb}</div>`;
+
+      if (q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach((b) => b.addEventListener("click", () => { if (!state.learnChecked) { state.learnResponse = b.dataset.optIdx; renderLearnPracticeCard(); } }));
+      else { const inp = document.getElementById("learn-text-input"); if (inp) { inp.addEventListener("input", (e) => state.learnResponse = e.target.value); inp.addEventListener("keydown", (e) => { if (e.key==="Enter" && !state.learnChecked) document.getElementById("btn-check-learn-q").click(); }); } }
+
+      const cb = document.getElementById("btn-check-learn-q"); if (cb) cb.addEventListener("click", () => { if (state.learnResponse==="") return alert("Enter or select an answer first."); state.learnChecked = true; state.learnIsCorrect = isRight(q, state.learnResponse); renderLearnPracticeCard(); });
+      const nb = document.getElementById("btn-next-learn-q"); if (nb) nb.addEventListener("click", drawLearnPracticeQuestion);
+    }
+
+    function startMockExam(mode) {
+      state.examMode = mode;
+      state.durationSeconds = mode==="full" ? 75*60 : 25*60;
+      const count = mode==="full" ? FULL_P2_POOLS.length : 7;
+      state.activePaper = buildUniquePaper(mode, FULL_P2_POOLS, count);
+
+      const n = state.activePaper.length;
+      state.responses = new Array(n).fill(""); state.checked = new Array(n).fill(false);
+      state.isCorrect = new Array(n).fill(false); state.skipped = new Array(n).fill(false);
+      state.currentIdx = 0; state.timeRemaining = state.durationSeconds; state.paperSubmitted = false;
+      state.paperCode = (mode==="full" ? "GDW61-" : "BLITZ-") + randInt(1000, 9999);
+
+      const tot = state.activePaper.reduce((s,q) => s + q.marks, 0);
+      document.getElementById("hud-title").textContent = mode==="full" ? `CCEA Physics Unit P2 Foundation (${tot} Marks)` : `Physics Unit P2 Quick Blitz (${tot} Marks)`;
+      document.getElementById("hud-paper-id").textContent = "PAPER ID: " + state.paperCode;
+      document.getElementById("prog-total").textContent = n;
+      showOnlyViews("hud", "workspace");
+      renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); startCountdownTimer();
+    }
+
+    function updateTestProgressMeta() {
+      const tot = state.activePaper.reduce((s,q) => s + q.marks, 0), chk = state.checked.filter(Boolean).length;
+      const earn = state.activePaper.reduce((s,q,i) => s + (state.checked[i] && state.isCorrect[i] ? q.marks : 0), 0);
+      document.getElementById("prog-current").textContent = state.currentIdx + 1;
+      document.getElementById("prog-checked").textContent = `${chk} / ${state.activePaper.length}`;
+      document.getElementById("prog-score").textContent = `${earn} / ${tot}`;
+    }
+
+    function renderQuestionDots() {
+      const row = document.getElementById("q-dots-row"); row.innerHTML = "";
+      state.activePaper.forEach((q, i) => {
+        const d = document.createElement("button"); d.type = "button"; d.className = "q-dot-btn"; d.textContent = q.qNum;
+        if (i===state.currentIdx) d.classList.add("current");
+        if (state.checked[i]) d.classList.add(state.isCorrect[i] ? "correct" : "incorrect");
+        else if (state.skipped[i]) d.classList.add("skipped");
+        d.addEventListener("click", () => goToTestQuestion(i));
+        row.appendChild(d);
+      });
+    }
+
+    function goToTestQuestion(i) {
+      if (i<0 || i>=state.activePaper.length) return;
+      state.currentIdx = i; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      document.getElementById("questions-pane").scrollTop = 0;
+    }
+
+    function renderCurrentTestQuestion() {
+      const slot = document.getElementById("active-question-slot"), idx = state.currentIdx, q = state.activePaper[idx];
+      const isLast = idx===state.activePaper.length-1, isC = state.checked[idx], isOk = state.isCorrect[idx], val = state.responses[idx], letters = ["A","B","C","D"];
+      let ui = q.type==="mcq"
+        ? `<div class="mcq-grid">` + q.options.map((o,i) => { let cls="mcq-option"; if(!isC&&val===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(val===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`; }).join("") + `</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="test-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(val)}" ${isC?"disabled":""} />`;
+
+      const fb = isC ? `<div class="feedback-panel ${isOk?"correct":"incorrect"}"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?`✓ Correct! (+${q.marks}/${q.marks} marks)`:`✗ Incorrect (0/${q.marks} marks)`}</div>${!isOk?`<div class="feedback-answer-line"><span>Correct Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">CCEA Mark Scheme Note:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>` : "";
+      slot.innerHTML = `<article class="question-card"><div class="q-top-row"><div class="q-number-group"><span class="q-badge">Question ${q.qNum} / ${state.activePaper.length}</span><span class="q-topic">${escapeHtml(q.topic)}</span></div><span class="q-marks">[${q.marks} marks]</span></div><p class="q-prompt">${q.prompt}</p>${ui}${fb}<div class="q-nav-actions"><div class="q-nav-left"><button type="button" class="btn-action" id="btn-prev-q" ${idx===0?"disabled":""}>← Back</button>${!isC&&!isLast?`<button type="button" class="btn-action btn-skip" id="btn-skip-q">Skip →</button>`:""}</div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-q">✓ Submit Answer</button>`:""}${!isLast&&isC?`<button type="button" class="btn-action btn-next" id="btn-next-q">Next Question →</button>`:""}${isLast?`<button type="button" class="btn-action btn-finish-test" id="btn-finish-test">🏁 Submit Test &amp; See Score</button>`:""}</div></div></article>`;
+
+      if (q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach((b) => b.addEventListener("click", () => { if (!state.checked[idx]) { state.responses[idx] = b.dataset.optIdx; renderCurrentTestQuestion(); } }));
+      else { const inp = document.getElementById("test-text-input"); if (inp) { inp.addEventListener("input", (e) => state.responses[idx] = e.target.value); inp.addEventListener("keydown", (e) => { if (e.key==="Enter" && !state.checked[idx]) document.getElementById("btn-check-q").click(); }); } }
+
+      document.getElementById("btn-prev-q").addEventListener("click", () => goToTestQuestion(idx-1));
+      const sb = document.getElementById("btn-skip-q"); if (sb) sb.addEventListener("click", () => { if (!state.checked[idx]) state.skipped[idx] = true; goToTestQuestion(idx+1); });
+      const cb = document.getElementById("btn-check-q"); if (cb) cb.addEventListener("click", () => { if (state.responses[idx]==="") return alert("Select or type an answer, or Skip →."); state.checked[idx] = true; state.isCorrect[idx] = isRight(q, state.responses[idx]); state.skipped[idx] = false; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); });
+      const nb = document.getElementById("btn-next-q"); if (nb) nb.addEventListener("click", () => goToTestQuestion(idx+1));
+      const fbBtn = document.getElementById("btn-finish-test"); if (fbBtn) fbBtn.addEventListener("click", handleManualTestSubmit);
+    }
+
+    function startCountdownTimer() { stopCountdownTimer(); renderTimer(); state.timerId = setInterval(() => { state.timeRemaining -= 1; renderTimer(); if (state.timeRemaining <= 0) { stopCountdownTimer(); submitFinalTest(true); } }, 1000); }
+    function stopCountdownTimer() { if (state.timerId !== null) { clearInterval(state.timerId); state.timerId = null; } }
+    function renderTimer() { const s = Math.max(0, state.timeRemaining), m = Math.floor(s/60), r = s%60; document.getElementById("timer-clock").textContent = `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`; const p = document.getElementById("timer-display"); p.classList.remove("warning","critical"); if (s<=180) p.classList.add("critical"); else if (s<=600) p.classList.add("warning"); }
+    function handleManualTestSubmit() { const u = state.checked.filter((c) => !c).length; if (u>0 && !confirm(`You have ${u} unchecked question(s). Submit now?`)) return; submitFinalTest(false); }
+
+    function submitFinalTest(isTimeout = false) {
+      if (state.paperSubmitted) return; state.paperSubmitted = true; stopCountdownTimer();
+      let earn = 0, tot = 0, cnt = 0;
+      const res = state.activePaper.map((q,i) => { tot += q.marks; const ur = state.responses[i], ok = state.checked[i] ? state.isCorrect[i] : isRight(q, ur); if (ok) { earn += q.marks; cnt++; } return { ...q, ur, ok }; });
+      const pct = tot>0 ? Math.round((earn/tot)*1000)/10 : 0, grade = pct>=74?"C*":pct>=60?"C":pct>=48?"D":pct>=36?"E":pct>=25?"F":pct>=15?"G":"U";
+      const el = state.durationSeconds - Math.max(0, state.timeRemaining), tStr = `${String(Math.floor(el/60)).padStart(2,"0")}m ${String(el%60).padStart(2,"0")}s`;
+      document.getElementById("sheet-modal").classList.add("hidden"); showOnlyViews("results");
+      const ml = state.examMode==="full" ? "Full Unit P2 Foundation [GDW61]" : "Quick Blitz (7 Randomised)";
+      document.getElementById("report-submission-meta").textContent = `${state.paperCode} • ${ml} • ${isTimeout ? "Auto-Submitted" : "Completed"}`;
+      document.getElementById("stat-marks").textContent = `${earn} / ${tot}`; document.getElementById("stat-paper-type").textContent = ml;
+      document.getElementById("stat-percent").textContent = `${pct}%`; document.getElementById("stat-percent-sub").textContent = `${earn} marks out of ${tot}`;
+      document.getElementById("stat-time").textContent = tStr; document.getElementById("stat-allowed-time").textContent = `Allowed: ${Math.floor(state.durationSeconds/60)}m 00s`;
+      document.getElementById("stat-grade").textContent = grade; document.getElementById("stat-q-correct").textContent = `${cnt} / ${state.activePaper.length} correct`;
+      const sheet = document.getElementById("graded-sheet"); sheet.innerHTML = "";
+      res.forEach((item) => {
+        const c = document.createElement("article"); c.className = `graded-card ${item.ok ? "correct" : "incorrect"}`;
+        c.innerHTML = `<div class="graded-top"><div class="q-number-group"><span class="q-badge">Q${item.qNum}</span><span class="q-topic">${escapeHtml(item.topic)}</span></div><span class="status-pill ${item.ok?"correct":"incorrect"}">${item.ok?`✓ Correct (+${item.marks}/${item.marks})`:`✗ Incorrect (0/${item.marks})`}</span></div><p class="q-prompt">${item.prompt}</p><div class="graded-answers-grid"><div class="ans-box"><div class="ans-box-label">Your Response</div><div class="ans-box-value ${item.ok?"model":"wrong"}">${escapeHtml(userDisp(item,item.ur))}</div></div><div class="ans-box"><div class="ans-box-label">Expected Answer</div><div class="ans-box-value model">${escapeHtml(modelDisp(item))}</div></div></div><div class="mark-scheme-note"><div class="feedback-steps-title">Mark Scheme Note:</div><ol class="feedback-steps-list">${item.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`;
+        sheet.appendChild(c);
+      });
+    }
+
+    const calcState = { expression:"", lastStr:"0", justEval:false }, calcExprEl = document.getElementById("calc-expr"), calcOutEl = document.getElementById("calc-output");
+    document.querySelectorAll("#calculator-pane .calc-btn").forEach((b) => b.addEventListener("click", () => {
+      const t = b.dataset.calc, a = b.dataset.action;
+      if (a==="ac") { calcState.expression=""; calcState.justEval=false; calcExprEl.textContent=""; calcOutEl.classList.remove("error"); calcOutEl.textContent="0"; return; }
+      if (a==="del") { calcState.expression=calcState.justEval?"":calcState.expression.slice(0,-1); calcState.justEval=false; calcExprEl.textContent=calcState.expression; return; }
+      if (a==="eval") { try { const safe=calcState.expression.replace(/×/g,"*").replace(/÷/g,"/"); if(/[^0-9+\-*/().\s]/.test(safe))throw 0; const v=Function(`"use strict";return(${safe});`)(); if(!Number.isFinite(v))throw 0; calcState.lastStr=String(Number(v.toFixed(6))); calcState.justEval=true; calcOutEl.classList.remove("error"); calcOutEl.textContent=calcState.lastStr; } catch { calcOutEl.classList.add("error"); calcOutEl.textContent="Math Error"; calcState.justEval=true; } return; }
+      if (t!==undefined) { if (calcState.justEval) { calcState.expression=["+","-","×","÷"].includes(t)?calcState.lastStr:""; calcState.justEval=false; } calcState.expression+=t; calcExprEl.textContent=calcState.expression; }
+    }));
+
+    document.getElementById("btn-go-learn").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-go-test").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-learn-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-detail-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-test-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-results-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-back-to-topics").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-new-learn-q").addEventListener("click", drawLearnPracticeQuestion);
+    document.getElementById("btn-start-full").addEventListener("click", () => startMockExam("full"));
+    document.getElementById("btn-start-blitz").addEventListener("click", () => startMockExam("blitz"));
+    document.getElementById("btn-retry-same").addEventListener("click", () => startMockExam(state.examMode));
+    document.getElementById("btn-switch-paper").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-hud-submit").addEventListener("click", handleManualTestSubmit);
+    const sheetModal = document.getElementById("sheet-modal");
+    document.getElementById("btn-open-sheet").addEventListener("click", () => sheetModal.classList.remove("hidden"));
+    document.getElementById("btn-close-sheet").addEventListener("click", () => sheetModal.classList.add("hidden"));
+    sheetModal.addEventListener("click", (e) => { if (e.target === sheetModal) sheetModal.classList.add("hidden"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !sheetModal.classList.contains("hidden")) sheetModal.classList.add("hidden"); });
+  </script>
+</body>
+</html>
+```

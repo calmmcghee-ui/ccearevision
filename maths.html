@@ -1,0 +1,2230 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — Maths M8 (CCEA Higher)</title>
+  <style>
+    :root {
+      --bg-base: #070b14;
+      --bg-surface: #0f172a;
+      --bg-elevated: #162033;
+      --bg-card: #111b2e;
+      --bg-input: #090f1d;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-strong: rgba(148, 163, 184, 0.32);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-emerald-bg: rgba(16, 185, 129, 0.1);
+      --accent-emerald-border: rgba(16, 185, 129, 0.5);
+      --accent-rose: #f43f5e;
+      --accent-rose-bg: rgba(244, 63, 94, 0.1);
+      --accent-rose-border: rgba(244, 63, 94, 0.5);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.12);
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --hud-height: 68px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 7px;
+      --shadow-panel: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: #27354d; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b4f73; }
+
+    .hidden { display: none !important; }
+
+    .page-shell {
+      min-height: 100vh;
+      padding: 36px 24px 70px;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.09), transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.1), transparent 45%),
+        var(--bg-base);
+    }
+
+    .container-md { max-width: 960px; margin: 0 auto; }
+    .container-lg { max-width: 1120px; margin: 0 auto; }
+
+    .top-nav-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .btn-ghost {
+      padding: 9px 16px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg-elevated);
+      border-color: rgba(148, 163, 184, 0.55);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    .badge-pill.emerald { color: #6ee7b7; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); }
+    .badge-pill.amber { color: #fcd34d; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); }
+
+    #home-view {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 20px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 42%),
+        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1), transparent 45%),
+        var(--bg-base);
+    }
+
+    .home-wrapper { width: 100%; max-width: 920px; text-align: center; }
+
+    .home-top-links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .home-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin: 12px 0 12px; line-height: 1.15; }
+    .home-subtitle { color: var(--text-secondary); font-size: 1.05rem; max-width: 640px; margin: 0 auto 38px; }
+
+    .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; text-align: left; }
+
+    .mode-card {
+      background: linear-gradient(180deg, rgba(22, 32, 51, 0.94), rgba(15, 23, 42, 0.98));
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      padding: 32px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-panel);
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .mode-card.learn-card::before { background: linear-gradient(90deg, #38bdf8, #6366f1); }
+    .mode-card.test-card::before { background: linear-gradient(90deg, #10b981, #38bdf8); }
+    .mode-card:hover { transform: translateY(-4px); border-color: var(--accent-blue); box-shadow: 0 24px 55px rgba(0, 0, 0, 0.55); }
+
+    .mode-icon { width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.65rem; margin-bottom: 14px; }
+    .learn-card .mode-icon { background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); }
+    .test-card .mode-icon { background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35); }
+
+    .mode-card h2 { font-size: 1.55rem; font-weight: 800; margin-bottom: 8px; }
+    .mode-card p { color: var(--text-secondary); font-size: 0.96rem; line-height: 1.6; }
+    .mode-cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: var(--accent-blue); }
+    .test-card .mode-cta { color: #6ee7b7; }
+
+    .section-header { margin-bottom: 24px; }
+    .section-header h1 { font-size: clamp(1.6rem, 3vw, 2.15rem); font-weight: 800; margin-bottom: 6px; }
+    .section-header p { color: var(--text-secondary); font-size: 0.96rem; }
+
+    .learn-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .filter-pill { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); font-size: 0.83rem; font-weight: 600; cursor: pointer; }
+    .filter-pill.active { background: rgba(56, 189, 248, 0.16); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 14px; }
+
+    .topic-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+
+    .topic-btn:hover { transform: translateY(-2px); border-color: var(--accent-blue); background: var(--bg-elevated); }
+    .topic-btn-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .topic-num { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+    .topic-paper-tag { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+    .tag-noncalc { color: #fcd34d; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.35); }
+    .tag-calc { color: #6ee7b7; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.35); }
+    .tag-both { color: #bae6fd; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.35); }
+    .topic-btn-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); line-height: 1.35; }
+    .topic-btn-sub { font-size: 0.8rem; color: var(--text-secondary); }
+
+    .learn-detail-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .study-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 26px; }
+    .study-card-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); font-weight: 800; margin-bottom: 10px; }
+    .study-body { color: var(--text-primary); font-size: 0.98rem; line-height: 1.7; }
+    .study-body code, .q-prompt code { font-family: var(--font-mono); background: rgba(30, 41, 59, 0.9); padding: 2px 7px; border-radius: 5px; color: #bae6fd; font-size: 0.93em; }
+    .key-rule-box { margin-top: 14px; padding: 13px 16px; background: var(--bg-input); border-left: 3px solid var(--accent-blue); border-radius: 0 8px 8px 0; font-family: var(--font-mono); font-size: 0.94rem; color: #e0f2fe; }
+    .diagram-box { margin-top: 16px; padding: 16px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; display: flex; justify-content: center; }
+    .steps-ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; color: var(--text-primary); }
+    .worked-example-box { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 18px; }
+    .worked-q { font-weight: 700; color: #bae6fd; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+    .learn-practice-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .learn-mini-calc { margin-top: 18px; background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: 12px; padding: 16px; }
+
+    .paper-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+    .paper-card { background: linear-gradient(180deg, rgba(22, 32, 51, 0.94), rgba(15, 23, 42, 0.98)); border: 1px solid var(--border-strong); border-radius: 18px; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; box-shadow: var(--shadow-panel); }
+    .paper-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .paper-spec-item { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 11px 13px; }
+    .paper-spec-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .paper-spec-val { font-family: var(--font-mono); font-weight: 700; font-size: 1rem; margin-top: 2px; }
+
+    .btn-primary-lg { width: 100%; padding: 15px 22px; font-size: 1rem; font-weight: 700; color: #04101d; background: linear-gradient(135deg, #38bdf8, #60a5fa); border: none; border-radius: 11px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.14s ease, filter 0.14s ease; }
+    .btn-primary-lg.emerald { background: linear-gradient(135deg, #10b981, #34d399); }
+    .btn-primary-lg.amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .btn-primary-lg:hover { transform: translateY(-1px); filter: brightness(1.06); }
+
+    #hud-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--hud-height); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-strong); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 100; }
+    .hud-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .hud-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald); flex-shrink: 0; }
+    .hud-dot.noncalc { background: var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber); }
+    .hud-title { font-weight: 700; font-size: 0.96rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hud-meta { font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono); }
+    .hud-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    .timer-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px; background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: 10px; font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--accent-blue); min-width: 120px; justify-content: center; }
+    .timer-pill.warning { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.55); background: rgba(245, 158, 11, 0.08); }
+    .timer-pill.critical { color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.65); background: rgba(244, 63, 94, 0.12); animation: pulseAlert 1s infinite; }
+
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+    }
+
+    .btn-hud { padding: 9px 14px; border-radius: 9px; font-size: 0.86rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn-hud:hover { background: #1e2d47; }
+    .btn-submit { background: linear-gradient(135deg, #10b981, #059669); border-color: rgba(16, 185, 129, 0.6); color: #03150e; font-weight: 700; }
+    .btn-submit:hover { background: linear-gradient(135deg, #34d399, #10b981); }
+
+    #workspace-view { padding-top: var(--hud-height); height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) 400px; overflow: hidden; }
+    #workspace-view.non-calc-layout { grid-template-columns: 1fr; }
+    #questions-pane { height: calc(100vh - var(--hud-height)); overflow-y: auto; padding: 24px 34px 56px; }
+    .exam-shell { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+    .q-progress-bar { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .q-progress-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); }
+    .q-progress-meta strong { color: var(--text-primary); font-family: var(--font-mono); }
+    .q-dots-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+    .q-dot-btn { height: 32px; border-radius: 7px; border: 1px solid var(--border-subtle); background: var(--bg-input); color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .q-dot-btn.current { border-color: var(--accent-blue); box-shadow: 0 0 0 1px var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.14); }
+    .q-dot-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.55); color: #6ee7b7; }
+    .q-dot-btn.incorrect { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.55); color: #fda4af; }
+    .q-dot-btn.skipped { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+
+    .question-card { background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 26px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28); }
+    .q-top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .q-number-group { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .q-badge { background: rgba(56, 189, 248, 0.14); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.32); font-family: var(--font-mono); font-weight: 700; font-size: 0.84rem; padding: 4px 11px; border-radius: 6px; }
+    .q-topic { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .q-marks { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); background: var(--bg-elevated); border: 1px solid var(--border-subtle); padding: 4px 11px; border-radius: 999px; }
+    .q-prompt { font-size: 1.08rem; color: var(--text-primary); margin-bottom: 10px; line-height: 1.65; }
+    .q-hint { font-size: 0.84rem; color: var(--accent-amber); margin-bottom: 16px; }
+
+    .math-display-wrapper { margin-bottom: 14px; }
+    .math-display-label { display: flex; justify-content: space-between; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; }
+    .math-display-box { width: 100%; min-height: 58px; padding: 12px 16px; background: var(--bg-input); border: 1.5px solid var(--border-strong); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 1.32rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: 14px; user-select: none; }
+    .math-display-box.has-value { border-color: rgba(56, 189, 248, 0.58); }
+    .math-display-box.locked-correct { border-color: var(--accent-emerald-border); background: rgba(16, 185, 129, 0.07); }
+    .math-display-box.locked-incorrect { border-color: var(--accent-rose-border); background: rgba(244, 63, 94, 0.07); }
+    .math-display-placeholder { font-size: 0.88rem; font-weight: 400; color: var(--text-muted); }
+    .math-caret { display: inline-block; width: 2px; height: 1.25em; background: var(--accent-blue); margin-left: 3px; animation: blinkCaret 1.1s step-end infinite; vertical-align: middle; }
+
+    @keyframes blinkCaret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .math-preview-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #bae6fd; font-size: 1rem; flex-shrink: 0; }
+    .stacked-frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.05; font-size: 0.88em; margin: 0 2px; }
+    .stacked-frac .num { padding: 0 4px 2px; border-bottom: 1.5px solid currentColor; }
+    .stacked-frac .den { padding: 2px 4px 0; }
+
+    .math-pad { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; background: rgba(9, 15, 29, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; margin-bottom: 18px; }
+    .math-pad.disabled { opacity: 0.45; pointer-events: none; }
+    .pad-btn { height: 44px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-mono); font-size: 1.04rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .pad-btn:hover { background: #21304b; border-color: var(--border-strong); }
+    .pad-btn:active { transform: scale(0.96); }
+    .pad-btn.op { background: rgba(56, 189, 248, 0.12); color: var(--accent-blue); border-color: rgba(56, 189, 248, 0.28); }
+    .pad-btn.frac-key { font-size: 0.9rem; }
+    .pad-btn.back { background: rgba(244, 63, 94, 0.12); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
+    .pad-btn.zero { grid-column: span 3; }
+    .pad-btn.clear { grid-column: span 2; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
+
+    .feedback-panel { border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 18px; border: 1.5px solid; }
+    .feedback-panel.correct { background: var(--accent-emerald-bg); border-color: var(--accent-emerald-border); }
+    .feedback-panel.incorrect { background: var(--accent-rose-bg); border-color: var(--accent-rose-border); }
+    .feedback-heading { font-weight: 800; font-size: 1.05rem; margin-bottom: 10px; }
+    .feedback-heading.correct { color: #6ee7b7; }
+    .feedback-heading.incorrect { color: #fda4af; }
+    .feedback-answer-line { background: rgba(9, 15, 29, 0.72); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-family: var(--font-mono); font-size: 0.98rem; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .feedback-answer-line strong { color: #6ee7b7; font-size: 1.12rem; }
+    .feedback-steps-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-secondary); margin-bottom: 6px; font-weight: 700; }
+    .feedback-steps-list { padding-left: 20px; color: var(--text-primary); font-size: 0.94rem; display: flex; flex-direction: column; gap: 5px; }
+
+    .q-nav-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; }
+    .q-nav-left, .q-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .btn-action { padding: 11px 18px; border-radius: 9px; font-size: 0.92rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-primary); display: inline-flex; align-items: center; gap: 7px; }
+    .btn-action:hover:not(:disabled) { background: #21304b; }
+    .btn-action:disabled { opacity: 0.38; cursor: not-allowed; }
+    .btn-skip { background: rgba(245, 158, 11, 0.1); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
+    .btn-check { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: #031120; border: none; }
+    .btn-next { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; border: none; }
+    .btn-finish-test { background: linear-gradient(135deg, #10b981, #059669); color: #03150e; border: none; padding: 12px 22px; }
+
+    #calculator-pane { height: calc(100vh - var(--hud-height)); background: var(--bg-surface); border-left: 1px solid var(--border-strong); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    .calc-header { display: flex; align-items: center; justify-content: space-between; }
+    .calc-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
+    .deg-badge { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 5px; background: rgba(16, 185, 129, 0.14); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.35); cursor: pointer; }
+    .calc-screen { background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 13px 16px; min-height: 105px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; word-break: break-all; }
+    .calc-expr { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-secondary); min-height: 24px; text-align: right; }
+    .calc-output-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .calc-mode-tag { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+    .calc-output { font-family: var(--font-mono); font-size: 1.65rem; font-weight: 700; color: var(--text-primary); text-align: right; line-height: 1.2; margin-left: auto; }
+    .calc-output.error { color: var(--accent-rose); font-size: 1.2rem; }
+    .calc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .calc-btn { height: 43px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.93rem; font-weight: 600; cursor: pointer; }
+    .calc-btn:hover { background: #21304b; }
+    .calc-btn:active { transform: scale(0.96); }
+    .calc-btn.sci { background: rgba(99, 102, 241, 0.14); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.84rem; }
+    .calc-btn.frac-btn { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.34); font-size: 0.85rem; }
+    .calc-btn.op { background: rgba(56, 189, 248, 0.12); color: var(--accent-blue); border-color: rgba(56, 189, 248, 0.26); }
+    .calc-btn.danger { background: rgba(244, 63, 94, 0.14); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
+    .calc-btn.equals { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: #031120; font-weight: 800; border: none; }
+    .calc-tip { font-size: 0.74rem; color: var(--text-muted); line-height: 1.4; }
+    .calc-history { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+    .calc-history-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 7px; }
+    .calc-history-list { display: flex; flex-direction: column; gap: 6px; max-height: 110px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.8rem; }
+    .calc-hist-item { display: flex; justify-content: space-between; gap: 10px; padding: 6px 9px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; cursor: pointer; }
+    .calc-hist-expr { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .calc-hist-res { color: var(--accent-blue); font-weight: 700; flex-shrink: 0; }
+
+    .report-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 18px; padding: 32px; box-shadow: var(--shadow-panel); margin-bottom: 32px; }
+    .report-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 24px; }
+    .report-title { font-size: 1.65rem; font-weight: 800; }
+    .report-sub { color: var(--text-secondary); font-size: 0.92rem; margin-top: 4px; }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+    .stat-tile { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; }
+    .stat-tile-label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-tile-value { font-family: var(--font-mono); font-size: 1.55rem; font-weight: 800; }
+    .stat-tile-value.highlight { color: var(--accent-blue); }
+    .stat-tile-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; }
+    .graded-sheet-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .graded-list { display: flex; flex-direction: column; gap: 18px; }
+    .graded-card { border-radius: var(--radius-lg); padding: 22px 24px; border: 1.5px solid; }
+    .graded-card.correct { background: var(--accent-emerald-bg); border-color: var(--accent-emerald-border); }
+    .graded-card.incorrect { background: var(--accent-rose-bg); border-color: var(--accent-rose-border); }
+    .graded-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .status-pill { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; text-transform: uppercase; }
+    .status-pill.correct { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+    .status-pill.incorrect { background: rgba(244, 63, 94, 0.22); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.5); }
+    .graded-answers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px; }
+    .ans-box { background: rgba(9, 15, 29, 0.78); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; }
+    .ans-box-label { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; }
+    .ans-box-value { font-family: var(--font-mono); font-size: 1.08rem; font-weight: 700; }
+    .ans-box-value.model { color: #6ee7b7; }
+    .ans-box-value.wrong { color: #fda4af; }
+    .mark-scheme-note { margin-top: 14px; font-size: 0.9rem; color: var(--text-secondary); padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.16); }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(4, 7, 15, 0.78); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
+    .modal-panel { width: 100%; max-width: 720px; max-height: 86vh; overflow-y: auto; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 16px; padding: 28px; box-shadow: var(--shadow-panel); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 18px; }
+    .modal-close { background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-primary); width: 34px; height: 34px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; }
+    .formula-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .formula-item { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px 16px; }
+    .formula-name { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-blue); margin-bottom: 6px; font-weight: 700; }
+    .formula-expr { font-family: var(--font-mono); font-size: 0.94rem; line-height: 1.5; }
+
+    @media (max-width: 980px) {
+      #workspace-view { grid-template-columns: 1fr; height: auto; overflow: visible; }
+      #questions-pane { height: auto; overflow-y: visible; padding: 20px 16px 32px; }
+      #calculator-pane { height: auto; border-left: none; border-top: 1px solid var(--border-strong); }
+      #hud-bar { padding: 0 12px; }
+      .hud-meta { display: none; }
+      .q-dots-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. HOME SCREEN -->
+  <section id="home-view">
+    <div class="home-wrapper">
+      <div class="home-top-links">
+        <a href="index.html" class="btn-ghost">← All Subjects</a>
+        <div class="badge-pill">CCEA GCSE Mathematics (NI) • Higher Tier Module M8</div>
+      </div>
+      <h1 class="home-title">Maths M8 Revision Engine</h1>
+      <p class="home-subtitle">
+        Master every CCEA Higher Tier M8 topic with step-by-step lessons and targeted practice, or sit a strictly separated Non-Calculator or Calculator 50-mark timed mock exam.
+      </p>
+
+      <div class="mode-grid">
+        <button type="button" class="mode-card learn-card" id="btn-go-learn">
+          <div>
+            <div class="mode-icon">📚</div>
+            <h2>Learn</h2>
+            <p>
+              Browse all 19 M8 topics individually. Each topic includes a clear explanation, step-by-step solving rules, a worked example, and non-repeating randomised practice questions.
+            </p>
+          </div>
+          <span class="mode-cta">Open 19 Interactive Topics →</span>
+        </button>
+
+        <button type="button" class="mode-card test-card" id="btn-go-test">
+          <div>
+            <div class="mode-icon">📝</div>
+            <h2>Test</h2>
+            <p>
+              Choose Paper 1 (Non-Calculator) or Paper 2 (Calculator). Every paper generates fresh randomised questions and topic order, keeping a strict 50-mark, 1h 15m timed exam.
+            </p>
+          </div>
+          <span class="mode-cta">Choose Paper 1 or Paper 2 →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. LEARN TOPICS DIRECTORY -->
+  <section id="learn-menu-view" class="page-shell hidden">
+    <div class="container-lg">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+          <button type="button" class="btn-ghost" id="btn-learn-home">← Maths Home</button>
+        </div>
+        <span class="badge-pill">CCEA M8 • Learn Hub</span>
+      </div>
+
+      <div class="section-header">
+        <h1>M8 Topic Revision Hub (19 Topics)</h1>
+        <p>Select any topic below to view how it works, study a worked example, and practise randomised questions.</p>
+      </div>
+
+      <div class="learn-filter-bar">
+        <button type="button" class="filter-pill active" data-filter="all">All 19 Topics</button>
+        <button type="button" class="filter-pill" data-filter="noncalc">Non-Calculator Focus</button>
+        <button type="button" class="filter-pill" data-filter="calc">Calculator Focus</button>
+        <button type="button" class="filter-pill" data-filter="both">Both Papers</button>
+      </div>
+
+      <div id="topics-grid" class="topics-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. LEARN TOPIC DETAIL VIEW -->
+  <section id="learn-detail-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-back-to-topics">← All Topics</button>
+          <button type="button" class="btn-ghost" id="btn-detail-home">📐 Maths Home</button>
+          <a href="index.html" class="btn-ghost">🏠 Subjects</a>
+        </div>
+        <span id="detail-paper-badge" class="badge-pill">Topic</span>
+      </div>
+
+      <div class="section-header">
+        <h1 id="detail-title">Topic Title</h1>
+        <p id="detail-subtitle">M8 Concept Guide &amp; RNG Practice</p>
+      </div>
+
+      <div class="learn-detail-grid">
+        <div class="study-card">
+          <div class="study-card-title">1. What It Is</div>
+          <div id="detail-what" class="study-body"></div>
+          <div id="detail-rule" class="key-rule-box"></div>
+          <div id="detail-diagram" class="diagram-box hidden"></div>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-title">2. How to Solve It (Step-by-Step)</div>
+          <ol id="detail-howto" class="steps-ol"></ol>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-title">3. Worked Example</div>
+          <div class="worked-example-box">
+            <div id="detail-example-q" class="worked-q"></div>
+            <ol id="detail-example-steps" class="steps-ol"></ol>
+          </div>
+        </div>
+
+        <div class="study-card">
+          <div class="learn-practice-header">
+            <div>
+              <div class="study-card-title" style="margin-bottom:2px;">4. Topic RNG Practice</div>
+              <p style="font-size:0.86rem; color:var(--text-secondary);">Test yourself with freshly randomised questions on this topic.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-ghost hidden" id="btn-toggle-learn-calc">🧮 Toggle Mini Calculator</button>
+              <button type="button" class="btn-action btn-next" id="btn-new-learn-q">🎲 New Random Question</button>
+            </div>
+          </div>
+
+          <div id="learn-practice-slot"></div>
+          <div id="learn-mini-calc-box" class="learn-mini-calc hidden"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. TEST PAPER SELECTION VIEW -->
+  <section id="test-select-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-test-home">← Maths Home</button>
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+        </div>
+        <span class="badge-pill emerald">CCEA M8 • Exam Mode</span>
+      </div>
+
+      <div class="section-header">
+        <h1>Choose Your M8 Mock Paper</h1>
+        <p>Every paper uses procedural generators, shuffled topic order, and non-repeating history so you never sit the same test twice.</p>
+      </div>
+
+      <div class="paper-choice-grid">
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill amber" style="margin-bottom:14px;">Paper 1 • No Calculator Allowed</div>
+            <h2 style="font-size:1.45rem; margin-bottom:10px;">M8 Paper 1 (Non-Calculator)</h2>
+            <p style="color:var(--text-secondary); font-size:0.94rem; margin-bottom:20px;">
+              Calculator panel is disabled and removed. Questions strictly test exact arithmetic: indices, recurring decimals, surds, rationalising, circle tangents, negative enlargements, and exact probabilities.
+            </p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">50 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 15m (75:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">12 Non-Calc</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#fcd34d;">Disabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg amber" id="btn-start-noncalc">⚡ Generate Non-Calculator Paper 1</button>
+        </div>
+
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill emerald" style="margin-bottom:14px;">Paper 2 • Scientific Calculator</div>
+            <h2 style="font-size:1.45rem; margin-bottom:10px;">M8 Paper 2 (Calculator)</h2>
+            <p style="color:var(--text-secondary); font-size:0.94rem; margin-bottom:20px;">
+              Includes the docked Scientific &amp; Fraction Calculator (<code>a/b</code>, <code>S⇔D</code>, trig). Questions strictly test calculator M8 skills: growth/decay, Sine &amp; Cosine rules, ½ab sinC, 3D trig, quadratic formula roots, and 3D similar solids.
+            </p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">50 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 15m (75:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">12 Calc</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg emerald" id="btn-start-calc">⚡ Generate Calculator Paper 2</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. PINNED HUD BAR -->
+  <header id="hud-bar" class="hidden">
+    <div class="hud-brand">
+      <div class="hud-dot" id="hud-dot"></div>
+      <div>
+        <div class="hud-title" id="hud-title">Calum's M8 Exam</div>
+        <div class="hud-meta" id="hud-paper-id">PAPER ID: M8-0000</div>
+      </div>
+    </div>
+
+    <div class="hud-controls">
+      <div id="timer-display" class="timer-pill" aria-live="polite">
+        <span>⏱</span>
+        <span id="timer-clock">75:00</span>
+      </div>
+      <button id="btn-open-formula" class="btn-hud" type="button">📋 Formula Sheet</button>
+      <button id="btn-hud-submit" class="btn-hud btn-submit" type="button">Submit Test</button>
+    </div>
+  </header>
+
+  <!-- 6. EXAM WORKSPACE -->
+  <main id="workspace-view" class="hidden">
+    <section id="questions-pane" aria-label="Active Exam Question">
+      <div class="exam-shell">
+        <div class="q-progress-bar">
+          <div class="q-progress-meta">
+            <span>Question <strong id="prog-current">1</strong> of <strong>12</strong></span>
+            <span>Mode: <strong id="prog-mode">Calculator</strong></span>
+            <span>Checked: <strong id="prog-checked">0 / 12</strong></span>
+            <span>Score: <strong id="prog-score">0 / 50</strong></span>
+          </div>
+          <div id="q-dots-row" class="q-dots-row"></div>
+        </div>
+        <div id="active-question-slot"></div>
+      </div>
+    </section>
+
+    <aside id="calculator-pane" aria-label="Scientific Calculator">
+      <div class="calc-header">
+        <span class="calc-title">Scientific &amp; Fraction Calc</span>
+        <button id="calc-mode-toggle" class="deg-badge" type="button" title="Toggle Degrees / Radians">DEG</button>
+      </div>
+
+      <div class="calc-screen">
+        <div id="calc-expr" class="calc-expr"></div>
+        <div class="calc-output-row">
+          <span id="calc-view-tag" class="calc-mode-tag">DEC</span>
+          <div id="calc-output" class="calc-output">0</div>
+        </div>
+      </div>
+
+      <div class="calc-grid">
+        <button class="calc-btn sci" data-calc="sin(">sin</button>
+        <button class="calc-btn sci" data-calc="cos(">cos</button>
+        <button class="calc-btn sci" data-calc="tan(">tan</button>
+        <button class="calc-btn sci" data-calc="π">π</button>
+        <button class="calc-btn sci" data-calc="sin⁻¹(">sin⁻¹</button>
+        <button class="calc-btn sci" data-calc="cos⁻¹(">cos⁻¹</button>
+        <button class="calc-btn sci" data-calc="tan⁻¹(">tan⁻¹</button>
+        <button class="calc-btn sci" data-calc="√(">√</button>
+        <button class="calc-btn frac-btn" data-calc="⁄" title="Enter Fraction (e.g. 3⁄4)">a/b</button>
+        <button class="calc-btn frac-btn" data-action="sd" title="Convert Fraction ↔ Decimal">S⇔D</button>
+        <button class="calc-btn sci" data-calc="^">xʸ</button>
+        <button class="calc-btn op" data-calc="÷">÷</button>
+        <button class="calc-btn sci" data-calc="(">(</button>
+        <button class="calc-btn sci" data-calc=")">)</button>
+        <button class="calc-btn danger" data-action="del">DEL</button>
+        <button class="calc-btn danger" data-action="ac">AC</button>
+        <button class="calc-btn" data-calc="7">7</button>
+        <button class="calc-btn" data-calc="8">8</button>
+        <button class="calc-btn" data-calc="9">9</button>
+        <button class="calc-btn op" data-calc="×">×</button>
+        <button class="calc-btn" data-calc="4">4</button>
+        <button class="calc-btn" data-calc="5">5</button>
+        <button class="calc-btn" data-calc="6">6</button>
+        <button class="calc-btn op" data-calc="-">−</button>
+        <button class="calc-btn" data-calc="1">1</button>
+        <button class="calc-btn" data-calc="2">2</button>
+        <button class="calc-btn" data-calc="3">3</button>
+        <button class="calc-btn op" data-calc="+">+</button>
+        <button class="calc-btn" data-calc="0">0</button>
+        <button class="calc-btn" data-calc=".">.</button>
+        <button class="calc-btn sci" data-action="ans">ANS</button>
+        <button class="calc-btn equals" data-action="eval">=</button>
+      </div>
+
+      <p class="calc-tip">
+        Tip: Use <strong>a/b</strong> for fractions like <code>5⁄8 × 4⁄7</code>, and press <strong>S⇔D</strong> after <code>=</code> to toggle simplified fractions.
+      </p>
+
+      <div class="calc-history">
+        <div class="calc-history-title">Recent Calculations</div>
+        <div id="calc-history-list" class="calc-history-list"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 7. FINAL REPORT CARD -->
+  <section id="results-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="report-card">
+        <div class="report-header">
+          <div>
+            <h2 class="report-title">M8 Exam Report Card</h2>
+            <p class="report-sub" id="report-submission-meta">Submitted</p>
+          </div>
+          <div class="report-actions">
+            <button id="btn-retry-same" class="btn-hud btn-submit" type="button">⚡ New Random Same Paper</button>
+            <button id="btn-switch-paper" class="btn-hud" type="button">Switch Paper Mode</button>
+            <button id="btn-results-home" class="btn-hud" type="button">📐 Maths Home</button>
+            <a href="index.html" class="btn-hud">🏠 All Subjects</a>
+          </div>
+        </div>
+
+        <div class="report-stats">
+          <div class="stat-tile"><div class="stat-tile-label">Paper Score</div><div class="stat-tile-value highlight" id="stat-marks">0 / 50</div><div class="stat-tile-sub" id="stat-paper-type">M8 Paper</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Score Out of 100</div><div class="stat-tile-value" id="stat-percent">0 / 100</div><div class="stat-tile-sub" id="stat-percent-sub">0% overall</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Time Taken</div><div class="stat-tile-value" id="stat-time">00m 00s</div><div class="stat-tile-sub">Allowed: 75m 00s (1h 15m)</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Indicative M8 Grade</div><div class="stat-tile-value" id="stat-grade">—</div><div class="stat-tile-sub" id="stat-q-correct">0 / 12 questions correct</div></div>
+        </div>
+      </div>
+
+      <h3 class="graded-sheet-title">Full Question Review &amp; Step-by-Step Solutions</h3>
+      <div id="graded-sheet" class="graded-list"></div>
+    </div>
+  </section>
+
+  <!-- 8. FORMULA SHEET MODAL -->
+  <div id="formula-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="formula-modal-title">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 id="formula-modal-title">📋 CCEA GCSE Higher Tier (M8) Formula Sheet</h3>
+        <button id="btn-close-formula" class="modal-close" type="button" aria-label="Close Formula Sheet">×</button>
+      </div>
+      <div class="formula-grid">
+        <div class="formula-item"><div class="formula-name">Quadratic Equation</div><div class="formula-expr">ax² + bx + c = 0<br />x = [-b ± √(b² - 4ac)] / (2a)</div></div>
+        <div class="formula-item"><div class="formula-name">Sine Rule</div><div class="formula-expr">a / sin(A) = b / sin(B) = c / sin(C)</div></div>
+        <div class="formula-item"><div class="formula-name">Cosine Rule</div><div class="formula-expr">a² = b² + c² - 2bc cos(A)<br />cos(A) = (b² + c² - a²) / (2bc)</div></div>
+        <div class="formula-item"><div class="formula-name">Area of Any Triangle</div><div class="formula-expr">Area = ½ a b sin(C)</div></div>
+        <div class="formula-item"><div class="formula-name">Equation of a Circle</div><div class="formula-expr">x² + y² = r² (centre (0,0), radius r)<br />Tangent ⊥ Radius: m₁ × m₂ = -1</div></div>
+        <div class="formula-item"><div class="formula-name">3D Pythagoras</div><div class="formula-expr">Space Diagonal d = √(a² + b² + c²)</div></div>
+        <div class="formula-item"><div class="formula-name">Similar Shapes</div><div class="formula-expr">Length SF = k | Area SF = k² | Volume SF = k³</div></div>
+        <div class="formula-item"><div class="formula-name">Compound Growth &amp; Decay</div><div class="formula-expr">Value = P × (1 ± r / 100)ⁿ</div></div>
+        <div class="formula-item"><div class="formula-name">Sphere &amp; Cone Mensuration</div><div class="formula-expr">Sphere V = (4/3)πr³ | SA = 4πr²<br />Cone V = (1/3)πr²h | Curved SA = πrl</div></div>
+        <div class="formula-item"><div class="formula-name">Indices &amp; Surds</div><div class="formula-expr">a⁻ⁿ = 1 / aⁿ | a^(m/n) = (ⁿ√a)ᵐ<br />√(ab) = √a × √b</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* ============================================================
+       ANTI-REPEAT CRYPTO RNG ENGINE (Persisted in localStorage)
+       ============================================================ */
+    const DECK_STORAGE_KEY = "calum_maths_m8_decks_v1";
+    const PAPER_HISTORY_KEY = "calum_maths_m8_history_v1";
+    const memDecks = {};
+    const memHistory = {};
+
+    function cryptoFloat() {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+      return Math.random();
+    }
+    function randInt(min, max) { return Math.floor(cryptoFloat() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+    function gcd(a, b) {
+      a = Math.abs(Math.round(a));
+      b = Math.abs(Math.round(b));
+      while (b !== 0) { const t = b; b = a % b; a = t; }
+      return a || 1;
+    }
+    function simplifyFrac(num, den) {
+      if (den < 0) { num = -num; den = -den; }
+      const g = gcd(num, den), n = num / g, d = den / g;
+      return d === 1 ? String(n) : `${n}/${d}`;
+    }
+    function roundDp(val, dp) {
+      const fixed = Number(val).toFixed(dp);
+      const trimmed = String(Number(fixed));
+      return fixed === trimmed ? [fixed] : [fixed, trimmed];
+    }
+
+    function loadStore(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) return obj;
+        }
+      } catch (_) {}
+      return null;
+    }
+    function saveStore(key, obj) {
+      try { window.localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
+    }
+
+    function drawFromDeck(deckKey, pool) {
+      if (!pool || !pool.length) return null;
+      const decks = loadStore(DECK_STORAGE_KEY) || memDecks;
+      let deck = decks[deckKey];
+      const valid = deck && deck.len === pool.length && Array.isArray(deck.remaining) &&
+        deck.remaining.every((i) => Number.isInteger(i) && i >= 0 && i < pool.length) &&
+        new Set(deck.remaining).size === deck.remaining.length;
+
+      if (!valid) deck = { len: pool.length, remaining: [], last: null };
+      if (deck.remaining.length === 0) {
+        deck.remaining = shuffle(Array.from({ length: pool.length }, (_, i) => i));
+        if (pool.length > 1 && deck.remaining[deck.remaining.length - 1] === deck.last) {
+          const last = deck.remaining.length - 1;
+          [deck.remaining[last], deck.remaining[0]] = [deck.remaining[0], deck.remaining[last]];
+        }
+      }
+      const idx = deck.remaining.pop();
+      deck.last = idx;
+      decks[deckKey] = deck;
+      memDecks[deckKey] = deck;
+      saveStore(DECK_STORAGE_KEY, decks);
+
+      const entry = pool[idx];
+      return typeof entry === "function" ? entry() : { ...entry };
+    }
+
+    function buildUniquePaper(paperType, pools) {
+      const history = loadStore(PAPER_HISTORY_KEY) || memHistory;
+      const recentPrompts = Array.isArray(history.recentPrompts) ? history.recentPrompts : [];
+      const lastFirstPool = history["firstPool_" + paperType];
+
+      const ordered = shuffle(Array.from({ length: pools.length }, (_, i) => i));
+      if (ordered.length > 1 && ordered[0] === lastFirstPool) {
+        ordered.push(ordered.shift());
+      }
+
+      const paper = ordered.map((poolIdx, pos) => {
+        const pool = pools[poolIdx];
+        let q = drawFromDeck(`${paperType}:pool${poolIdx}`, pool);
+        for (let attempt = 0; attempt < 6; attempt++) {
+          if (!recentPrompts.includes(q.prompt)) break;
+          q = drawFromDeck(`${paperType}:pool${poolIdx}`, pool);
+        }
+        return { qNum: pos + 1, ...q };
+      });
+
+      history.recentPrompts = paper.map((q) => q.prompt).concat(recentPrompts).slice(0, 48);
+      history["firstPool_" + paperType] = ordered[0];
+      memHistory.recentPrompts = history.recentPrompts;
+      memHistory["firstPool_" + paperType] = ordered[0];
+      saveStore(PAPER_HISTORY_KEY, history);
+      return paper;
+    }
+
+    /* ============================================================
+       PROCEDURAL GENERATORS — PAPER 1 (NON-CALCULATOR)
+       ============================================================ */
+    function genP1Indices(marks = 3) {
+      const cases = [
+        ["8^(-2/3)", "1/4", ["1 / 8^(2/3)", "∛8 = 2, then 2² = 4 → 1/4."]],
+        ["27^(-2/3)", "1/9", ["1 / 27^(2/3)", "∛27 = 3, then 3² = 9 → 1/9."]],
+        ["27^(-1/3)", "1/3", ["1 / ∛27 = 1/3."]],
+        ["16^(-3/4)", "1/8", ["1 / 16^(3/4)", "⁴√16 = 2, then 2³ = 8 → 1/8."]],
+        ["16^(-1/4)", "1/2", ["1 / ⁴√16 = 1/2."]],
+        ["32^(-2/5)", "1/4", ["1 / 32^(2/5)", "⁵√32 = 2, then 2² = 4 → 1/4."]],
+        ["32^(-3/5)", "1/8", ["1 / 32^(3/5)", "⁵√32 = 2, then 2³ = 8 → 1/8."]],
+        ["64^(-2/3)", "1/16", ["1 / 64^(2/3)", "∛64 = 4, then 4² = 16 → 1/16."]],
+        ["81^(-3/4)", "1/27", ["1 / 81^(3/4)", "⁴√81 = 3, then 3³ = 27 → 1/27."]],
+        ["125^(-2/3)", "1/25", ["1 / 125^(2/3)", "∛125 = 5, then 5² = 25 → 1/25."]],
+        ["(4/9)^(-3/2)", "27/8", ["Flip: (9/4)^(3/2).", "√(9/4) = 3/2, then (3/2)³ = 27/8."]],
+        ["(9/16)^(-1/2)", "4/3", ["Flip: (16/9)^(1/2) = 4/3."]],
+        ["(8/27)^(-2/3)", "9/4", ["Flip: (27/8)^(2/3).", "Cube root: 3/2, then square: 9/4."]],
+        ["(8/125)^(-2/3)", "25/4", ["Flip: (125/8)^(2/3).", "Cube root: 5/2, then square: 25/4."]],
+        ["(27/64)^(-2/3)", "16/9", ["Flip: (64/27)^(2/3).", "Cube root: 4/3, then square: 16/9."]],
+        ["(16/81)^(-3/4)", "27/8", ["Flip: (81/16)^(3/4).", "4th root: 3/2, then cube: 27/8."]]
+      ];
+      const [expr, ans, steps] = pick(cases);
+      return {
+        topic: "Negative & Fractional Indices", marks,
+        prompt: `Evaluate <code>${expr}</code>. Give your answer as a fraction in its simplest form.`,
+        hint: "Use a/b (/) button, e.g. 1/4", modelAnswer: ans, acceptedAnswers: [ans], steps
+      };
+    }
+
+    function genP1Recurring(marks = 3) {
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const a = randInt(1, 8);
+        let b = randInt(1, 9);
+        while (b === a) b = randInt(1, 9);
+        const num = 10 * a + b;
+        const ans = simplifyFrac(num, 99);
+        return {
+          topic: "Recurring Decimals", marks,
+          prompt: `Express <code>0.${a}${b}${a}${b}${a}${b}...</code> (0.${a}̇${b}̇) as a fraction in its simplest form.`,
+          hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`Let x = 0.${a}${b}${a}${b}...`, `100x = ${a}${b}.${a}${b}${a}${b}...`, `99x = ${num} ⇒ x = ${num}/99 = ${ans}.`]
+        };
+      } else if (mode === 1) {
+        const a = randInt(1, 8);
+        let b = randInt(1, 8);
+        while (b === a) b = randInt(1, 8);
+        const diff = 10 * a + b - a;
+        const ans = simplifyFrac(diff, 90);
+        return {
+          topic: "Recurring Decimals", marks,
+          prompt: `Express <code>0.${a}${b}${b}${b}${b}...</code> (0.${a}${b}̇) as a fraction in its simplest form.`,
+          hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`10x = ${a}.${b}${b}${b}... and 100x = ${a}${b}.${b}${b}${b}...`, `90x = ${diff} ⇒ x = ${diff}/90 = ${ans}.`]
+        };
+      }
+      const d = pick([1, 2, 4, 5, 7, 8]);
+      const ans = simplifyFrac(d, 9);
+      return {
+        topic: "Recurring Decimals", marks,
+        prompt: `Express <code>0.${d}${d}${d}${d}...</code> (0.${d}̇) as a fraction in its simplest form.`,
+        hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`10x - x = ${d} ⇒ 9x = ${d} ⇒ x = ${ans}.`]
+      };
+    }
+
+    function genP1Surds(marks = 4) {
+      if (randInt(0, 2) <= 1) {
+        const p = pick([2, 3, 5, 6, 7]);
+        const k1 = randInt(4, 7), k2 = randInt(2, k1 - 1);
+        const isAdd = randInt(0, 1) === 0;
+        const n1 = k1 * k1 * p, n2 = k2 * k2 * p;
+        const resK = isAdd ? k1 + k2 : k1 - k2;
+        const ans = resK === 1 ? `√${p}` : `${resK}√${p}`;
+        return {
+          topic: "Surds & Simplification", marks,
+          prompt: `Simplify <code>√${n1} ${isAdd ? "+" : "-"} √${n2}</code>. Give your answer in the form <code>a√b</code>.`,
+          hint: "Format example: 5√3", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`√${n1} = ${k1}√${p} and √${n2} = ${k2}√${p}.`, `${k1}√${p} ${isAdd ? "+" : "-"} ${k2}√${p} = ${ans}.`]
+        };
+      }
+      const b = pick([2, 3, 5, 6, 7, 10, 11]);
+      const a = randInt(2, 6);
+      const ans = String(a * a - b);
+      return {
+        topic: "Surds & Rational Numbers", marks,
+        prompt: `Expand and simplify <code>(${a} + √${b})(${a} - √${b})</code>. Give your exact integer answer.`,
+        hint: "Enter exact integer", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`Difference of two squares: ${a}² - (√${b})² = ${a * a} - ${b} = ${ans}.`]
+      };
+    }
+
+    function genP1Rationalise(marks = 4) {
+      const p = pick([2, 3, 5, 6, 7]), k = randInt(2, 6), top = k * p;
+      const ans = `${k}√${p}`;
+      return {
+        topic: "Rationalising Denominators", marks,
+        prompt: `Rationalise the denominator and simplify <code>${top} / √${p}</code> in the form <code>a√b</code>.`,
+        hint: "Format example: 4√3", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`Multiply top & bottom by √${p}: ${top}√${p} / ${p} = ${ans}.`]
+      };
+    }
+
+    function genP1ExpGraph(marks = 4) {
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const a = pick([2, 3]), pwr = pick([2, 3]);
+        const ans = simplifyFrac(1, Math.pow(a, pwr));
+        return {
+          topic: "Exponential Graphs (Exact)", marks,
+          prompt: `For the exponential curve <code>y = ${a}^x</code>, find the exact value of <code>y</code> when <code>x = -${pwr}</code> as a fraction.`,
+          hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`y = ${a}^(-${pwr}) = 1 / ${a}^${pwr} = ${ans}.`]
+        };
+      } else if (mode === 1) {
+        const [a, k] = pick([[2, 4], [2, 5], [3, 3], [3, 4], [4, 3], [5, 3]]);
+        const yVal = Math.pow(a, k);
+        return {
+          topic: "Exponential Graphs (Exact)", marks,
+          prompt: `The curve <code>y = ${a}^x</code> passes through the point <code>(k, ${yVal})</code>. Find the value of <code>k</code>.`,
+          hint: "Enter exact integer", modelAnswer: String(k), acceptedAnswers: [String(k)],
+          steps: [`${a}^k = ${yVal} ⇒ ${a}^${k} = ${yVal} ⇒ k = ${k}.`]
+        };
+      }
+      const c = randInt(2, 7), x = pick([2, 3]), yVal = c * Math.pow(2, x);
+      return {
+        topic: "Exponential Graphs (Exact)", marks,
+        prompt: `The exponential curve <code>y = a · 2^x</code> passes through <code>(0, ${c})</code>. Find the value of <code>y</code> when <code>x = ${x}</code>.`,
+        hint: "Enter exact integer", modelAnswer: String(yVal), acceptedAnswers: [String(yVal)],
+        steps: [`At x = 0, a = ${c}. When x = ${x}, y = ${c} × 2^${x} = ${yVal}.`]
+      };
+    }
+
+    function genP1InvProp(marks = 4) {
+      if (randInt(0, 1) === 0) {
+        const q1 = pick([2, 3, 4, 5]);
+        let q2 = pick([2, 3, 4, 5]);
+        while (q2 === q1) q2 = pick([2, 3, 4, 5]);
+        const L = (q1 * q1 * q2 * q2) / gcd(q1 * q1, q2 * q2);
+        const k = randInt(1, 2) * L;
+        const y1 = k / (q1 * q1), y2 = k / (q2 * q2);
+        return {
+          topic: "Inverse Proportion", marks,
+          prompt: `<code>y</code> is inversely proportional to <code>x²</code>. When <code>x = ${q1}</code>, <code>y = ${y1}</code>. Find <code>y</code> when <code>x = ${q2}</code>.`,
+          hint: "Enter exact integer", modelAnswer: String(y2), acceptedAnswers: [String(y2)],
+          steps: [`k = ${y1} × ${q1}² = ${k}.`, `y = ${k} / ${q2}² = ${y2}.`]
+        };
+      }
+      const r1 = pick([2, 3, 4, 5, 6]);
+      let r2 = pick([2, 3, 4, 5, 6]);
+      while (r2 === r1) r2 = pick([2, 3, 4, 5, 6]);
+      const k = randInt(1, 3) * ((r1 * r2) / gcd(r1, r2));
+      const v1 = r1 * r1, v2 = r2 * r2, p1 = k / r1, p2 = k / r2;
+      return {
+        topic: "Inverse Proportion", marks,
+        prompt: `<code>P</code> is inversely proportional to <code>√V</code>. When <code>V = ${v1}</code>, <code>P = ${p1}</code>. Find <code>P</code> when <code>V = ${v2}</code>.`,
+        hint: "Enter exact integer", modelAnswer: String(p2), acceptedAnswers: [String(p2)],
+        steps: [`k = ${p1} × √${v1} = ${k}.`, `P = ${k} / √${v2} = ${p2}.`]
+      };
+    }
+
+    function genP1CircleTangent(marks = 4) {
+      const [px, py] = pick([[3, 4], [4, 3], [5, 12], [12, 5], [8, 15], [15, 8], [7, 24], [24, 7]]);
+      const s = px <= 5 && py <= 5 ? pick([1, 2]) : 1;
+      const x1 = s * px, y1 = s * py, rSq = x1 * x1 + y1 * y1;
+      if (randInt(0, 1) === 0) {
+        const grad = simplifyFrac(-x1, y1);
+        return {
+          topic: "Tangents to Circles", marks,
+          prompt: `A circle has equation <code>x² + y² = ${rSq}</code>. A tangent meets it at <code>(${x1}, ${y1})</code>. Find the gradient of this tangent as a simplified fraction.`,
+          hint: "Include negative sign", modelAnswer: grad, acceptedAnswers: [grad],
+          steps: [`Radius gradient = ${y1}/${x1}.`, `Tangent is perpendicular (negative reciprocal) = ${grad}.`]
+        };
+      }
+      const cAns = simplifyFrac(rSq, y1);
+      const decVal = rSq / y1;
+      const accepted = [cAns];
+      if (Number.isInteger(decVal * 2)) accepted.push(String(decVal));
+      return {
+        topic: "Equations of Tangents", marks,
+        prompt: `A tangent to <code>x² + y² = ${rSq}</code> at <code>(${x1}, ${y1})</code> has equation <code>y = mx + c</code>. Find the exact y-intercept <code>c</code> as an improper fraction.`,
+        hint: "Use a/b (/) button", modelAnswer: cAns, acceptedAnswers: accepted,
+        steps: [`m_tan = ${simplifyFrac(-x1, y1)}.`, `Substitute (${x1}, ${y1}): ${y1} = (${simplifyFrac(-x1, y1)})(${x1}) + c ⇒ c = ${cAns}.`]
+      };
+    }
+
+    function genP1SimEq(marks = 5) {
+      const rPos = randInt(2, 6);
+      let rNeg = -randInt(1, 5);
+      while (rPos + rNeg === 0) rNeg = -randInt(1, 5);
+      const b = rPos + rNeg;
+      const c = -rPos * rNeg; // > 0
+      const bTerm = b === 1 ? "x" : b === -1 ? "-x" : `${b}x`;
+      const askPos = randInt(0, 1) === 0;
+      const ans = String(askPos ? rPos : rNeg);
+      return {
+        topic: "Non-Linear Simultaneous Equations", marks,
+        prompt: `Solve <code>y = x²</code> and <code>y = ${bTerm} + ${c}</code>. State the <strong>${askPos ? "positive" : "negative"}</strong> value of <code>x</code>.`,
+        hint: askPos ? "Enter positive root" : "Include negative sign",
+        modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`x² - (${bTerm}) - ${c} = 0.`, `Factorise: (x - ${rPos})(x + ${-rNeg}) = 0 ⇒ ${askPos ? "Positive" : "Negative"} x = ${ans}.`]
+      };
+    }
+
+    function genP1ExactTrig(marks = 5) {
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const a = randInt(2, 6) * 2, b = randInt(3, 8) * 2;
+        const area = (a * b) / 4;
+        return {
+          topic: "Non-Calc Exact Area (½ab sinC)", marks,
+          prompt: `In ΔPQR, <code>PQ = ${a} cm</code>, <code>PR = ${b} cm</code>, and <code>∠QPR = 30°</code>. Using <code>sin 30° = 1/2</code>, find the exact area in cm².`,
+          hint: "Enter exact integer", modelAnswer: String(area), acceptedAnswers: [String(area)],
+          steps: [`Area = ½ × ${a} × ${b} × ½ = ${area} cm².`]
+        };
+      } else if (mode === 1) {
+        const [a, b, c] = pick([[3, 8, 7], [5, 8, 7], [7, 15, 13], [8, 15, 13], [5, 21, 19]]);
+        return {
+          topic: "Non-Calc Exact Trigonometry", marks,
+          prompt: `In ΔABC, <code>AB = ${a} cm</code>, <code>AC = ${b} cm</code>, and <code>∠BAC = 60°</code>. Using <code>cos 60° = 1/2</code>, find the exact length of <code>BC</code> in cm.`,
+          hint: "Enter exact integer", modelAnswer: String(c), acceptedAnswers: [String(c)],
+          steps: [`BC² = ${a}² + ${b}² - 2(${a})(${b})(0.5) = ${c * c} ⇒ BC = ${c} cm.`]
+        };
+      }
+      const [a, b, c] = pick([[7, 5, 8], [5, 6, 7], [4, 7, 6], [6, 8, 9]]);
+      const cosVal = simplifyFrac(a * a + b * b - c * c, 2 * a * b);
+      return {
+        topic: "Non-Calc Cosine Rule", marks,
+        prompt: `In ΔXYZ, <code>XY = ${a} cm</code>, <code>XZ = ${b} cm</code>, and <code>YZ = ${c} cm</code>. Find the exact value of <code>cos(∠YXZ)</code> as a fraction in simplest form.`,
+        hint: "Use a/b (/) button", modelAnswer: cosVal, acceptedAnswers: [cosVal],
+        steps: [`cos(∠YXZ) = (${a}² + ${b}² - ${c}²) / (2 × ${a} × ${b}) = ${cosVal}.`]
+      };
+    }
+
+    function genP1Enlargement(marks = 4) {
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const x = pick([-5, -4, -3, -2, 2, 3, 4, 5, 6]), y = pick([-5, -4, -3, -2, 2, 3, 4, 5]);
+        const sf = pick([-2, -3, -4]);
+        const askX = randInt(0, 1) === 0;
+        const ans = String((askX ? x : y) * sf);
+        return {
+          topic: "Enlargements (Negative SF)", marks,
+          prompt: `Point <code>A(${x}, ${y})</code> is enlarged by scale factor <code>${sf}</code> about <code>(0, 0)</code>. Find the <strong>${askX ? "x" : "y"}-coordinate</strong> of the image <code>A'</code>.`,
+          hint: "Include minus sign if negative", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`Multiply by ${sf}: ${askX ? x : y} × (${sf}) = ${ans}.`]
+        };
+      } else if (mode === 1) {
+        const den = pick([2, 3]);
+        const x = pick([-3, -2, -1, 1, 2, 3]) * den, y = pick([-3, -2, -1, 1, 2, 3]) * den;
+        const askX = randInt(0, 1) === 0;
+        const ans = String(-((askX ? x : y) / den));
+        return {
+          topic: "Enlargements (Negative SF)", marks,
+          prompt: `Point <code>B(${x}, ${y})</code> is enlarged by scale factor <code>-1/${den}</code> about <code>(0, 0)</code>. Find the <strong>${askX ? "x" : "y"}-coordinate</strong> of <code>B'</code>.`,
+          hint: "Enter exact integer", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`${askX ? x : y} × (-1/${den}) = ${ans}.`]
+        };
+      }
+      const area = randInt(4, 15), sf = pick([-2, -3, -4]), newArea = area * sf * sf;
+      return {
+        topic: "Enlargements (Negative SF)", marks,
+        prompt: `A triangle of area <code>${area} cm²</code> is enlarged by scale factor <code>${sf}</code>. Find the area of the enlarged triangle in cm².`,
+        hint: "Area SF = k²", modelAnswer: String(newArea), acceptedAnswers: [String(newArea)],
+        steps: [`Area SF = (${sf})² = ${sf * sf} ⇒ ${area} × ${sf * sf} = ${newArea} cm².`]
+      };
+    }
+
+    function genP1Sim3D(marks = 5) {
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const [a, b, c, d] = pick([[3, 4, 12, 13], [2, 3, 6, 7], [1, 4, 8, 9], [4, 4, 7, 9], [6, 6, 7, 11]]);
+        return {
+          topic: "Exact 3D Pythagoras", marks,
+          prompt: `A cuboid measures <code>${a} cm × ${b} cm × ${c} cm</code>. Find the exact length of its internal space diagonal in cm.`,
+          hint: "Enter exact integer", modelAnswer: String(d), acceptedAnswers: [String(d)],
+          steps: [`d = √(${a}² + ${b}² + ${c}²) = √${d * d} = ${d} cm.`]
+        };
+      } else if (mode === 1) {
+        const h1 = randInt(2, 4), k = pick([2, 3, 4]), h2 = h1 * k, v1 = randInt(5, 16), v2 = v1 * k * k * k;
+        return {
+          topic: "Similar 3D Volumes (Exact)", marks,
+          prompt: `Two similar solids have heights <code>${h1} cm</code> and <code>${h2} cm</code>. The smaller volume is <code>${v1} cm³</code>. Find the larger volume in cm³.`,
+          hint: "Volume SF = k³", modelAnswer: String(v2), acceptedAnswers: [String(v2)],
+          steps: [`k = ${h2}/${h1} = ${k} ⇒ k³ = ${k * k * k} ⇒ ${v1} × ${k * k * k} = ${v2} cm³.`]
+        };
+      }
+      const [a, b] = pick([[2, 3], [3, 4], [3, 5], [2, 5]]);
+      const s = pick([1, 2, 3]), sa1 = s * a * a, sa2 = s * b * b;
+      const m = randInt(2, 4), v1 = m * a * a * a, v2 = m * b * b * b;
+      return {
+        topic: "Similar 3D Shapes (Exact)", marks,
+        prompt: `Two similar cones have surface areas <code>${sa1} cm²</code> and <code>${sa2} cm²</code>. The larger cone has volume <code>${v2} cm³</code>. Find the volume of the smaller cone in cm³.`,
+        hint: "Find k from √(Area SF), then use k³", modelAnswer: String(v1), acceptedAnswers: [String(v1)],
+        steps: [`k = ${a}/${b} ⇒ Volume SF = ${a * a * a}/${b * b * b} ⇒ ${v2} × (${a * a * a}/${b * b * b}) = ${v1} cm³.`]
+      };
+    }
+
+    function genP1CondProb(marks = 5) {
+      const r = randInt(4, 8), b = randInt(3, 7), tot = r + b, den = tot * (tot - 1);
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const ans = simplifyFrac(r * (r - 1), den);
+        return {
+          topic: "Conditional Probability", marks,
+          prompt: `A bag has <code>${r} red</code> and <code>${b} blue</code> counters. Two are picked without replacement. Find P(both red) as a fraction in simplest form.`,
+          hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`(${r}/${tot}) × (${r - 1}/${tot - 1}) = ${r * (r - 1)}/${den} = ${ans}.`]
+        };
+      } else if (mode === 1) {
+        const num = r * (r - 1) + b * (b - 1), ans = simplifyFrac(num, den);
+        return {
+          topic: "Tree Diagrams (Without Replacement)", marks,
+          prompt: `A box has <code>${r} green</code> and <code>${b} yellow</code> balls. Two are drawn without replacement. Find P(both same colour) as a simplified fraction.`,
+          hint: "Use a/b (/) button", modelAnswer: ans, acceptedAnswers: [ans],
+          steps: [`(${r * (r - 1)}/${den}) + (${b * (b - 1)}/${den}) = ${num}/${den} = ${ans}.`]
+        };
+      }
+      const num = den - r * (r - 1), ans = simplifyFrac(num, den);
+      return {
+        topic: "Conditional Probability", marks,
+        prompt: `A drawer holds <code>${r} black</code> and <code>${b} white</code> socks. Two are pulled out without replacement. Find P(at least one white) as a simplified fraction.`,
+        hint: "Use 1 - P(both black)", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`P(both black) = ${simplifyFrac(r * (r - 1), den)} ⇒ 1 - ${simplifyFrac(r * (r - 1), den)} = ${ans}.`]
+      };
+    }
+
+    /* ============================================================
+       PROCEDURAL GENERATORS — PAPER 2 (CALCULATOR)
+       ============================================================ */
+    function genP2Growth(marks = 3) {
+      const P = pick([3200, 4000, 4500, 5200, 6400, 7500, 8200]);
+      const r = pick([2.4, 3.2, 3.4, 4.2, 4.8, 5.5]), n = pick([2, 3, 4]);
+      const val = P * Math.pow(1 + r / 100, n);
+      const accepted = roundDp(val, 2);
+      return {
+        topic: "Exponential Growth (Compound Interest)", marks,
+        prompt: `£${P} is invested at <code>${r}%</code> compound interest per annum for <code>${n} years</code>. Calculate the final value to 2 d.p. (numbers only).`,
+        hint: "e.g. 4630.50", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`${P} × ${(1 + r / 100).toFixed(3).replace(/0$/, "")}^${n} = ${accepted[0]}.`]
+      };
+    }
+
+    function genP2Decay(marks = 3) {
+      let P, r, n, val;
+      do {
+        P = pick([14000, 16500, 18000, 21500, 24500, 28000]);
+        r = pick([12, 14, 15, 16, 18, 22]);
+        n = pick([2, 3, 4]);
+        val = P * Math.pow(1 - r / 100, n);
+      } while (Math.abs((val % 1) - 0.5) < 0.03);
+      const ans = String(Math.round(val));
+      return {
+        topic: "Exponential Decay", marks,
+        prompt: `A £${P} vehicle loses <code>${r}%</code> of its value each year. Calculate its value after <code>${n} years</code> to the nearest pound.`,
+        hint: "Nearest integer", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`${P} × ${(1 - r / 100).toFixed(2)}^${n} = ${val.toFixed(2)} ≈ ${ans}.`]
+      };
+    }
+
+    function genP2Rate(marks = 4) {
+      const a = pick([1.5, 2.5, 3.5]), t1 = randInt(1, 2), t2 = randInt(4, 6);
+      const d1 = a * t1 * t1, d2 = a * t2 * t2;
+      const ans = String(Number(((d2 - d1) / (t2 - t1)).toFixed(2)));
+      return {
+        topic: "Rates of Change (Non-Linear Graphs)", marks,
+        prompt: `Distance travelled is <code>d = ${a}t²</code>. Calculate the average speed between <code>t = ${t1} s</code> and <code>t = ${t2} s</code> in m/s.`,
+        hint: `(d(${t2}) - d(${t1})) / ${t2 - t1}`, modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`d(${t1}) = ${d1}, d(${t2}) = ${d2}.`, `(${d2} - ${d1}) / ${t2 - t1} = ${ans} m/s.`]
+      };
+    }
+
+    function genP2InvProp(marks = 4) {
+      const [x1, x2, kBase] = pick([[2.5, 1.5, 90], [3.2, 8, 128], [2.5, 5, 150], [1.5, 3, 72], [2.4, 4, 144], [1.6, 4, 64]]);
+      const s = pick([1, 2]), k = s * kBase;
+      const y1 = Number((k / (x1 * x1)).toFixed(2)), y2 = Number((k / (x2 * x2)).toFixed(2));
+      return {
+        topic: "Inverse Proportion", marks,
+        prompt: `<code>y</code> is inversely proportional to <code>x²</code>. When <code>x = ${x1}</code>, <code>y = ${y1}</code>. Find <code>y</code> when <code>x = ${x2}</code>.`,
+        hint: "Enter exact value", modelAnswer: String(y2), acceptedAnswers: [String(y2)],
+        steps: [`k = ${y1} × ${x1}² = ${k}.`, `y = ${k} / ${x2}² = ${y2}.`]
+      };
+    }
+
+    function genP2Circle(marks = 4) {
+      let rSq, r;
+      do {
+        rSq = pick([20, 28, 32, 40, 45, 50, 58, 60, 72, 80, 90, 110]);
+        r = Math.sqrt(rSq);
+      } while (Math.abs(((r * 100) % 1) - 0.5) < 0.03);
+      const accepted = roundDp(r, 2);
+      return {
+        topic: "Equation of a Circle", marks,
+        prompt: `A circle has equation <code>x² + y² = ${rSq}</code>. Calculate its radius to 2 decimal places.`,
+        hint: "Round to 2 d.p.", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`r = √${rSq} ≈ ${accepted[0]}.`]
+      };
+    }
+
+    function genP2SimEq(marks = 4) {
+      let b, c, disc, root;
+      do {
+        b = randInt(2, 5);
+        c = randInt(3, 9);
+        disc = b * b + 4 * c;
+        root = (b + Math.sqrt(disc)) / 2;
+      } while (Number.isInteger(Math.sqrt(disc)) || Math.abs(((root * 100) % 1) - 0.5) < 0.03);
+      const accepted = roundDp(root, 2);
+      return {
+        topic: "Non-Linear Simultaneous Equations", marks,
+        prompt: `Solve <code>y = x²</code> and <code>y = ${b}x + ${c}</code>. Find the <strong>positive</strong> value of <code>x</code> to 2 decimal places.`,
+        hint: "Use Quadratic Formula", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`x² - ${b}x - ${c} = 0.`, `x = (${b} + √${disc}) / 2 ≈ ${accepted[0]}.`]
+      };
+    }
+
+    function genP2SineRule(marks = 4) {
+      let A, B, a, b;
+      do {
+        A = randInt(32, 56);
+        B = randInt(48, 78);
+        a = randInt(10, 22);
+        b = (a * Math.sin((B * Math.PI) / 180)) / Math.sin((A * Math.PI) / 180);
+      } while (Math.abs(((b * 10) % 1) - 0.5) < 0.05);
+      const accepted = roundDp(b, 1);
+      return {
+        topic: "The Sine Rule", marks,
+        prompt: `In ΔPQR, <code>∠P = ${A}°</code>, <code>∠Q = ${B}°</code>, and <code>QR = ${a} cm</code> (opp ∠P). Find side <code>PR</code> (opp ∠Q) in cm to 1 d.p.`,
+        hint: "Ensure calculator is in DEG mode", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`PR = ${a} × sin(${B}°) / sin(${A}°) ≈ ${accepted[0]} cm.`]
+      };
+    }
+
+    function genP2CosineRule(marks = 5) {
+      let b, c, A, a;
+      do {
+        b = randInt(7, 13);
+        c = randInt(9, 15);
+        A = randInt(42, 74);
+        a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos((A * Math.PI) / 180));
+      } while (Math.abs(((a * 10) % 1) - 0.5) < 0.05);
+      const accepted = roundDp(a, 1);
+      return {
+        topic: "The Cosine Rule", marks,
+        prompt: `In ΔABC, <code>AB = ${b} cm</code>, <code>AC = ${c} cm</code>, and <code>∠BAC = ${A}°</code>. Find side <code>BC</code> in cm to 1 d.p.`,
+        hint: "Round to 1 d.p.", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`BC = √(${b}² + ${c}² - 2(${b})(${c})cos(${A}°)) ≈ ${accepted[0]} cm.`]
+      };
+    }
+
+    function genP2AreaTri(marks = 5) {
+      let a, b, C, area;
+      do {
+        a = randInt(9, 16);
+        b = randInt(11, 18);
+        C = randInt(36, 74);
+        area = 0.5 * a * b * Math.sin((C * Math.PI) / 180);
+      } while (Math.abs(((area * 10) % 1) - 0.5) < 0.05);
+      const accepted = roundDp(area, 1);
+      return {
+        topic: "Area of Triangle (½ab sinC)", marks,
+        prompt: `In ΔDEF, <code>DE = ${a} cm</code>, <code>DF = ${b} cm</code>, and <code>∠EDF = ${C}°</code>. Calculate the area in cm² to 1 d.p.`,
+        hint: "Round to 1 d.p.", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`Area = 0.5 × ${a} × ${b} × sin(${C}°) ≈ ${accepted[0]} cm².`]
+      };
+    }
+
+    function genP23DTrig(marks = 4) {
+      let a, b, h, ang;
+      do {
+        a = randInt(5, 10);
+        b = randInt(7, 13);
+        h = randInt(4, 11);
+        ang = (Math.atan(h / Math.sqrt(a * a + b * b)) * 180) / Math.PI;
+      } while (Math.abs(((ang * 10) % 1) - 0.5) < 0.05);
+      const accepted = roundDp(ang, 1);
+      return {
+        topic: "3D Trigonometry", marks,
+        prompt: `A cuboid has base <code>${a} cm × ${b} cm</code> and vertical height <code>${h} cm</code>. Calculate the angle between the internal space diagonal and the base to 1 d.p.`,
+        hint: "Use tan⁻¹ on calculator", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`Base diagonal = √(${a}² + ${b}²) = √${a * a + b * b}.`, `tan⁻¹(${h} / √${a * a + b * b}) ≈ ${accepted[0]}°.`]
+      };
+    }
+
+    function genP2Sim3D(marks = 5) {
+      let r1, r2, v1, v2;
+      do {
+        r1 = pick([2.5, 3.5, 4.5, 5.5]);
+        r2 = Number((r1 + pick([0.9, 1.2, 1.5, 1.8])).toFixed(1));
+        v1 = randInt(120, 320);
+        v2 = v1 * Math.pow(r2 / r1, 3);
+      } while (Math.abs(((v2 * 10) % 1) - 0.5) < 0.05);
+      const accepted = roundDp(v2, 1);
+      return {
+        topic: "Similar 3D Shapes", marks,
+        prompt: `Two similar spheres have radii <code>${r1} cm</code> and <code>${r2} cm</code>. The smaller sphere has volume <code>${v1} cm³</code>. Find the larger volume to 1 d.p.`,
+        hint: "Volume SF = (r₂/r₁)³", modelAnswer: accepted[0], acceptedAnswers: accepted,
+        steps: [`k = ${r2} / ${r1}.`, `${v1} × (${r2}/${r1})³ ≈ ${accepted[0]} cm³.`]
+      };
+    }
+
+    function genP2Tree(marks = 5) {
+      const p1 = pick([0.2, 0.25, 0.3, 0.35, 0.4]);
+      const p2 = pick([0.6, 0.65, 0.7, 0.75]);
+      const p3 = pick([0.15, 0.2, 0.25, 0.3]);
+      const notP1 = Number((1 - p1).toFixed(2));
+      const ans = String(Number((p1 * p2 + notP1 * p3).toFixed(4)));
+      return {
+        topic: "Tree Diagrams (Non-Independent)", marks,
+        prompt: `P(rain today) = <code>${p1}</code>. If it rains today, P(rain tomorrow) = <code>${p2}</code>. If dry today, P(rain tomorrow) = <code>${p3}</code>. Find total P(rain tomorrow) as a decimal.`,
+        hint: "Add P(Rain,Rain) + P(Dry,Rain)", modelAnswer: ans, acceptedAnswers: [ans],
+        steps: [`(${p1} × ${p2}) + (${notP1} × ${p3}) = ${ans}.`]
+      };
+    }
+
+    /* ============================================================
+       19 CCEA M8 LEARN TOPICS (Powered by Generators + Decks)
+       ============================================================ */
+    const LEARN_TOPICS = [
+      {
+        id: "surds", title: "Surds", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Simplifying square roots, collecting like surds, expanding brackets, and rationalising denominators.",
+        whatItIs: "A <strong>surd</strong> is an irrational root of a non-square integer, such as <code>√2</code>, <code>√3</code>, or <code>√5</code>. Keeping answers in surd form preserves exact precision without rounding decimals.",
+        keyRule: "√(a × b) = √a × √b   |   √a × √a = a   |   a / √b = (a√b) / b",
+        howToSolve: [
+          "To simplify √n, find the largest square number factor (4, 9, 16, 25, 36, 49, 64...) that divides into n.",
+          "Split √n into √(square) × √(remainder), then evaluate the square root of the square number.",
+          "Add/subtract like surds (e.g. 5√3 + 2√3 = 7√3) and rationalise a/√b by multiplying top & bottom by √b."
+        ],
+        workedExample: { q: "Simplify √75 + √12 and rationalise 12 / √3.", steps: ["√75 = 5√3 and √12 = 2√3 → 7√3.", "12 / √3 = 12√3 / 3 = 4√3."] },
+        practicePool: [() => genP1Surds(4), () => genP1Rationalise(4)]
+      },
+      {
+        id: "indices", title: "Negative and Fractional Indices", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Evaluating powers with negative signs (reciprocals) and fractions (roots and powers).",
+        whatItIs: "<strong>Negative indices</strong> mean take the reciprocal (flip the base into 1 over it). <strong>Fractional indices</strong> mean take a root (denominator) and raise to a power (numerator).",
+        keyRule: "a^(-n) = 1 / a^n   |   a^(1/n) = ⁿ√a   |   a^(m/n) = (ⁿ√a)^m",
+        howToSolve: [
+          "If the power is negative, flip the base (1 / base, or invert a/b to b/a) and make the power positive.",
+          "Apply the denominator FIRST (take the root) to keep numbers small, then apply the numerator power."
+        ],
+        workedExample: { q: "Evaluate 27^(-2/3) as a fraction.", steps: ["1 / 27^(2/3).", "∛27 = 3, then 3² = 9 → 1/9."] },
+        practicePool: [() => genP1Indices(3)]
+      },
+      {
+        id: "rational-irrational", title: "Rational and Irrational Numbers", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Distinguishing terminating/recurring decimals and exact roots from non-terminating irrational values.",
+        whatItIs: "A <strong>rational number</strong> can be written exactly as <code>p/q</code> (integers, terminating decimals, recurring decimals). An <strong>irrational number</strong> cannot (e.g. <code>π</code>, <code>√2</code>, <code>√12</code>).",
+        keyRule: "Rational = p/q (terminates or repeats)   |   Irrational = non-terminating & non-repeating (e.g. √n if n is not square, π)",
+        howToSolve: ["Check if roots simplify to integers/fractions.", "When expanding brackets with surds, opposite surd terms cancel to leave a rational integer."],
+        workedExample: { q: "Show that (3 + √5)(3 - √5) is rational.", steps: ["3² - (√5)² = 9 - 5 = 4 (rational integer)."] },
+        practicePool: [
+          () => genP1Surds(4),
+          { prompt: "Simplify <code>(2 + √3)² - 4√3</code> to find its exact rational value.", hint: "Enter exact integer", modelAnswer: "7", acceptedAnswers: ["7"], steps: ["(2 + √3)² = 7 + 4√3; subtract 4√3 → 7."] },
+          { prompt: "Consider the list: <code>√36</code>, <code>0.75</code>, <code>√10</code>, <code>27^(1/3)</code>. Enter the ONLY irrational number from this list.", hint: "Use the √ button", modelAnswer: "√10", acceptedAnswers: ["√10"], steps: ["10 is not a square number, so √10 is irrational."] }
+        ]
+      },
+      {
+        id: "recurring-decimals", title: "Converting Recurring Decimals to Fractions", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Algebraic method using multiples of 10, 100, or 1000 to cancel repeating decimal tails.",
+        whatItIs: "Every <strong>recurring decimal</strong> is rational and converts to an exact fraction by aligning repeating digits and subtracting.",
+        keyRule: "1 repeating digit → ×10 | 2 repeating digits → ×100 | 3 repeating digits → ×1000",
+        howToSolve: ["Set x = decimal, multiply by powers of 10 until tails match identically, subtract to cancel the infinite tail, and simplify."],
+        workedExample: { q: "Convert 0.16666... (0.16̇) into a simplified fraction.", steps: ["10x = 1.666..., 100x = 16.666...", "90x = 15 ⇒ x = 15/90 = 1/6."] },
+        practicePool: [() => genP1Recurring(3)]
+      },
+      {
+        id: "exp-growth-decay", title: "Exponential Growth and Decay", paperType: "calc", paperLabel: "Calculator",
+        shortDesc: "Compound interest, depreciation, population growth, and multiplier powers over n time periods.",
+        whatItIs: "<strong>Exponential growth and decay</strong> occur when a quantity changes by a fixed percentage of its current value each period.",
+        keyRule: "Final Value = Initial × (Multiplier)^n   |   Growth: 1 + r/100   |   Decay: 1 - r/100",
+        howToSolve: ["Convert r% into a decimal multiplier (1 ± r/100), raise to power n, and multiply by initial value."],
+        workedExample: { q: "£4000 earns 5% compound interest per year for 3 years.", steps: ["4000 × 1.05³ = £4630.50."] },
+        practicePool: [() => genP2Growth(3), () => genP2Decay(3)]
+      },
+      {
+        id: "simultaneous-eqns", title: "Linear & Non-Linear Simultaneous Equations", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Solving pairs of equations where one is linear and the other is quadratic or a circle.",
+        whatItIs: "A linear line and a parabola/circle intersect at up to <strong>2 points</strong>.",
+        keyRule: "Substitute linear expression into the quadratic/circle equation → Form ax² + bx + c = 0 → Solve",
+        howToSolve: ["Make y (or x) the subject of the linear equation, substitute into the quadratic/circle, and solve by factorising (Non-Calc) or Quadratic Formula (Calc)."],
+        workedExample: { q: "Solve x² + y² = 25 and y = x + 1.", steps: ["2x² + 2x - 24 = 0 ⇒ (x + 4)(x - 3) = 0 ⇒ x = 3 or x = -4."] },
+        practicePool: [() => genP1SimEq(5), () => genP2SimEq(4)]
+      },
+      {
+        id: "circle-equations", title: "Equations of Circles (x² + y² = r²)", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Identifying the radius from x² + y² = r², testing if points lie on a circle, and writing circle equations.",
+        whatItIs: "A circle centred at <code>(0, 0)</code> with radius <code>r</code> satisfies <code>x² + y² = r²</code>.",
+        keyRule: "x² + y² = r²   |   Centre = (0, 0)   |   Radius r = √(right-hand side)",
+        diagramSvg: `<svg width="240" height="170" viewBox="0 0 240 170" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="85" x2="220" y2="85" stroke="#475569" stroke-width="1.5"/><line x1="120" y1="10" x2="120" y2="160" stroke="#475569" stroke-width="1.5"/><circle cx="120" cy="85" r="56" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="2.2"/><line x1="120" y1="85" x2="165" y2="52" stroke="#10b981" stroke-width="2"/><circle cx="165" cy="52" r="3.5" fill="#10b981"/><text x="145" y="64" fill="#6ee7b7" font-size="11" font-family="monospace">r</text><text x="169" y="48" fill="#e2e8f0" font-size="11" font-family="monospace">(x,y)</text><text x="124" y="98" fill="#94a3b8" font-size="10" font-family="monospace">(0,0)</text></svg>`,
+        howToSolve: ["Take √(k) for radius r, or compute x² + y² for r²."],
+        workedExample: { q: "A circle centred at (0, 0) passes through (6, 8). Find r² and r.", steps: ["6² + 8² = 100 ⇒ r = 10."] },
+        practicePool: [
+          () => genP2Circle(4),
+          { prompt: "A circle has equation <code>x² + y² = 169</code>. Find the radius <code>r</code>.", hint: "Enter exact integer", modelAnswer: "13", acceptedAnswers: ["13"], steps: ["√169 = 13."] },
+          { prompt: "A circle centred at <code>(0, 0)</code> passes through <code>(5, 12)</code>. Find the value of <code>r²</code>.", hint: "Enter exact integer", modelAnswer: "169", acceptedAnswers: ["169"], steps: ["5² + 12² = 169."] }
+        ]
+      },
+      {
+        id: "circle-tangents", title: "Equations of Tangents to Circles", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Using perpendicular gradients (m₁ × m₂ = -1) to find the equation y = mx + c of a tangent line.",
+        whatItIs: "A <strong>tangent</strong> touches a circle at one point and is always <strong>perpendicular (90°)</strong> to the radius.",
+        keyRule: "m_radius = y₁ / x₁   |   m_tangent = -x₁ / y₁   |   y - y₁ = m_tangent(x - x₁)",
+        diagramSvg: `<svg width="240" height="170" viewBox="0 0 240 170" xmlns="http://www.w3.org/2000/svg"><circle cx="105" cy="95" r="52" fill="rgba(56,189,248,0.07)" stroke="#38bdf8" stroke-width="2"/><line x1="105" y1="95" x2="144" y2="60" stroke="#10b981" stroke-width="2"/><line x1="90" y1="2" x2="215" y2="138" stroke="#f59e0b" stroke-width="2.2"/><circle cx="144" cy="60" r="3.5" fill="#f59e0b"/><text x="115" y="75" fill="#6ee7b7" font-size="10" font-family="monospace">radius</text><text x="154" y="55" fill="#fcd34d" font-size="10" font-family="monospace">tangent (90°)</text></svg>`,
+        howToSolve: ["Find radius gradient y₁/x₁, take negative reciprocal -x₁/y₁, then plug (x₁, y₁) into y = mx + c."],
+        workedExample: { q: "Find the tangent to x² + y² = 25 at (3, 4).", steps: ["m_rad = 4/3 ⇒ m_tan = -3/4 ⇒ c = 25/4."] },
+        practicePool: [() => genP1CircleTangent(4)]
+      },
+      {
+        id: "exponential-graphs", title: "Exponential Graphs", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Shape of y = k·a^x, y-intercepts (0, k), asymptotes along the x-axis, and finding parameters from points.",
+        whatItIs: "An <strong>exponential graph</strong> has <code>x</code> in the exponent: <code>y = k · a^x</code> (a &gt; 0). Crosses y-axis at (0, k).",
+        keyRule: "y = k · a^x   |   y-intercept at x=0 is (0, k) since a⁰ = 1   |   Asymptote: y = 0",
+        diagramSvg: `<svg width="240" height="160" viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="130" x2="220" y2="130" stroke="#64748b" stroke-width="1.5"/><line x1="90" y1="12" x2="90" y2="148" stroke="#64748b" stroke-width="1.5"/><path d="M 22 126 Q 90 123 130 96 T 195 16" fill="none" stroke="#38bdf8" stroke-width="2.5"/><circle cx="90" cy="112" r="3.5" fill="#10b981"/><text x="97" y="114" fill="#6ee7b7" font-size="10" font-family="monospace">(0, 1)</text><text x="155" y="34" fill="#bae6fd" font-size="11" font-family="monospace">y = 2ˣ</text></svg>`,
+        howToSolve: ["At x = 0, y = k. Substitute the second point to solve for a."],
+        workedExample: { q: "y = k · a^x passes through (0, 3) and (2, 48). Find k and a.", steps: ["k = 3, 48 = 3a² ⇒ a = 4."] },
+        practicePool: [() => genP1ExpGraph(4)]
+      },
+      {
+        id: "nonlinear-gradients", title: "Gradients & Rates of Change on Non-Linear Graphs", paperType: "calc", paperLabel: "Calculator",
+        shortDesc: "Average rate of change between two points (chord gradient) and instantaneous rate via tangents.",
+        whatItIs: "Average rate between x₁ and x₂ is the chord gradient <code>(y₂ - y₁) / (x₂ - x₁)</code>.",
+        keyRule: "Average Rate (Gradient) = (y₂ - y₁) / (x₂ - x₁)",
+        howToSolve: ["Find y₁ and y₂, subtract them, then divide by (x₂ - x₁)."],
+        workedExample: { q: "d = 2.5t². Find average speed between t = 2 s and t = 5 s.", steps: ["(62.5 - 10) / 3 = 17.5 m/s."] },
+        practicePool: [() => genP2Rate(4)]
+      },
+      {
+        id: "inverse-proportion", title: "Indirect (Inverse) Proportion", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Setting up y = k / xⁿ, finding the constant k from known pairs, and predicting unknown values.",
+        whatItIs: "<strong>Inverse proportion</strong> means increasing one quantity decreases the other multiplicatively.",
+        keyRule: "y ∝ 1 / f(x)   ⇒   y = k / f(x)   ⇒   k = y × f(x)",
+        howToSolve: ["Write y = k / f(x), substitute the known pair to find k, then find the new value."],
+        workedExample: { q: "y ∝ 1/x². When x = 3, y = 8. Find y when x = 6.", steps: ["k = 72 ⇒ y = 72/36 = 2."] },
+        practicePool: [() => genP1InvProp(4), () => genP2InvProp(4)]
+      },
+      {
+        id: "sine-rule", title: "The Sine Rule", paperType: "calc", paperLabel: "Calculator",
+        shortDesc: "Finding missing sides and angles in non-right-angled triangles when you have a matching side-angle pair.",
+        whatItIs: "The <strong>Sine Rule</strong> links each side to the sine of its opposite angle.",
+        keyRule: "Side: a / sin(A) = b / sin(B)   |   Angle: sin(A) / a = sin(B) / b",
+        diagramSvg: `<svg width="240" height="150" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg"><polygon points="35,125 205,125 145,30" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="2"/><text x="23" y="132" fill="#e2e8f0" font-size="11" font-family="monospace">A</text><text x="209" y="132" fill="#e2e8f0" font-size="11" font-family="monospace">B</text><text x="142" y="22" fill="#e2e8f0" font-size="11" font-family="monospace">C</text><text x="180" y="78" fill="#6ee7b7" font-size="11" font-family="monospace">a</text><text x="76" y="75" fill="#fcd34d" font-size="11" font-family="monospace">b</text><text x="116" y="140" fill="#94a3b8" font-size="11" font-family="monospace">c</text></svg>`,
+        howToSolve: ["Match opposite side-angle pairs and put the unknown on top."],
+        workedExample: { q: "∠P = 45°, ∠Q = 65°, QR = 10 cm. Find PR.", steps: ["10 sin(65°) / sin(45°) ≈ 12.8 cm."] },
+        practicePool: [() => genP2SineRule(4)]
+      },
+      {
+        id: "cosine-rule", title: "The Cosine Rule", paperType: "calc", paperLabel: "Calculator",
+        shortDesc: "Finding a missing side (SAS) or any angle (SSS) in non-right-angled triangles.",
+        whatItIs: "Use the <strong>Cosine Rule</strong> for SAS (2 sides + included angle) or SSS (all 3 sides).",
+        keyRule: "Side: a² = b² + c² - 2bc cos(A)   |   Angle: cos(A) = (b² + c² - a²) / (2bc)",
+        howToSolve: ["Identify opposite side a and angle A, substitute, then take √ or cos⁻¹."],
+        workedExample: { q: "Sides 7, 9, 11 cm. Find angle opp 11 cm.", steps: ["cos⁻¹((49+81-121)/126) ≈ 85.9°."] },
+        practicePool: [() => genP2CosineRule(5)]
+      },
+      {
+        id: "area-triangle", title: "Area of a Triangle using ½ab sinC", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Calculating triangle area from two sides and the included angle, or working backwards to find a side/angle.",
+        whatItIs: "Find triangle area from two sides <code>a, b</code> and the included angle <code>C</code> between them.",
+        keyRule: "Area = ½ × a × b × sin(C)",
+        howToSolve: ["Ensure angle C sits directly between sides a and b."],
+        workedExample: { q: "Sides 10 cm and 14 cm, angle 52°.", steps: ["0.5 × 10 × 14 × sin(52°) ≈ 55.2 cm²."] },
+        practicePool: [() => genP2AreaTri(5), () => genP1ExactTrig(5)]
+      },
+      {
+        id: "3d-pythagoras-trig", title: "3D Trigonometry and Pythagoras' Theorem", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Finding internal space diagonals of cuboids and angles between lines and flat planes.",
+        whatItIs: "<strong>3D Pythagoras &amp; Trig</strong> break 3D problems into a flat base right triangle and a vertical right triangle.",
+        keyRule: "Space Diagonal d = √(a² + b² + c²)   |   Angle with base: tan(θ) = Height / Base Diagonal",
+        diagramSvg: `<svg width="240" height="160" viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg"><rect x="45" y="55" width="115" height="75" fill="none" stroke="#475569" stroke-width="1.5"/><polygon points="45,55 85,25 200,25 160,55" fill="none" stroke="#475569" stroke-width="1.5"/><polygon points="160,55 200,25 200,100 160,130" fill="none" stroke="#475569" stroke-width="1.5"/><line x1="45" y1="130" x2="200" y2="100" stroke="#10b981" stroke-width="1.8" stroke-dasharray="4 3"/><line x1="200" y1="100" x2="200" y2="25" stroke="#38bdf8" stroke-width="1.8"/><line x1="45" y1="130" x2="200" y2="25" stroke="#f59e0b" stroke-width="2.4"/><text x="115" y="75" fill="#fcd34d" font-size="10" font-family="monospace">space diag d</text><text x="108" y="128" fill="#6ee7b7" font-size="10" font-family="monospace">base diag</text></svg>`,
+        howToSolve: ["Find base diagonal √(a² + b²), then use tan(θ) = height / base diagonal."],
+        workedExample: { q: "Cuboid 6 × 8 × 5 cm. Find angle of space diagonal with base.", steps: ["Base diag = 10 cm ⇒ tan⁻¹(5/10) ≈ 26.6°."] },
+        practicePool: [() => genP23DTrig(4), () => genP1Sim3D(5)]
+      },
+      {
+        id: "negative-enlargements", title: "Enlargements with Negative Scale Factors", paperType: "noncalc", paperLabel: "Non-Calculator",
+        shortDesc: "Enlarging coordinates and shapes through the centre of enlargement in the opposite direction (inverted).",
+        whatItIs: "A <strong>negative scale factor</strong> projects every vertex out the <strong>opposite side</strong> of the centre, inverting the shape.",
+        keyRule: "Vector from Centre C to Point P: v = P - C   |   New Point P' = C + k·v   |   Area SF = k²",
+        diagramSvg: `<svg width="240" height="150" viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg"><circle cx="115" cy="75" r="4" fill="#f59e0b"/><text x="112" y="64" fill="#fcd34d" font-size="10" font-family="monospace">C</text><polygon points="140,75 160,75 140,55" fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.8"/><polygon points="65,75 25,75 65,115" fill="rgba(16,185,129,0.2)" stroke="#10b981" stroke-width="1.8"/><line x1="160" y1="75" x2="25" y2="75" stroke="#64748b" stroke-dasharray="3 3"/><line x1="140" y1="55" x2="65" y2="115" stroke="#64748b" stroke-dasharray="3 3"/><text x="145" y="48" fill="#bae6fd" font-size="10" font-family="monospace">Obj</text><text x="26" y="130" fill="#6ee7b7" font-size="10" font-family="monospace">Image (SF -2)</text></svg>`,
+        howToSolve: ["Multiply vector from centre by negative scale factor; area still scales by k² (positive)."],
+        workedExample: { q: "Enlarge P(5, 7) by SF -2 about C(1, 1).", steps: ["v = (4, 6) ⇒ -2v = (-8, -12) ⇒ P' = (-7, -11)."] },
+        practicePool: [() => genP1Enlargement(4)]
+      },
+      {
+        id: "similar-3d-shapes", title: "Area and Volume of Similar 3D Shapes", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Converting smoothly between Linear Scale Factor (k), Area Scale Factor (k²), and Volume Scale Factor (k³).",
+        whatItIs: "For mathematically <strong>similar 3D solids</strong> with length scale factor <code>k</code>, surface areas scale by <code>k²</code> and volumes scale by <code>k³</code>.",
+        keyRule: "Length SF = k   |   Area SF = k²   |   Volume SF = k³",
+        howToSolve: ["Find Linear Scale Factor k first (√Area SF or ∛Vol SF), then raise to k² or k³."],
+        workedExample: { q: "Similar cones: surface areas 16 & 100 cm², smaller vol 32 cm³.", steps: ["k = 2.5 ⇒ k³ = 15.625 ⇒ 32 × 15.625 = 500 cm³."] },
+        practicePool: [() => genP1Sim3D(5), () => genP2Sim3D(5)]
+      },
+      {
+        id: "tree-diagrams", title: "Tree Diagrams for Non-Independent Events", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Updating second-branch denominators and numerators when items are taken without replacement.",
+        whatItIs: "For <strong>non-independent events</strong>, second-branch probabilities depend on the first branch.",
+        keyRule: "Multiply ALONG branches for 'AND'   |   Add DOWN matching outcomes for 'OR'",
+        diagramSvg: `<svg width="260" height="140" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="70" x2="115" y2="35" stroke="#38bdf8" stroke-width="1.8"/><line x1="20" y1="70" x2="115" y2="105" stroke="#94a3b8" stroke-width="1.8"/><line x1="115" y1="35" x2="215" y2="18" stroke="#10b981" stroke-width="1.8"/><line x1="115" y1="35" x2="215" y2="52" stroke="#94a3b8" stroke-width="1.5"/><line x1="115" y1="105" x2="215" y2="88" stroke="#94a3b8" stroke-width="1.5"/><line x1="115" y1="105" x2="215" y2="122" stroke="#f43f5e" stroke-width="1.8"/><text x="58" y="45" fill="#bae6fd" font-size="10" font-family="monospace">5/8</text><text x="58" y="102" fill="#94a3b8" font-size="10" font-family="monospace">3/8</text><text x="160" y="21" fill="#6ee7b7" font-size="10" font-family="monospace">4/7 (RR)</text><text x="160" y="127" fill="#fda4af" font-size="10" font-family="monospace">2/7 (BB)</text></svg>`,
+        howToSolve: ["Reduce denominator by 1 without replacement, multiply along branches, add matching paths."],
+        workedExample: { q: "P(late Mon) = 0.24; if late Mon, P(late Tue) = 0.35.", steps: ["0.24 × 0.35 = 0.084."] },
+        practicePool: [() => genP2Tree(5), () => genP1CondProb(5)]
+      },
+      {
+        id: "conditional-probability", title: "Conditional Probability", paperType: "both", paperLabel: "Both Papers",
+        shortDesc: "Calculating P(A and B), P(at least one) via complements, and P(A | B) from restricted sample spaces.",
+        whatItIs: "<strong>Conditional probability</strong> <code>P(B | A)</code> shrinks the sample space to only cases where A happened.",
+        keyRule: "P(A and B) = P(A) × P(B | A)   |   P(at least 1) = 1 - P(none)   |   P(A | B) = n(A ∩ B) / n(B)",
+        howToSolve: ["Use 1 - P(none) for 'at least one' questions."],
+        workedExample: { q: "7 black and 3 white socks. Two picked without replacement. Find P(at least one white).", steps: ["P(BB) = 7/15 ⇒ 1 - 7/15 = 8/15."] },
+        practicePool: [() => genP1CondProb(5)]
+      }
+    ];
+
+    /* 12 PAPER 1 POOLS (3+3+4+4+4+4+4+5+5+4+5+5 = 50 Marks) */
+    const PAPER_1_POOLS = [
+      [() => genP1Indices(3)],
+      [() => genP1Recurring(3)],
+      [() => genP1Surds(4)],
+      [() => genP1Rationalise(4)],
+      [() => genP1ExpGraph(4)],
+      [() => genP1InvProp(4)],
+      [() => genP1CircleTangent(4)],
+      [() => genP1SimEq(5)],
+      [() => genP1ExactTrig(5)],
+      [() => genP1Enlargement(4)],
+      [() => genP1Sim3D(5)],
+      [() => genP1CondProb(5)]
+    ];
+
+    /* 12 PAPER 2 POOLS (3+3+4+4+4+4+4+5+5+4+5+5 = 50 Marks) */
+    const PAPER_2_POOLS = [
+      [() => genP2Growth(3)],
+      [() => genP2Decay(3)],
+      [() => genP2Rate(4)],
+      [() => genP2InvProp(4)],
+      [() => genP2Circle(4)],
+      [() => genP2SimEq(4)],
+      [() => genP2SineRule(4)],
+      [() => genP2CosineRule(5)],
+      [() => genP2AreaTri(5)],
+      [() => genP23DTrig(4)],
+      [() => genP2Sim3D(5)],
+      [() => genP2Tree(5)]
+    ];
+
+    /* ============================================================
+       APP STATE & UI LOGIC
+       ============================================================ */
+    const EXAM_DURATION_SECONDS = 75 * 60;
+    const state = {
+      paperType: "calc", activePaper: [], responses: [], checked: [], isCorrect: [], skipped: [],
+      currentIdx: 0, timeRemaining: EXAM_DURATION_SECONDS, timerId: null, paperSubmitted: false, paperCode: "",
+      learnFilter: "all", activeTopic: null, learnQuestion: null, learnResponse: "", learnChecked: false, learnIsCorrect: false, learnMiniCalcOpen: false
+    };
+
+    const views = {
+      home: document.getElementById("home-view"), learnMenu: document.getElementById("learn-menu-view"),
+      learnDetail: document.getElementById("learn-detail-view"), testSelect: document.getElementById("test-select-view"),
+      hud: document.getElementById("hud-bar"), workspace: document.getElementById("workspace-view"), results: document.getElementById("results-view")
+    };
+
+    function showOnlyViews(...visibleKeys) {
+      stopCountdownTimer();
+      Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", !visibleKeys.includes(key)));
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    const PAD_KEYS = [
+      { label: "7", val: "7", cls: "" }, { label: "8", val: "8", cls: "" }, { label: "9", val: "9", cls: "" },
+      { label: "a/b (/)", val: "/", cls: "op frac-key", title: "Fraction bar" }, { label: "⌫", action: "backspace", cls: "back", title: "Backspace" },
+      { label: "4", val: "4", cls: "" }, { label: "5", val: "5", cls: "" }, { label: "6", val: "6", cls: "" },
+      { label: "√", val: "√", cls: "op", title: "Square root" }, { label: "^", val: "^", cls: "op", title: "Exponent" },
+      { label: "1", val: "1", cls: "" }, { label: "2", val: "2", cls: "" }, { label: "3", val: "3", cls: "" },
+      { label: ".", val: ".", cls: "op", title: "Decimal point" }, { label: "-", val: "-", cls: "op", title: "Negative sign" },
+      { label: "0", val: "0", cls: "zero" }, { label: "Clear", action: "clear", cls: "clear" }
+    ];
+
+    function buildMathPreviewHtml(raw) {
+      if (!raw) return "";
+      const escaped = escapeHtml(raw);
+      const fracMatch = escaped.match(/^(-?)([0-9√^.]+)\/([0-9√^.]+)$/);
+      if (fracMatch) {
+        const [, sign, num, den] = fracMatch;
+        return `<span class="math-preview-pill">${sign}<span class="stacked-frac"><span class="num">${num}</span><span class="den">${den}</span></span></span>`;
+      }
+      if (escaped.includes("/")) {
+        const formatted = escaped.replace(/(\d+|√\d+)\/(\d+|√\d+)/g, (_, n, d) =>
+          `<span class="stacked-frac"><span class="num">${n}</span><span class="den">${d}</span></span>`
+        );
+        return `<span class="math-preview-pill">${formatted}</span>`;
+      }
+      return "";
+    }
+
+    function normalizeResponse(str) { return String(str || "").replace(/\s+/g, "").replace(/⁄/g, "/").trim(); }
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function renderTopicsGrid() {
+      const grid = document.getElementById("topics-grid");
+      grid.innerHTML = "";
+      LEARN_TOPICS.filter((t) => state.learnFilter === "all" ? true : t.paperType === state.learnFilter).forEach((topic) => {
+        const originalIdx = LEARN_TOPICS.indexOf(topic) + 1;
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "topic-btn";
+        const tagClass = topic.paperType === "noncalc" ? "tag-noncalc" : topic.paperType === "calc" ? "tag-calc" : "tag-both";
+        btn.innerHTML = `
+          <div>
+            <div class="topic-btn-top"><span class="topic-num">TOPIC ${String(originalIdx).padStart(2, "0")}</span><span class="topic-paper-tag ${tagClass}">${escapeHtml(topic.paperLabel)}</span></div>
+            <div class="topic-btn-title" style="margin-top:8px;">${escapeHtml(topic.title)}</div>
+          </div>
+          <div class="topic-btn-sub">${escapeHtml(topic.shortDesc)}</div>`;
+        btn.addEventListener("click", () => openLearnTopic(topic.id));
+        grid.appendChild(btn);
+      });
+    }
+
+    document.querySelectorAll(".filter-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        state.learnFilter = pill.dataset.filter;
+        document.querySelectorAll(".filter-pill").forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        renderTopicsGrid();
+      });
+    });
+
+    function openLearnTopic(topicId) {
+      const topic = LEARN_TOPICS.find((t) => t.id === topicId);
+      if (!topic) return;
+      state.activeTopic = topic; state.learnMiniCalcOpen = false;
+      showOnlyViews("learnDetail");
+
+      const badge = document.getElementById("detail-paper-badge");
+      badge.textContent = topic.paperLabel;
+      badge.className = "badge-pill " + (topic.paperType === "noncalc" ? "amber" : topic.paperType === "calc" ? "emerald" : "");
+      document.getElementById("detail-title").textContent = topic.title;
+      document.getElementById("detail-subtitle").textContent = topic.shortDesc;
+      document.getElementById("detail-what").innerHTML = topic.whatItIs;
+      document.getElementById("detail-rule").textContent = topic.keyRule;
+
+      const diagEl = document.getElementById("detail-diagram");
+      if (topic.diagramSvg) { diagEl.innerHTML = topic.diagramSvg; diagEl.classList.remove("hidden"); }
+      else { diagEl.innerHTML = ""; diagEl.classList.add("hidden"); }
+
+      document.getElementById("detail-howto").innerHTML = topic.howToSolve.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      document.getElementById("detail-example-q").textContent = topic.workedExample.q;
+      document.getElementById("detail-example-steps").innerHTML = topic.workedExample.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+
+      const toggleCalcBtn = document.getElementById("btn-toggle-learn-calc");
+      document.getElementById("learn-mini-calc-box").classList.add("hidden");
+      if (topic.paperType === "noncalc") toggleCalcBtn.classList.add("hidden");
+      else { toggleCalcBtn.classList.remove("hidden"); toggleCalcBtn.textContent = "🧮 Open Mini Calculator"; }
+
+      drawLearnPracticeQuestion();
+    }
+
+    function drawLearnPracticeQuestion() {
+      const topic = state.activeTopic;
+      if (!topic || !topic.practicePool.length) return;
+      state.learnQuestion = drawFromDeck(`learn:${topic.id}`, topic.practicePool);
+      state.learnResponse = ""; state.learnChecked = false; state.learnIsCorrect = false;
+      renderLearnPracticeCard();
+    }
+
+    function renderLearnPracticeCard() {
+      const slot = document.getElementById("learn-practice-slot"), q = state.learnQuestion;
+      if (!q) return;
+      const isChecked = state.learnChecked, isCorrect = state.learnIsCorrect;
+      let boxClass = "math-display-box";
+      if (isChecked) boxClass += isCorrect ? " locked-correct" : " locked-incorrect";
+      else if (state.learnResponse.length > 0) boxClass += " has-value";
+
+      const feedbackHtml = isChecked ? `
+        <div class="feedback-panel ${isCorrect ? "correct" : "incorrect"}" style="margin-top:16px; margin-bottom:0;">
+          <div class="feedback-heading ${isCorrect ? "correct" : "incorrect"}">${isCorrect ? "✓ Correct! Well done." : "✗ Incorrect — here is how to solve it:"}</div>
+          ${!isCorrect ? `<div class="feedback-answer-line"><span>Right Answer:</span><strong>${escapeHtml(q.modelAnswer)}</strong>${buildMathPreviewHtml(q.modelAnswer)}</div>` : ""}
+          <div class="feedback-steps-title">Step-by-Step Solution:</div>
+          <ol class="feedback-steps-list">${q.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol>
+        </div>` : "";
+
+      slot.innerHTML = `
+        <div class="worked-example-box">
+          <p class="q-prompt">${q.prompt}</p><p class="q-hint">Format guide: ${escapeHtml(q.hint)}</p>
+          <div class="math-display-wrapper">
+            <div class="math-display-label"><span>Your Practice Answer (Read-Only)</span><span>${isChecked ? "Checked" : "Use Keypad Below"}</span></div>
+            <div class="${boxClass}" id="learn-display-box" role="textbox" aria-readonly="true"><span id="learn-display-text"></span><span id="learn-preview-slot"></span></div>
+          </div>
+          <div class="math-pad ${isChecked ? "disabled" : ""}" id="learn-math-pad"></div>
+          <div class="q-nav-actions"><div></div><div class="q-nav-right">
+            ${!isChecked ? `<button type="button" class="btn-action btn-check" id="btn-check-learn-q">✓ Check Answer</button>` : `<button type="button" class="btn-action btn-next" id="btn-next-learn-q">🎲 Try Another Random Question</button>`}
+          </div></div>
+          ${feedbackHtml}
+        </div>`;
+
+      const padEl = document.getElementById("learn-math-pad");
+      PAD_KEYS.forEach((key) => {
+        const btn = document.createElement("button"); btn.type = "button"; btn.className = `pad-btn ${key.cls}`.trim(); btn.textContent = key.label;
+        if (key.title) btn.title = key.title;
+        btn.addEventListener("click", () => {
+          if (state.learnChecked) return;
+          if (key.action === "backspace") state.learnResponse = state.learnResponse.slice(0, -1);
+          else if (key.action === "clear") state.learnResponse = "";
+          else if (state.learnResponse.length < 28) state.learnResponse += key.val;
+          refreshLearnDisplayBox();
+        });
+        padEl.appendChild(btn);
+      });
+      refreshLearnDisplayBox();
+
+      const checkBtn = document.getElementById("btn-check-learn-q");
+      if (checkBtn) checkBtn.addEventListener("click", () => {
+        const norm = normalizeResponse(state.learnResponse);
+        if (!norm) return alert("Enter an answer using the keypad before checking.");
+        state.learnChecked = true;
+        state.learnIsCorrect = q.acceptedAnswers.some((a) => normalizeResponse(a) === norm);
+        renderLearnPracticeCard();
+      });
+      const nextBtn = document.getElementById("btn-next-learn-q");
+      if (nextBtn) nextBtn.addEventListener("click", drawLearnPracticeQuestion);
+    }
+
+    function refreshLearnDisplayBox() {
+      const val = state.learnResponse, box = document.getElementById("learn-display-box"), textEl = document.getElementById("learn-display-text"), previewEl = document.getElementById("learn-preview-slot");
+      if (!box || !textEl) return;
+      if (!state.learnChecked) box.classList.toggle("has-value", val.length > 0);
+      if (val.length === 0) {
+        textEl.innerHTML = `<span class="math-display-placeholder">${state.learnChecked ? "[No Answer]" : "Tap keypad buttons below..."}</span>${!state.learnChecked ? '<span class="math-caret"></span>' : ""}`;
+        previewEl.innerHTML = "";
+      } else {
+        textEl.innerHTML = `${escapeHtml(val)}${!state.learnChecked ? '<span class="math-caret"></span>' : ""}`;
+        previewEl.innerHTML = buildMathPreviewHtml(val);
+      }
+    }
+
+    const miniCalcState = { expr: "", lastNum: 0, lastStr: "0", isDeg: true, showFrac: false, justEval: false };
+
+    function renderLearnMiniCalc() {
+      const box = document.getElementById("learn-mini-calc-box");
+      box.innerHTML = `
+        <div class="calc-header" style="margin-bottom:10px;"><span class="calc-title">Learn Mode Calculator (Max 6 d.p.)</span><button type="button" class="deg-badge" id="mini-deg-btn">${miniCalcState.isDeg ? "DEG" : "RAD"}</button></div>
+        <div class="calc-screen" style="min-height:84px; margin-bottom:10px;"><div id="mini-expr" class="calc-expr">${escapeHtml(miniCalcState.expr)}</div><div class="calc-output-row"><span id="mini-tag" class="calc-mode-tag">${miniCalcState.showFrac ? "FRAC" : "DEC"}</span><div id="mini-out" class="calc-output" style="font-size:1.35rem;">${escapeHtml(miniCalcState.lastStr)}</div></div></div>
+        <div class="calc-grid">
+          <button type="button" class="calc-btn sci" data-mcalc="sin(">sin</button><button type="button" class="calc-btn sci" data-mcalc="cos(">cos</button><button type="button" class="calc-btn sci" data-mcalc="tan(">tan</button><button type="button" class="calc-btn sci" data-mcalc="√(">√</button>
+          <button type="button" class="calc-btn sci" data-mcalc="sin⁻¹(">sin⁻¹</button><button type="button" class="calc-btn sci" data-mcalc="cos⁻¹(">cos⁻¹</button><button type="button" class="calc-btn sci" data-mcalc="tan⁻¹(">tan⁻¹</button><button type="button" class="calc-btn sci" data-mcalc="^">xʸ</button>
+          <button type="button" class="calc-btn frac-btn" data-mcalc="⁄">a/b</button><button type="button" class="calc-btn frac-btn" data-mact="sd">S⇔D</button><button type="button" class="calc-btn sci" data-mcalc="(">(</button><button type="button" class="calc-btn sci" data-mcalc=")">)</button>
+          <button type="button" class="calc-btn" data-mcalc="7">7</button><button type="button" class="calc-btn" data-mcalc="8">8</button><button type="button" class="calc-btn" data-mcalc="9">9</button><button type="button" class="calc-btn op" data-mcalc="÷">÷</button>
+          <button type="button" class="calc-btn" data-mcalc="4">4</button><button type="button" class="calc-btn" data-mcalc="5">5</button><button type="button" class="calc-btn" data-mcalc="6">6</button><button type="button" class="calc-btn op" data-mcalc="×">×</button>
+          <button type="button" class="calc-btn" data-mcalc="1">1</button><button type="button" class="calc-btn" data-mcalc="2">2</button><button type="button" class="calc-btn" data-mcalc="3">3</button><button type="button" class="calc-btn op" data-mcalc="-">−</button>
+          <button type="button" class="calc-btn" data-mcalc="0">0</button><button type="button" class="calc-btn" data-mcalc=".">.</button><button type="button" class="calc-btn danger" data-mact="ac">AC</button><button type="button" class="calc-btn op" data-mcalc="+">+</button>
+          <button type="button" class="calc-btn danger" style="grid-column:span 2;" data-mact="del">DEL</button><button type="button" class="calc-btn equals" style="grid-column:span 2;" data-mact="eval">=</button>
+        </div>`;
+
+      box.querySelector("#mini-deg-btn").addEventListener("click", (e) => { miniCalcState.isDeg = !miniCalcState.isDeg; e.target.textContent = miniCalcState.isDeg ? "DEG" : "RAD"; });
+      const exprEl = box.querySelector("#mini-expr"), outEl = box.querySelector("#mini-out"), tagEl = box.querySelector("#mini-tag");
+      box.querySelectorAll("[data-mcalc], [data-mact]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tok = btn.dataset.mcalc, act = btn.dataset.mact;
+          if (act === "ac") { miniCalcState.expr = ""; miniCalcState.lastStr = "0"; miniCalcState.lastNum = 0; miniCalcState.showFrac = false; miniCalcState.justEval = false; exprEl.textContent = ""; outEl.classList.remove("error"); outEl.textContent = "0"; tagEl.textContent = "DEC"; return; }
+          if (act === "del") { miniCalcState.expr = miniCalcState.justEval ? "" : miniCalcState.expr.slice(0, -1); miniCalcState.justEval = false; exprEl.textContent = miniCalcState.expr; return; }
+          if (act === "sd") {
+            if (outEl.classList.contains("error")) return;
+            if (!miniCalcState.showFrac) { const f = toFractionString(miniCalcState.lastNum); if (f) { miniCalcState.showFrac = true; tagEl.textContent = "FRAC"; outEl.textContent = f; } else tagEl.textContent = "IRR"; }
+            else { miniCalcState.showFrac = false; tagEl.textContent = "DEC"; outEl.textContent = miniCalcState.lastStr; }
+            return;
+          }
+          if (act === "eval") {
+            try {
+              const num = parseAndEvaluate(miniCalcState.expr, miniCalcState.isDeg), fmt = formatCalcResult(num);
+              if (fmt === "Math Error" || fmt === "NaN") throw new Error();
+              miniCalcState.lastNum = num; miniCalcState.lastStr = fmt; miniCalcState.showFrac = false; miniCalcState.justEval = true;
+              outEl.classList.remove("error"); tagEl.textContent = "DEC"; outEl.textContent = fmt;
+            } catch { outEl.classList.add("error"); tagEl.textContent = "ERR"; outEl.textContent = "Math Error"; miniCalcState.justEval = true; }
+            return;
+          }
+          if (tok !== undefined) {
+            const ops = ["+", "-", "×", "÷", "^", "⁄"];
+            if (miniCalcState.justEval) { miniCalcState.expr = ops.includes(tok) ? miniCalcState.lastStr : ""; miniCalcState.justEval = false; }
+            miniCalcState.expr += tok; exprEl.textContent = miniCalcState.expr;
+          }
+        });
+      });
+    }
+
+    document.getElementById("btn-toggle-learn-calc").addEventListener("click", (e) => {
+      state.learnMiniCalcOpen = !state.learnMiniCalcOpen;
+      const box = document.getElementById("learn-mini-calc-box");
+      if (state.learnMiniCalcOpen) { renderLearnMiniCalc(); box.classList.remove("hidden"); e.target.textContent = "🧮 Hide Mini Calculator"; }
+      else { box.classList.add("hidden"); e.target.textContent = "🧮 Open Mini Calculator"; }
+    });
+
+    function startMockExam(paperType) {
+      state.paperType = paperType;
+      const pools = paperType === "noncalc" ? PAPER_1_POOLS : PAPER_2_POOLS;
+      state.activePaper = buildUniquePaper(paperType, pools);
+
+      const n = state.activePaper.length;
+      state.responses = new Array(n).fill(""); state.checked = new Array(n).fill(false);
+      state.isCorrect = new Array(n).fill(false); state.skipped = new Array(n).fill(false);
+      state.currentIdx = 0; state.timeRemaining = EXAM_DURATION_SECONDS; state.paperSubmitted = false;
+      state.paperCode = (paperType === "noncalc" ? "M8-P1-" : "M8-P2-") + randInt(1000, 9999);
+
+      const calcPane = document.getElementById("calculator-pane"), hudDot = document.getElementById("hud-dot"), hudTitle = document.getElementById("hud-title"), progMode = document.getElementById("prog-mode");
+      if (paperType === "noncalc") {
+        views.workspace.classList.add("non-calc-layout"); calcPane.classList.add("hidden"); hudDot.classList.add("noncalc");
+        hudTitle.textContent = "Maths M8 — Paper 1 (Non-Calculator • 50 Marks)"; progMode.textContent = "Non-Calculator (No Calc)";
+      } else {
+        views.workspace.classList.remove("non-calc-layout"); calcPane.classList.remove("hidden"); hudDot.classList.remove("noncalc");
+        hudTitle.textContent = "Maths M8 — Paper 2 (Calculator • 50 Marks)"; progMode.textContent = "Calculator Enabled";
+      }
+      document.getElementById("hud-paper-id").textContent = "PAPER ID: " + state.paperCode;
+
+      showOnlyViews("hud", "workspace");
+      renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); startCountdownTimer();
+    }
+
+    function updateTestProgressMeta() {
+      const totalMarks = state.activePaper.reduce((s, q) => s + q.marks, 0);
+      const checkedCount = state.checked.filter(Boolean).length;
+      const earned = state.activePaper.reduce((s, q, i) => s + (state.checked[i] && state.isCorrect[i] ? q.marks : 0), 0);
+      document.getElementById("prog-current").textContent = state.currentIdx + 1;
+      document.getElementById("prog-checked").textContent = `${checkedCount} / ${state.activePaper.length}`;
+      document.getElementById("prog-score").textContent = `${earned} / ${totalMarks}`;
+    }
+
+    function renderQuestionDots() {
+      const row = document.getElementById("q-dots-row"); row.innerHTML = "";
+      state.activePaper.forEach((q, idx) => {
+        const dot = document.createElement("button");
+        dot.type = "button"; dot.className = "q-dot-btn"; dot.textContent = q.qNum;
+        if (idx === state.currentIdx) dot.classList.add("current");
+        if (state.checked[idx]) dot.classList.add(state.isCorrect[idx] ? "correct" : "incorrect");
+        else if (state.skipped[idx]) dot.classList.add("skipped");
+        dot.addEventListener("click", () => goToTestQuestion(idx));
+        row.appendChild(dot);
+      });
+    }
+
+    function goToTestQuestion(idx) {
+      if (idx < 0 || idx >= state.activePaper.length) return;
+      state.currentIdx = idx; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      document.getElementById("questions-pane").scrollTop = 0;
+    }
+
+    function renderCurrentTestQuestion() {
+      const slot = document.getElementById("active-question-slot"), idx = state.currentIdx, q = state.activePaper[idx];
+      const isLast = idx === state.activePaper.length - 1, isChecked = state.checked[idx], isCorrect = state.isCorrect[idx], val = state.responses[idx];
+      const card = document.createElement("article"); card.className = "question-card";
+
+      let boxClass = "math-display-box";
+      if (isChecked) boxClass += isCorrect ? " locked-correct" : " locked-incorrect";
+      else if (val.length > 0) boxClass += " has-value";
+
+      const feedbackHtml = isChecked ? `
+        <div class="feedback-panel ${isCorrect ? "correct" : "incorrect"}">
+          <div class="feedback-heading ${isCorrect ? "correct" : "incorrect"}">${isCorrect ? `✓ Correct! (+${q.marks} / ${q.marks} marks)` : `✗ Incorrect (0 / ${q.marks} marks)`}</div>
+          ${!isCorrect ? `<div class="feedback-answer-line"><span>Correct Answer:</span><strong>${escapeHtml(q.modelAnswer)}</strong>${buildMathPreviewHtml(q.modelAnswer)}</div>` : ""}
+          <div class="feedback-steps-title">How to Solve This Question:</div>
+          <ol class="feedback-steps-list">${q.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol>
+        </div>` : "";
+
+      card.innerHTML = `
+        <div class="q-top-row"><div class="q-number-group"><span class="q-badge">Question ${q.qNum} / ${state.activePaper.length}</span><span class="q-topic">${escapeHtml(q.topic)}</span></div><span class="q-marks">[${q.marks} marks]</span></div>
+        <p class="q-prompt">${q.prompt}</p><p class="q-hint">Format guide: ${escapeHtml(q.hint)}</p>
+        <div class="math-display-wrapper"><div class="math-display-label"><span>Your Answer Line (Read-Only)</span><span>${isChecked ? "Answer Checked" : "Use Keypad Below"}</span></div><div class="${boxClass}" id="test-display-box" role="textbox" aria-readonly="true"><span id="test-display-text"></span><span id="test-preview-slot"></span></div></div>
+        <div class="math-pad ${isChecked ? "disabled" : ""}" id="test-math-pad"></div>
+        ${feedbackHtml}
+        <div class="q-nav-actions">
+          <div class="q-nav-left"><button type="button" class="btn-action" id="btn-prev-q" ${idx === 0 ? "disabled" : ""}>← Back</button>${!isChecked && !isLast ? `<button type="button" class="btn-action btn-skip" id="btn-skip-q">Skip →</button>` : ""}</div>
+          <div class="q-nav-right">${!isChecked ? `<button type="button" class="btn-action btn-check" id="btn-check-q">✓ Submit Answer</button>` : ""}${!isLast && isChecked ? `<button type="button" class="btn-action btn-next" id="btn-next-q">Next Question →</button>` : ""}${isLast ? `<button type="button" class="btn-action btn-finish-test" id="btn-finish-test">🏁 Submit Test &amp; See Score</button>` : ""}</div>
+        </div>`;
+
+      slot.innerHTML = ""; slot.appendChild(card);
+
+      const padEl = document.getElementById("test-math-pad");
+      PAD_KEYS.forEach((key) => {
+        const btn = document.createElement("button"); btn.type = "button"; btn.className = `pad-btn ${key.cls}`.trim(); btn.textContent = key.label;
+        if (key.title) btn.title = key.title;
+        btn.addEventListener("click", () => {
+          if (state.checked[idx]) return;
+          if (key.action === "backspace") state.responses[idx] = state.responses[idx].slice(0, -1);
+          else if (key.action === "clear") state.responses[idx] = "";
+          else if (state.responses[idx].length < 28) state.responses[idx] += key.val;
+          refreshTestDisplayBox();
+        });
+        padEl.appendChild(btn);
+      });
+      refreshTestDisplayBox();
+
+      document.getElementById("btn-prev-q").addEventListener("click", () => goToTestQuestion(idx - 1));
+      const skipBtn = document.getElementById("btn-skip-q");
+      if (skipBtn) skipBtn.addEventListener("click", () => { if (!state.checked[idx]) state.skipped[idx] = true; goToTestQuestion(idx + 1); });
+      const checkBtn = document.getElementById("btn-check-q");
+      if (checkBtn) checkBtn.addEventListener("click", () => {
+        const norm = normalizeResponse(state.responses[idx]);
+        if (!norm) return alert("Please enter an answer first, or press Skip → to move forward.");
+        state.checked[idx] = true;
+        state.isCorrect[idx] = q.acceptedAnswers.some((a) => normalizeResponse(a) === norm);
+        state.skipped[idx] = false;
+        renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      });
+      const nextBtn = document.getElementById("btn-next-q");
+      if (nextBtn) nextBtn.addEventListener("click", () => goToTestQuestion(idx + 1));
+      const finishBtn = document.getElementById("btn-finish-test");
+      if (finishBtn) finishBtn.addEventListener("click", handleManualTestSubmit);
+    }
+
+    function refreshTestDisplayBox() {
+      const idx = state.currentIdx, val = state.responses[idx], isChecked = state.checked[idx];
+      const box = document.getElementById("test-display-box"), textEl = document.getElementById("test-display-text"), previewEl = document.getElementById("test-preview-slot");
+      if (!box || !textEl) return;
+      if (!isChecked) box.classList.toggle("has-value", val.length > 0);
+      if (val.length === 0) {
+        textEl.innerHTML = `<span class="math-display-placeholder">${isChecked ? "[No Answer Entered]" : "Tap buttons below to enter answer or fraction..."}</span>${!isChecked ? '<span class="math-caret"></span>' : ""}`;
+        previewEl.innerHTML = "";
+      } else {
+        textEl.innerHTML = `${escapeHtml(val)}${!isChecked ? '<span class="math-caret"></span>' : ""}`;
+        previewEl.innerHTML = buildMathPreviewHtml(val);
+      }
+    }
+
+    function startCountdownTimer() {
+      stopCountdownTimer(); renderTimer();
+      state.timerId = setInterval(() => {
+        state.timeRemaining -= 1; renderTimer();
+        if (state.timeRemaining <= 0) { stopCountdownTimer(); submitFinalTest(true); }
+      }, 1000);
+    }
+    function stopCountdownTimer() { if (state.timerId !== null) { clearInterval(state.timerId); state.timerId = null; } }
+    function renderTimer() {
+      const secs = Math.max(0, state.timeRemaining), mins = Math.floor(secs / 60), rem = secs % 60;
+      document.getElementById("timer-clock").textContent = `${String(mins).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+      const pill = document.getElementById("timer-display");
+      pill.classList.remove("warning", "critical");
+      if (secs <= 180) pill.classList.add("critical");
+      else if (secs <= 600) pill.classList.add("warning");
+    }
+
+    function handleManualTestSubmit() {
+      const unchecked = state.checked.filter((c) => !c).length;
+      if (unchecked > 0 && !confirm(`You still have ${unchecked} unchecked question(s). Submit your test now?`)) return;
+      submitFinalTest(false);
+    }
+
+    function submitFinalTest(isTimeout = false) {
+      if (state.paperSubmitted) return;
+      state.paperSubmitted = true; stopCountdownTimer();
+      let earnedMarks = 0, totalMarks = 0, correctCount = 0;
+
+      const gradedResults = state.activePaper.map((q, idx) => {
+        totalMarks += q.marks;
+        const rawUser = state.responses[idx] || "", normUser = normalizeResponse(rawUser);
+        const isCorrect = state.checked[idx] ? state.isCorrect[idx] : q.acceptedAnswers.some((ans) => normalizeResponse(ans) === normUser);
+        if (isCorrect) { earnedMarks += q.marks; correctCount += 1; }
+        return { ...q, userAnswer: rawUser, isCorrect };
+      });
+
+      const pct = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 1000) / 10 : 0;
+      const grade = computeM8Grade(pct);
+      const elapsedSeconds = EXAM_DURATION_SECONDS - Math.max(0, state.timeRemaining);
+      const timeStr = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}m ${String(elapsedSeconds % 60).padStart(2, "0")}s`;
+
+      document.getElementById("formula-modal").classList.add("hidden");
+      showOnlyViews("results");
+
+      const paperLabel = state.paperType === "noncalc" ? "Paper 1 (Non-Calculator)" : "Paper 2 (Calculator)";
+      document.getElementById("report-submission-meta").textContent = isTimeout
+        ? `${state.paperCode} • ${paperLabel} • Auto-Submitted on Timeout (75m 00s)`
+        : `${state.paperCode} • ${paperLabel} • Completed`;
+
+      document.getElementById("stat-marks").textContent = `${earnedMarks} / ${totalMarks}`;
+      document.getElementById("stat-paper-type").textContent = paperLabel;
+      document.getElementById("stat-percent").textContent = `${pct} / 100`;
+      document.getElementById("stat-percent-sub").textContent = `${pct}% overall`;
+      document.getElementById("stat-time").textContent = timeStr;
+      document.getElementById("stat-grade").textContent = grade;
+      document.getElementById("stat-q-correct").textContent = `${correctCount} / ${state.activePaper.length} questions correct`;
+
+      const sheet = document.getElementById("graded-sheet"); sheet.innerHTML = "";
+      gradedResults.forEach((item) => {
+        const card = document.createElement("article"); card.className = `graded-card ${item.isCorrect ? "correct" : "incorrect"}`;
+        const userDisplay = item.userAnswer.trim().length > 0 ? escapeHtml(item.userAnswer) : "[No Response Entered]";
+        card.innerHTML = `
+          <div class="graded-top"><div class="q-number-group"><span class="q-badge">Q${item.qNum}</span><span class="q-topic">${escapeHtml(item.topic)}</span></div><span class="status-pill ${item.isCorrect ? "correct" : "incorrect"}">${item.isCorrect ? `✓ Correct (+${item.marks}/${item.marks} marks)` : `✗ Incorrect (0/${item.marks} marks)`}</span></div>
+          <p class="q-prompt">${item.prompt}</p>
+          <div class="graded-answers-grid"><div class="ans-box"><div class="ans-box-label">Your Submitted Response</div><div class="ans-box-value ${item.isCorrect ? "model" : "wrong"}">${userDisplay}</div></div><div class="ans-box"><div class="ans-box-label">Expected Answer Model</div><div class="ans-box-value model">${escapeHtml(item.modelAnswer)}</div></div></div>
+          <div class="mark-scheme-note"><div class="feedback-steps-title">How to Solve:</div><ol class="feedback-steps-list">${item.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`;
+        sheet.appendChild(card);
+      });
+    }
+
+    function computeM8Grade(pct) {
+      if (pct >= 78) return "A*"; if (pct >= 64) return "A"; if (pct >= 48) return "B";
+      if (pct >= 34) return "C*"; if (pct >= 24) return "C"; return "U";
+    }
+
+    const calcState = { expression: "", lastAnswerNum: 0, lastAnswerStr: "0", isDeg: true, showFraction: false, justEvaluated: false, history: [] };
+    const calcExprEl = document.getElementById("calc-expr"), calcOutputEl = document.getElementById("calc-output"), calcViewTagEl = document.getElementById("calc-view-tag"), calcModeBtn = document.getElementById("calc-mode-toggle"), calcHistoryList = document.getElementById("calc-history-list");
+
+    calcModeBtn.addEventListener("click", () => { calcState.isDeg = !calcState.isDeg; calcModeBtn.textContent = calcState.isDeg ? "DEG" : "RAD"; });
+
+    document.querySelectorAll("#calculator-pane .calc-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const token = btn.dataset.calc, action = btn.dataset.action;
+        if (action === "ac") { calcState.expression = ""; calcState.justEvaluated = false; calcState.showFraction = false; calcViewTagEl.textContent = "DEC"; calcOutputEl.classList.remove("error"); calcOutputEl.textContent = "0"; calcExprEl.textContent = ""; return; }
+        if (action === "del") {
+          if (calcState.justEvaluated) { calcState.expression = ""; calcState.justEvaluated = false; }
+          else {
+            const funcs = ["sin⁻¹(", "cos⁻¹(", "tan⁻¹(", "sin(", "cos(", "tan(", "√("];
+            const matched = funcs.find((f) => calcState.expression.endsWith(f));
+            calcState.expression = matched ? calcState.expression.slice(0, -matched.length) : calcState.expression.slice(0, -1);
+          }
+          calcExprEl.textContent = calcState.expression; return;
+        }
+        if (action === "ans") { if (calcState.justEvaluated) { calcState.expression = ""; calcState.justEvaluated = false; } calcState.expression += calcState.lastAnswerStr; calcExprEl.textContent = calcState.expression; return; }
+        if (action === "sd") {
+          if (calcOutputEl.classList.contains("error")) return;
+          if (!calcState.showFraction) { const frac = toFractionString(calcState.lastAnswerNum); if (frac) { calcState.showFraction = true; calcViewTagEl.textContent = "FRAC"; calcOutputEl.textContent = frac; } else calcViewTagEl.textContent = "IRRATIONAL"; }
+          else { calcState.showFraction = false; calcViewTagEl.textContent = "DEC"; calcOutputEl.textContent = calcState.lastAnswerStr; }
+          return;
+        }
+        if (action === "eval") { evaluateMainCalculator(); return; }
+        if (token !== undefined) {
+          const binaryOps = ["+", "-", "×", "÷", "^", "⁄"];
+          if (calcState.justEvaluated) { calcState.expression = binaryOps.includes(token) ? calcState.lastAnswerStr : ""; calcState.justEvaluated = false; }
+          calcState.expression += token; calcExprEl.textContent = calcState.expression;
+        }
+      });
+    });
+
+    function toFractionString(value) {
+      if (!Number.isFinite(value)) return null;
+      if (Math.abs(value - Math.round(value)) < 1e-10) return String(Math.round(value));
+      const sign = value < 0 ? "-" : "", x = Math.abs(value);
+      let h1 = 1, h2 = 0, k1 = 0, k2 = 1, b = x;
+      for (let i = 0; i < 20; i++) {
+        const a = Math.floor(b), auxH = h1; h1 = a * h1 + h2; h2 = auxH;
+        const auxK = k1; k1 = a * k1 + k2; k2 = auxK;
+        if (k1 > 10000) break;
+        if (Math.abs(x - h1 / k1) < 1e-9) return k1 === 1 ? `${sign}${h1}` : `${sign}${h1}/${k1}`;
+        const frac = b - a; if (frac < 1e-12) break; b = 1 / frac;
+      }
+      return null;
+    }
+
+    function formatCalcResult(num) {
+      if (!Number.isFinite(num)) return "Math Error";
+      if (Math.abs(num) < 1e-12) return "0";
+      const rounded = Number(num.toFixed(6));
+      return Object.is(rounded, -0) ? "0" : String(rounded);
+    }
+
+    function parseAndEvaluate(rawExpr, isDeg) {
+      const tokens = []; let i = 0;
+      while (i < rawExpr.length) {
+        const ch = rawExpr[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        if (/\d|\./.test(ch)) {
+          let numStr = ""; while (i < rawExpr.length && /[\d.]/.test(rawExpr[i])) numStr += rawExpr[i++];
+          if ((numStr.match(/\./g) || []).length > 1 || numStr === ".") throw new Error("Invalid number");
+          tokens.push({ type: "num", val: parseFloat(numStr) }); continue;
+        }
+        const funcs = ["sin⁻¹", "cos⁻¹", "tan⁻¹", "sin", "cos", "tan", "√"];
+        const fn = funcs.find((f) => rawExpr.startsWith(f, i));
+        if (fn) { tokens.push({ type: "func", val: fn }); i += fn.length; continue; }
+        if (ch === "π") { tokens.push({ type: "num", val: Math.PI }); i++; continue; }
+        if ("+-×÷⁄^()".includes(ch)) { tokens.push({ type: "op", val: ch }); i++; continue; }
+        throw new Error("Unknown token");
+      }
+      const expanded = [];
+      for (let j = 0; j < tokens.length; j++) {
+        const curr = tokens[j], prev = expanded[expanded.length - 1];
+        if (prev) {
+          const prevEnds = prev.type === "num" || (prev.type === "op" && prev.val === ")");
+          const currStarts = curr.type === "num" || curr.type === "func" || (curr.type === "op" && curr.val === "(");
+          if (prevEnds && currStarts) expanded.push({ type: "op", val: "×" });
+        }
+        expanded.push(curr);
+      }
+      let pos = 0;
+      const peek = () => expanded[pos], consume = () => expanded[pos++];
+      const toRad = (x) => (isDeg ? (x * Math.PI) / 180 : x), fromRad = (x) => (isDeg ? (x * 180) / Math.PI : x);
+
+      function parseAddSub() {
+        let left = parseMulDiv();
+        while (peek() && peek().type === "op" && (peek().val === "+" || peek().val === "-")) {
+          const op = consume().val, right = parseMulDiv(); left = op === "+" ? left + right : left - right;
+        }
+        return left;
+      }
+      function parseMulDiv() {
+        let left = parseFraction();
+        while (peek() && peek().type === "op" && (peek().val === "×" || peek().val === "÷")) {
+          const op = consume().val, right = parseFraction();
+          if (op === "÷" && right === 0) throw new Error("Div by 0");
+          left = op === "×" ? left * right : left / right;
+        }
+        return left;
+      }
+      function parseFraction() {
+        let left = parseUnary();
+        while (peek() && peek().type === "op" && peek().val === "⁄") {
+          consume(); const right = parseUnary(); if (right === 0) throw new Error("Div by 0"); left = left / right;
+        }
+        return left;
+      }
+      function parseUnary() {
+        if (peek() && peek().type === "op" && (peek().val === "+" || peek().val === "-")) {
+          const op = consume().val, val = parseUnary(); return op === "-" ? -val : val;
+        }
+        return parsePower();
+      }
+      function parsePower() {
+        const base = parsePrimary();
+        if (peek() && peek().type === "op" && peek().val === "^") { consume(); return Math.pow(base, parseUnary()); }
+        return base;
+      }
+      function parsePrimary() {
+        const tok = peek(); if (!tok) throw new Error("Unexpected end");
+        if (tok.type === "num") { consume(); return tok.val; }
+        if (tok.type === "func") {
+          const fn = consume().val; let arg;
+          if (peek() && peek().type === "op" && peek().val === "(") { consume(); arg = parseAddSub(); if (peek() && peek().type === "op" && peek().val === ")") consume(); }
+          else arg = parseUnary();
+          if (fn === "√") { if (arg < 0) throw new Error(); return Math.sqrt(arg); }
+          if (fn === "sin") return Math.sin(toRad(arg));
+          if (fn === "cos") return Math.cos(toRad(arg));
+          if (fn === "tan") { if (isDeg && Math.abs(((arg % 180) + 180) % 180 - 90) < 1e-12) throw new Error(); return Math.tan(toRad(arg)); }
+          if (fn === "sin⁻¹") return fromRad(Math.asin(arg));
+          if (fn === "cos⁻¹") return fromRad(Math.acos(arg));
+          if (fn === "tan⁻¹") return fromRad(Math.atan(arg));
+        }
+        if (tok.type === "op" && tok.val === "(") {
+          consume(); const val = parseAddSub(); if (peek() && peek().type === "op" && peek().val === ")") consume(); return val;
+        }
+        throw new Error("Syntax error");
+      }
+      const res = parseAddSub(); if (pos < expanded.length) throw new Error("Trailing tokens"); return res;
+    }
+
+    function evaluateMainCalculator() {
+      const raw = calcState.expression.trim(); if (!raw) return;
+      try {
+        const resultNum = parseAndEvaluate(raw, calcState.isDeg), formatted = formatCalcResult(resultNum);
+        if (formatted === "Math Error" || formatted === "NaN") throw new Error();
+        calcState.lastAnswerNum = resultNum; calcState.lastAnswerStr = formatted; calcState.showFraction = false; calcState.justEvaluated = true;
+        calcOutputEl.classList.remove("error"); calcViewTagEl.textContent = "DEC"; calcOutputEl.textContent = formatted;
+        calcState.history.unshift({ expr: raw, res: formatted }); if (calcState.history.length > 6) calcState.history.pop(); renderCalcHistory();
+      } catch {
+        calcOutputEl.classList.add("error"); calcViewTagEl.textContent = "ERR"; calcOutputEl.textContent = "Math Error"; calcState.justEvaluated = true;
+      }
+    }
+
+    function renderCalcHistory() {
+      calcHistoryList.innerHTML = "";
+      calcState.history.forEach((item) => {
+        const row = document.createElement("div"); row.className = "calc-hist-item"; row.title = "Click to reuse result";
+        row.innerHTML = `<span class="calc-hist-expr">${escapeHtml(item.expr)}</span><span class="calc-hist-res">= ${escapeHtml(item.res)}</span>`;
+        row.addEventListener("click", () => { calcState.expression = item.res; calcState.justEvaluated = false; calcExprEl.textContent = calcState.expression; calcOutputEl.classList.remove("error"); calcOutputEl.textContent = item.res; });
+        calcHistoryList.appendChild(row);
+      });
+    }
+
+    document.getElementById("btn-go-learn").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-go-test").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-learn-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-detail-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-test-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-results-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-back-to-topics").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-new-learn-q").addEventListener("click", drawLearnPracticeQuestion);
+    document.getElementById("btn-start-noncalc").addEventListener("click", () => startMockExam("noncalc"));
+    document.getElementById("btn-start-calc").addEventListener("click", () => startMockExam("calc"));
+    document.getElementById("btn-retry-same").addEventListener("click", () => startMockExam(state.paperType));
+    document.getElementById("btn-switch-paper").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-hud-submit").addEventListener("click", handleManualTestSubmit);
+
+    const formulaModal = document.getElementById("formula-modal");
+    document.getElementById("btn-open-formula").addEventListener("click", () => formulaModal.classList.remove("hidden"));
+    document.getElementById("btn-close-formula").addEventListener("click", () => formulaModal.classList.add("hidden"));
+    formulaModal.addEventListener("click", (e) => { if (e.target === formulaModal) formulaModal.classList.add("hidden"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !formulaModal.classList.contains("hidden")) formulaModal.classList.add("hidden"); });
+  </script>
+</body>
+</html>
+```

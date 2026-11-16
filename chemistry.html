@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — Chemistry Unit C2 (CCEA Foundation)</title>
+  <style>
+    :root {
+      --bg-base:#070b14; --bg-surface:#0f172a; --bg-elevated:#162033; --bg-card:#111b2e; --bg-input:#090f1d;
+      --border-subtle:rgba(148,163,184,0.16); --border-strong:rgba(148,163,184,0.32);
+      --text-primary:#f1f5f9; --text-secondary:#94a3b8; --text-muted:#64748b;
+      --accent-blue:#38bdf8; --accent-emerald:#10b981; --accent-emerald-bg:rgba(16,185,129,0.1); --accent-emerald-border:rgba(16,185,129,0.5);
+      --accent-rose:#f43f5e; --accent-rose-bg:rgba(244,63,94,0.1); --accent-rose-border:rgba(244,63,94,0.5);
+      --accent-amber:#f59e0b; --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --font-mono:"JetBrains Mono","Fira Code",ui-monospace,Menlo,Consolas,monospace;
+      --hud-height:68px; --radius-lg:14px; --radius-md:10px; --shadow-panel:0 20px 50px rgba(0,0,0,0.45);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; background:var(--bg-base); color:var(--text-primary); font-family:var(--font-sans); line-height:1.55; }
+    .hidden { display:none !important; }
+    .page-shell { min-height:100vh; padding:36px 24px 70px; background:radial-gradient(circle at 15% 15%,rgba(245,158,11,0.09),transparent 40%),radial-gradient(circle at 85% 85%,rgba(56,189,248,0.09),transparent 45%),var(--bg-base); }
+    .container-md { max-width:960px; margin:0 auto; }
+    .container-lg { max-width:1120px; margin:0 auto; }
+    .top-nav-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
+    .btn-ghost { padding:9px 16px; border-radius:9px; font-size:0.88rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-surface); color:var(--text-primary); display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+    .btn-ghost:hover { background:var(--bg-elevated); }
+    .badge-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; font-size:0.76rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#fcd34d; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); }
+    .badge-pill.blue { color:var(--accent-blue); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3); }
+    .badge-pill.emerald { color:#6ee7b7; background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.35); }
+    #home-view { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px 20px; background:radial-gradient(circle at 20% 20%,rgba(245,158,11,0.12),transparent 42%),radial-gradient(circle at 80% 80%,rgba(56,189,248,0.1),transparent 45%),var(--bg-base); }
+    .home-wrapper { width:100%; max-width:920px; text-align:center; }
+    .home-top-links { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .home-title { font-size:clamp(2rem,4vw,2.9rem); font-weight:800; letter-spacing:-0.03em; margin:12px 0; line-height:1.15; }
+    .home-subtitle { color:var(--text-secondary); font-size:1.04rem; max-width:660px; margin:0 auto 36px; }
+    .mode-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:22px; text-align:left; }
+    .mode-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:32px; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:20px; box-shadow:var(--shadow-panel); transition:transform 0.16s ease,border-color 0.16s ease; position:relative; overflow:hidden; }
+    .mode-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; }
+    .mode-card.learn-card::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .mode-card.test-card::before { background:linear-gradient(90deg,#38bdf8,#6366f1); }
+    .mode-card:hover { transform:translateY(-4px); border-color:var(--accent-amber); }
+    .mode-icon { width:52px; height:52px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:1.65rem; margin-bottom:14px; }
+    .learn-card .mode-icon { background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.35); }
+    .test-card .mode-icon { background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.35); }
+    .mode-card h2 { font-size:1.55rem; font-weight:800; margin-bottom:8px; }
+    .mode-card p { color:var(--text-secondary); font-size:0.96rem; line-height:1.6; }
+    .mode-cta { font-weight:700; font-size:0.95rem; color:#fcd34d; }
+    .test-card .mode-cta { color:var(--accent-blue); }
+    .section-header { margin-bottom:24px; }
+    .section-header h1 { font-size:clamp(1.6rem,3vw,2.15rem); font-weight:800; margin-bottom:6px; }
+    .section-header p { color:var(--text-secondary); font-size:0.96rem; }
+    .learn-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+    .filter-pill { padding:7px 14px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-secondary); font-size:0.83rem; font-weight:600; cursor:pointer; }
+    .filter-pill.active { background:rgba(245,158,11,0.16); border-color:var(--accent-amber); color:#fcd34d; }
+    .topics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(265px,1fr)); gap:14px; }
+    .topic-btn { background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; text-align:left; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px; transition:transform 0.12s ease,border-color 0.12s ease; }
+    .topic-btn:hover { transform:translateY(-2px); border-color:var(--accent-amber); background:var(--bg-elevated); }
+    .topic-btn-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .topic-num { font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); }
+    .topic-section-tag { font-family:var(--font-mono); font-size:0.69rem; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid; }
+    .tag-metals { color:#fcd34d; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.35); }
+    .tag-rates { color:#bae6fd; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.35); }
+    .tag-organic { color:#6ee7b7; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.35); }
+    .tag-quant { color:#fda4af; background:rgba(244,63,94,0.1); border-color:rgba(244,63,94,0.35); }
+    .topic-btn-title { font-size:1rem; font-weight:700; color:var(--text-primary); line-height:1.35; }
+    .topic-btn-sub { font-size:0.8rem; color:var(--text-secondary); }
+    .learn-detail-grid { display:grid; grid-template-columns:1fr; gap:20px; }
+    .study-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .study-card-title { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:#fcd34d; font-weight:800; margin-bottom:10px; }
+    .study-body { color:var(--text-primary); font-size:0.98rem; line-height:1.7; }
+    .study-body code,.q-prompt code { font-family:var(--font-mono); background:rgba(30,41,59,0.9); padding:2px 7px; border-radius:5px; color:#bae6fd; font-size:0.93em; }
+    .key-rule-box { margin-top:14px; padding:13px 16px; background:var(--bg-input); border-left:3px solid var(--accent-amber); border-radius:0 8px 8px 0; font-family:var(--font-mono); font-size:0.92rem; color:#fef3c7; line-height:1.6; }
+    .diagram-box { margin-top:16px; padding:16px; background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; display:flex; justify-content:center; }
+    .steps-ol { padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+    .worked-example-box { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:18px; }
+    .worked-q { font-weight:700; color:#bae6fd; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border-subtle); }
+    .learn-practice-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .mcq-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:18px; }
+    .mcq-option { width:100%; text-align:left; padding:13px 16px; border-radius:var(--radius-md); border:1.5px solid var(--border-strong); background:var(--bg-input); color:var(--text-primary); font-size:0.97rem; cursor:pointer; display:flex; align-items:center; gap:12px; }
+    .mcq-option:hover:not(:disabled) { background:var(--bg-elevated); border-color:var(--accent-blue); }
+    .mcq-option.selected { border-color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .mcq-option.correct-opt { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.18); }
+    .mcq-option.wrong-opt { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.18); }
+    .mcq-letter { width:28px; height:28px; border-radius:7px; background:var(--bg-elevated); border:1px solid var(--border-subtle); display:inline-flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:0.85rem; flex-shrink:0; color:var(--text-secondary); }
+    .mcq-option.selected .mcq-letter { background:var(--accent-blue); color:#031120; }
+    .mcq-option.correct-opt .mcq-letter { background:var(--accent-emerald); color:#03150e; }
+    .mcq-option.wrong-opt .mcq-letter { background:var(--accent-rose); color:#fff; }
+    .bio-input-box { width:100%; padding:14px 16px; background:var(--bg-input); border:1.5px solid var(--border-strong); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:1.08rem; color:var(--text-primary); outline:none; margin-bottom:14px; }
+    .bio-input-box.locked-correct { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.08); }
+    .bio-input-box.locked-incorrect { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.08); }
+    .paper-choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; }
+    .paper-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:30px; display:flex; flex-direction:column; justify-content:space-between; gap:22px; box-shadow:var(--shadow-panel); }
+    .paper-specs { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .paper-spec-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:8px; padding:11px 13px; }
+    .paper-spec-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); }
+    .paper-spec-val { font-family:var(--font-mono); font-weight:700; font-size:1rem; margin-top:2px; }
+    .btn-primary-lg { width:100%; padding:15px 22px; font-size:1rem; font-weight:700; color:#1f1202; background:linear-gradient(135deg,#f59e0b,#fbbf24); border:none; border-radius:11px; cursor:pointer; }
+    .btn-primary-lg.blue { color:#04101d; background:linear-gradient(135deg,#38bdf8,#60a5fa); }
+    #hud-bar { position:fixed; top:0; left:0; right:0; height:var(--hud-height); background:rgba(15,23,42,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-strong); padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; z-index:100; }
+    .hud-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .hud-dot { width:10px; height:10px; border-radius:50%; background:var(--accent-amber); box-shadow:0 0 10px var(--accent-amber); flex-shrink:0; }
+    .hud-title { font-weight:700; font-size:0.96rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hud-meta { font-size:0.76rem; color:var(--text-secondary); font-family:var(--font-mono); }
+    .hud-controls { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .timer-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 15px; background:var(--bg-input); border:1px solid var(--border-strong); border-radius:10px; font-family:var(--font-mono); font-size:1.05rem; font-weight:700; color:var(--accent-blue); min-width:120px; justify-content:center; }
+    .timer-pill.warning { color:var(--accent-amber); border-color:rgba(245,158,11,0.55); }
+    .timer-pill.critical { color:var(--accent-rose); border-color:rgba(244,63,94,0.65); }
+    .btn-hud { padding:9px 14px; border-radius:9px; font-size:0.86rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); text-decoration:none; }
+    .btn-submit { background:linear-gradient(135deg,#10b981,#059669); border-color:rgba(16,185,129,0.6); color:#03150e; font-weight:700; }
+    #workspace-view { padding-top:var(--hud-height); height:100vh; display:grid; grid-template-columns:minmax(0,1fr) 360px; overflow:hidden; }
+    #questions-pane { height:calc(100vh - var(--hud-height)); overflow-y:auto; padding:24px 34px 56px; }
+    .exam-shell { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+    .q-progress-bar { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 18px; display:flex; flex-direction:column; gap:12px; }
+    .q-progress-meta { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; font-size:0.85rem; color:var(--text-secondary); }
+    .q-progress-meta strong { color:var(--text-primary); font-family:var(--font-mono); }
+    .q-dots-row { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+    .q-dot-btn { height:32px; border-radius:7px; border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8rem; font-weight:700; cursor:pointer; }
+    .q-dot-btn.current { border-color:var(--accent-blue); color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .q-dot-btn.correct { background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.55); color:#6ee7b7; }
+    .q-dot-btn.incorrect { background:rgba(244,63,94,0.2); border-color:rgba(244,63,94,0.55); color:#fda4af; }
+    .q-dot-btn.skipped { background:rgba(245,158,11,0.14); border-color:rgba(245,158,11,0.45); color:#fcd34d; }
+    .question-card { background:var(--bg-card); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .q-top-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .q-number-group { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+    .q-badge { background:rgba(245,158,11,0.14); color:#fcd34d; border:1px solid rgba(245,158,11,0.32); font-family:var(--font-mono); font-weight:700; font-size:0.84rem; padding:4px 11px; border-radius:6px; }
+    .q-topic { font-size:0.82rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; }
+    .q-marks { font-family:var(--font-mono); font-size:0.82rem; color:var(--text-secondary); background:var(--bg-elevated); border:1px solid var(--border-subtle); padding:4px 11px; border-radius:999px; }
+    .q-prompt { font-size:1.07rem; margin-bottom:10px; line-height:1.65; }
+    .q-hint { font-size:0.84rem; color:var(--accent-amber); margin-bottom:14px; }
+    .feedback-panel { border-radius:var(--radius-md); padding:18px 20px; margin-bottom:18px; border:1.5px solid; }
+    .feedback-panel.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .feedback-panel.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .feedback-heading { font-weight:800; font-size:1.05rem; margin-bottom:10px; }
+    .feedback-heading.correct { color:#6ee7b7; }
+    .feedback-heading.incorrect { color:#fda4af; }
+    .feedback-answer-line { background:rgba(9,15,29,0.72); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-family:var(--font-mono); font-size:0.96rem; display:flex; flex-wrap:wrap; gap:10px; }
+    .feedback-answer-line strong { color:#6ee7b7; }
+    .feedback-steps-title { font-size:0.78rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom:6px; font-weight:700; }
+    .feedback-steps-list { padding-left:20px; font-size:0.94rem; display:flex; flex-direction:column; gap:5px; }
+    .q-nav-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding-top:6px; }
+    .q-nav-left,.q-nav-right { display:flex; flex-wrap:wrap; gap:10px; }
+    .btn-action { padding:11px 18px; border-radius:9px; font-size:0.92rem; font-weight:700; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); }
+    .btn-action:disabled { opacity:0.38; cursor:not-allowed; }
+    .btn-skip { background:rgba(245,158,11,0.1); color:#fcd34d; border-color:rgba(245,158,11,0.35); }
+    .btn-check { background:linear-gradient(135deg,#38bdf8,#3b82f6); color:#031120; border:none; }
+    .btn-next,.btn-finish-test { background:linear-gradient(135deg,#10b981,#059669); color:#03150e; border:none; }
+    #calculator-pane { height:calc(100vh - var(--hud-height)); background:var(--bg-surface); border-left:1px solid var(--border-strong); padding:18px 20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+    .calc-header { display:flex; align-items:center; justify-content:space-between; }
+    .calc-title { font-size:0.82rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); }
+    .calc-badge { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:5px; background:rgba(245,158,11,0.14); color:#fcd34d; border:1px solid rgba(245,158,11,0.35); }
+    .calc-screen { background:var(--bg-input); border:1px solid var(--border-strong); border-radius:var(--radius-md); padding:13px 16px; min-height:98px; display:flex; flex-direction:column; justify-content:space-between; word-break:break-all; }
+    .calc-expr { font-family:var(--font-mono); font-size:0.95rem; color:var(--text-secondary); text-align:right; min-height:22px; }
+    .calc-output { font-family:var(--font-mono); font-size:1.65rem; font-weight:700; text-align:right; }
+    .calc-output.error { color:var(--accent-rose); font-size:1.2rem; }
+    .calc-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .calc-btn { height:43px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-primary); font-family:var(--font-mono); font-size:0.95rem; font-weight:600; cursor:pointer; }
+    .calc-btn.op { background:rgba(56,189,248,0.12); color:var(--accent-blue); }
+    .calc-btn.sci { background:rgba(99,102,241,0.14); color:#c7d2fe; }
+    .calc-btn.danger { background:rgba(244,63,94,0.14); color:#fda4af; }
+    .calc-btn.equals { background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#1f1202; font-weight:800; border:none; }
+    .calc-tip { font-size:0.76rem; color:var(--text-muted); }
+    .report-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:18px; padding:32px; box-shadow:var(--shadow-panel); margin-bottom:32px; }
+    .report-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding-bottom:22px; border-bottom:1px solid var(--border-subtle); margin-bottom:24px; }
+    .report-title { font-size:1.65rem; font-weight:800; }
+    .report-sub { color:var(--text-secondary); font-size:0.92rem; margin-top:4px; }
+    .report-actions { display:flex; flex-wrap:wrap; gap:10px; }
+    .report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+    .stat-tile { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; }
+    .stat-tile-label { font-size:0.74rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+    .stat-tile-value { font-family:var(--font-mono); font-size:1.55rem; font-weight:800; }
+    .stat-tile-value.highlight { color:#fcd34d; }
+    .stat-tile-sub { font-size:0.76rem; color:var(--text-muted); margin-top:4px; }
+    .graded-sheet-title { font-size:1.1rem; font-weight:700; margin-bottom:16px; color:var(--text-secondary); text-transform:uppercase; }
+    .graded-list { display:flex; flex-direction:column; gap:18px; }
+    .graded-card { border-radius:var(--radius-lg); padding:22px 24px; border:1.5px solid; }
+    .graded-card.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .graded-card.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .graded-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .status-pill { font-family:var(--font-mono); font-size:0.78rem; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; }
+    .status-pill.correct { background:rgba(16,185,129,0.22); color:#6ee7b7; border:1px solid rgba(16,185,129,0.5); }
+    .status-pill.incorrect { background:rgba(244,63,94,0.22); color:#fda4af; border:1px solid rgba(244,63,94,0.5); }
+    .graded-answers-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:14px; }
+    .ans-box { background:rgba(9,15,29,0.78); border:1px solid var(--border-subtle); border-radius:8px; padding:12px 14px; }
+    .ans-box-label { font-size:0.73rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+    .ans-box-value { font-family:var(--font-mono); font-size:1.02rem; font-weight:700; }
+    .ans-box-value.model { color:#6ee7b7; }
+    .ans-box-value.wrong { color:#fda4af; }
+    .mark-scheme-note { margin-top:14px; font-size:0.9rem; color:var(--text-secondary); padding-top:12px; border-top:1px solid rgba(148,163,184,0.16); }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(4,7,15,0.78); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:200; }
+    .modal-panel { width:100%; max-width:760px; max-height:86vh; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:16px; padding:28px; }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border-subtle); margin-bottom:18px; }
+    .modal-close { background:var(--bg-elevated); border:1px solid var(--border-subtle); color:var(--text-primary); width:34px; height:34px; border-radius:8px; font-size:1.2rem; cursor:pointer; }
+    .formula-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+    .formula-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:14px 16px; }
+    .formula-name { font-size:0.78rem; text-transform:uppercase; color:#fcd34d; margin-bottom:6px; font-weight:700; }
+    .formula-expr { font-family:var(--font-mono); font-size:0.86rem; line-height:1.55; }
+    @media (max-width:980px) { #workspace-view{grid-template-columns:1fr;height:auto;overflow:visible;} #questions-pane{height:auto;overflow-y:visible;padding:20px 16px 32px;} #calculator-pane{height:auto;border-left:none;border-top:1px solid var(--border-strong);} .hud-meta{display:none;} }
+  </style>
+</head>
+<body>
+  <section id="home-view">
+    <div class="home-wrapper">
+      <div class="home-top-links">
+        <a href="index.html" class="btn-ghost">← All Subjects</a>
+        <div class="badge-pill">CCEA (NI) Double Award Science • Chemistry Unit C2 (Foundation)</div>
+      </div>
+      <h1 class="home-title">Chemistry Unit C2 Revision Engine</h1>
+      <p class="home-subtitle">Further Chemical Reactions, Rates &amp; Equilibrium, Calculations &amp; Organic Chemistry (<code>[GDW51]</code>). Revise all 12 CCEA topics or sit a randomised 70-mark mock paper.</p>
+      <div class="mode-grid">
+        <button type="button" class="mode-card learn-card" id="btn-go-learn">
+          <div><div class="mode-icon">⚗️</div><h2>Learn</h2><p>Browse all 12 CCEA Unit C2 Foundation topics (2.1–2.8) with mark-scheme rules, worked calculations, and non-repeating RNG practice.</p></div>
+          <span class="mode-cta">Open 12 CCEA Topics →</span>
+        </button>
+        <button type="button" class="mode-card test-card" id="btn-go-test">
+          <div><div class="mode-icon">📝</div><h2>Test</h2><p>Sit a fresh randomised 70-mark, 1h 15m CCEA Unit C2 Foundation mock exam (<code>[GDW51]</code>) or a 7-question Blitz test with Data Leaflet &amp; calculator.</p></div>
+          <span class="mode-cta">Choose Mock Paper Mode →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="learn-menu-view" class="page-shell hidden">
+    <div class="container-lg">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="index.html" class="btn-ghost">🏠 All Subjects</a><button type="button" class="btn-ghost" id="btn-learn-home">← Chem Home</button></div>
+        <span class="badge-pill">CCEA Unit C2 • Foundation Learn Hub</span>
+      </div>
+      <div class="section-header"><h1>CCEA Unit C2 Topic Hub (12 Topics)</h1><p>Strictly matched to Northern Ireland CCEA Double Award Chemistry Unit C2 Foundation.</p></div>
+      <div class="learn-filter-bar">
+        <button type="button" class="filter-pill active" data-filter="all">All 12 Topics</button>
+        <button type="button" class="filter-pill" data-filter="metals">2.1–2.2 Metals &amp; Redox</button>
+        <button type="button" class="filter-pill" data-filter="rates">2.3–2.4 &amp; 2.8 Rates, Equil &amp; Energy</button>
+        <button type="button" class="filter-pill" data-filter="organic">2.5 Organic Chemistry</button>
+        <button type="button" class="filter-pill" data-filter="quant">2.6 Quantitative &amp; Gas Tests</button>
+      </div>
+      <div id="topics-grid" class="topics-grid"></div>
+    </div>
+  </section>
+
+  <section id="learn-detail-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn-ghost" id="btn-back-to-topics">← All Topics</button><button type="button" class="btn-ghost" id="btn-detail-home">⚗️ Chem Home</button><a href="index.html" class="btn-ghost">🏠 Subjects</a></div>
+        <span id="detail-section-badge" class="badge-pill">Topic</span>
+      </div>
+      <div class="section-header"><h1 id="detail-title">Topic Title</h1><p id="detail-subtitle">CCEA Unit C2 Foundation</p></div>
+      <div class="learn-detail-grid">
+        <div class="study-card"><div class="study-card-title">1. What You Need to Know</div><div id="detail-what" class="study-body"></div><div id="detail-rule" class="key-rule-box"></div><div id="detail-diagram" class="diagram-box hidden"></div></div>
+        <div class="study-card"><div class="study-card-title">2. Key Exam Points (CCEA Mark Scheme)</div><ol id="detail-howto" class="steps-ol"></ol></div>
+        <div class="study-card"><div class="study-card-title">3. Worked Exam-Style Example</div><div class="worked-example-box"><div id="detail-example-q" class="worked-q"></div><ol id="detail-example-steps" class="steps-ol"></ol></div></div>
+        <div class="study-card"><div class="learn-practice-header"><div><div class="study-card-title" style="margin-bottom:2px;">4. Topic RNG Practice</div><p style="font-size:0.86rem;color:var(--text-secondary);">Randomised CCEA Foundation questions on this topic.</p></div><button type="button" class="btn-action btn-next" id="btn-new-learn-q">🎲 New Random Question</button></div><div id="learn-practice-slot"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="test-select-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;"><button type="button" class="btn-ghost" id="btn-test-home">← Chem Home</button><a href="index.html" class="btn-ghost">🏠 All Subjects</a></div>
+        <span class="badge-pill blue">CCEA Unit C2 • Foundation Exam Mode</span>
+      </div>
+      <div class="section-header"><h1>Choose Your Unit C2 Mock Paper</h1><p>Every paper uses shuffled question order, non-repeating decks, shuffled options, and dynamic numbers for CCEA Northern Ireland <code>[GDW51]</code> Foundation Tier.</p></div>
+      <div class="paper-choice-grid">
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill" style="margin-bottom:14px;">Full Paper • [GDW51]</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Unit C2 Foundation Full Paper</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">Official CCEA structure: 70 marks, 1h 15m, scientific calculator &amp; Data Leaflet enabled.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">70 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 15m (75:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">14 Structured</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg" id="btn-start-full">⚡ Generate Full 70-Mark C2 Paper</button>
+        </div>
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill blue" style="margin-bottom:14px;">Quick Revision</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Unit C2 Quick Blitz (7 Qs)</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">7 random topics from Unit C2 in 25 minutes with instant mark-scheme feedback.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">~35 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">25m (25:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">7 Randomised</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg blue" id="btn-start-blitz">⚡ Generate Quick Blitz Paper</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <header id="hud-bar" class="hidden">
+    <div class="hud-brand"><div class="hud-dot"></div><div><div class="hud-title" id="hud-title">CCEA Chemistry C2</div><div class="hud-meta" id="hud-paper-id">PAPER ID: GDW51-0000</div></div></div>
+    <div class="hud-controls">
+      <div id="timer-display" class="timer-pill"><span>⏱</span><span id="timer-clock">75:00</span></div>
+      <button id="btn-open-sheet" class="btn-hud" type="button">⚗️ CCEA Data Leaflet</button>
+      <button id="btn-hud-submit" class="btn-hud btn-submit" type="button">Submit Test</button>
+    </div>
+  </header>
+
+  <main id="workspace-view" class="hidden">
+    <section id="questions-pane">
+      <div class="exam-shell">
+        <div class="q-progress-bar">
+          <div class="q-progress-meta"><span>Question <strong id="prog-current">1</strong> of <strong id="prog-total">14</strong></span><span>Tier: <strong>CCEA Foundation [GDW51]</strong></span><span>Checked: <strong id="prog-checked">0 / 14</strong></span><span>Score: <strong id="prog-score">0 / 70</strong></span></div>
+          <div id="q-dots-row" class="q-dots-row"></div>
+        </div>
+        <div id="active-question-slot"></div>
+      </div>
+    </section>
+    <aside id="calculator-pane">
+      <div class="calc-header"><span class="calc-title">Chemistry Calc Helper</span><span class="calc-badge">CCEA C2 ALLOWED</span></div>
+      <div class="calc-screen"><div id="calc-expr" class="calc-expr"></div><div id="calc-output" class="calc-output">0</div></div>
+      <div class="calc-grid">
+        <button class="calc-btn sci" data-calc="(">(</button><button class="calc-btn sci" data-calc=")">)</button><button class="calc-btn danger" data-action="del">DEL</button><button class="calc-btn danger" data-action="ac">AC</button>
+        <button class="calc-btn" data-calc="7">7</button><button class="calc-btn" data-calc="8">8</button><button class="calc-btn" data-calc="9">9</button><button class="calc-btn op" data-calc="÷">÷</button>
+        <button class="calc-btn" data-calc="4">4</button><button class="calc-btn" data-calc="5">5</button><button class="calc-btn" data-calc="6">6</button><button class="calc-btn op" data-calc="×">×</button>
+        <button class="calc-btn" data-calc="1">1</button><button class="calc-btn" data-calc="2">2</button><button class="calc-btn" data-calc="3">3</button><button class="calc-btn op" data-calc="-">−</button>
+        <button class="calc-btn" data-calc="0">0</button><button class="calc-btn" data-calc=".">.</button><button class="calc-btn equals" data-action="eval">=</button><button class="calc-btn op" data-calc="+">+</button>
+      </div>
+      <p class="calc-tip">Use for <strong>Relative Formula Mass (Mr)</strong>, <strong>% by Mass</strong>, <strong>Atom Economy</strong>, and <strong>Rate of Reaction</strong> calculations.</p>
+    </aside>
+  </main>
+
+  <section id="results-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="report-card">
+        <div class="report-header">
+          <div><h2 class="report-title">CCEA Chemistry Unit C2 Report Card</h2><p class="report-sub" id="report-submission-meta">Submitted</p></div>
+          <div class="report-actions"><button id="btn-retry-same" class="btn-hud btn-submit" type="button">⚡ New Random Paper</button><button id="btn-switch-paper" class="btn-hud" type="button">Switch Mode</button><button id="btn-results-home" class="btn-hud" type="button">⚗️ Chem Home</button><a href="index.html" class="btn-hud">🏠 All Subjects</a></div>
+        </div>
+        <div class="report-stats">
+          <div class="stat-tile"><div class="stat-tile-label">Paper Score</div><div class="stat-tile-value highlight" id="stat-marks">0 / 70</div><div class="stat-tile-sub" id="stat-paper-type">Unit C2 Foundation</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Percentage</div><div class="stat-tile-value" id="stat-percent">0%</div><div class="stat-tile-sub" id="stat-percent-sub">Overall</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Time Taken</div><div class="stat-tile-value" id="stat-time">00m 00s</div><div class="stat-tile-sub" id="stat-allowed-time">Allowed: 75m 00s</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Indicative CCEA Grade</div><div class="stat-tile-value" id="stat-grade">—</div><div class="stat-tile-sub" id="stat-q-correct">0 / 14 correct</div></div>
+        </div>
+      </div>
+      <h3 class="graded-sheet-title">Full Question Review &amp; CCEA Mark Scheme Notes</h3>
+      <div id="graded-sheet" class="graded-list"></div>
+    </div>
+  </section>
+
+  <div id="sheet-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div class="modal-header"><h3>⚗️ CCEA Unit C2 Data Leaflet &amp; Key Formulae</h3><button id="btn-close-sheet" class="modal-close" type="button">×</button></div>
+      <div class="formula-grid">
+        <div class="formula-item"><div class="formula-name">Common Relative Atomic Masses (Ar)</div><div class="formula-expr">H=1 | C=12 | N=14 | O=16 | Na=23 | Mg=24 | Al=27 | S=32 | Cl=35.5 | K=39 | Ca=40 | Fe=56 | Cu=64</div></div>
+        <div class="formula-item"><div class="formula-name">Reactivity Series (2.1)</div><div class="formula-expr">K &gt; Na &gt; Ca &gt; Mg &gt; Al &gt; [C] &gt; Zn &gt; Fe &gt; [H] &gt; Cu</div></div>
+        <div class="formula-item"><div class="formula-name">Quantitative Chemistry (2.6)</div><div class="formula-expr">% Element = (Total Ar of element ÷ Mr) × 100<br/>Atom Economy = (Mr desired ÷ Total Mr products) × 100</div></div>
+        <div class="formula-item"><div class="formula-name">Organic General Formulae (2.5)</div><div class="formula-expr">Alkanes: CₙH₂ₙ₊₂ | Alkenes: CₙH₂ₙ<br/>Alcohols: CₙH₂ₙ₊₁OH</div></div>
+        <div class="formula-item"><div class="formula-name">Gas Tests (CCEA Spec)</div><div class="formula-expr">H₂: Lit splint → squeaky pop<br/>O₂: Glowing splint → relights<br/>CO₂: Limewater → turns milky/cloudy</div></div>
+        <div class="formula-item"><div class="formula-name">Alkenes &amp; Bromine Water</div><div class="formula-expr">Alkenes (C=C double bond) turn bromine water from orange/brown to COLOURLESS.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* ============================================================
+       ANTI-REPEAT CRYPTO RNG ENGINE (Persisted in localStorage)
+       ============================================================ */
+    const DECK_STORAGE_KEY = "calum_chem_c2_decks_v1";
+    const PAPER_HISTORY_KEY = "calum_chem_c2_history_v1";
+    const memDecks = {};
+    const memHistory = {};
+
+    function cryptoFloat() {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+      return Math.random();
+    }
+    function randInt(min, max) { return Math.floor(cryptoFloat() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadStore(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) return obj;
+        }
+      } catch (_) {}
+      return null;
+    }
+    function saveStore(key, obj) {
+      try { window.localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
+    }
+
+    function resolveEntry(entry) {
+      const q = typeof entry === "function" ? entry() : { ...entry };
+      if (q.type === "mcq" && Array.isArray(q.options)) {
+        const mixed = shuffle(q.options.map((opt, idx) => ({ opt, ok: idx === q.correctIndex })));
+        q.options = mixed.map((x) => x.opt);
+        q.correctIndex = mixed.findIndex((x) => x.ok);
+      }
+      return q;
+    }
+
+    function drawFromDeck(deckKey, pool) {
+      if (!pool || !pool.length) return null;
+      const decks = loadStore(DECK_STORAGE_KEY) || memDecks;
+      let deck = decks[deckKey];
+      const valid = deck && deck.len === pool.length && Array.isArray(deck.remaining) &&
+        deck.remaining.every((i) => Number.isInteger(i) && i >= 0 && i < pool.length) &&
+        new Set(deck.remaining).size === deck.remaining.length;
+
+      if (!valid) deck = { len: pool.length, remaining: [], last: null };
+      if (deck.remaining.length === 0) {
+        deck.remaining = shuffle(Array.from({ length: pool.length }, (_, i) => i));
+        if (pool.length > 1 && deck.remaining[deck.remaining.length - 1] === deck.last) {
+          const last = deck.remaining.length - 1;
+          [deck.remaining[last], deck.remaining[0]] = [deck.remaining[0], deck.remaining[last]];
+        }
+      }
+      const idx = deck.remaining.pop();
+      deck.last = idx;
+      decks[deckKey] = deck;
+      memDecks[deckKey] = deck;
+      saveStore(DECK_STORAGE_KEY, decks);
+      return resolveEntry(pool[idx]);
+    }
+
+    function buildUniquePaper(mode, pools, count) {
+      const history = loadStore(PAPER_HISTORY_KEY) || memHistory;
+      const recentPrompts = Array.isArray(history.recentPrompts) ? history.recentPrompts : [];
+      const lastFirstPool = history["firstPool_" + mode];
+
+      let ordered = shuffle(Array.from({ length: pools.length }, (_, i) => i));
+      if (ordered.length > 1 && ordered[0] === lastFirstPool) {
+        ordered.push(ordered.shift());
+      }
+      if (count && count < ordered.length) ordered = ordered.slice(0, count);
+
+      const paper = ordered.map((poolIdx, pos) => {
+        const pool = pools[poolIdx];
+        let q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        for (let attempt = 0; attempt < 5; attempt++) {
+          if (!recentPrompts.includes(q.prompt)) break;
+          q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        }
+        return { qNum: pos + 1, ...q };
+      });
+
+      history.recentPrompts = paper.map((q) => q.prompt).concat(recentPrompts).slice(0, 45);
+      history["firstPool_" + mode] = ordered[0];
+      memHistory.recentPrompts = history.recentPrompts;
+      memHistory["firstPool_" + mode] = ordered[0];
+      saveStore(PAPER_HISTORY_KEY, history);
+      return paper;
+    }
+
+    /* ============================================================
+       PROCEDURAL CHEMISTRY UNIT C2 QUESTION GENERATORS
+       ============================================================ */
+    function genRateCalc(marks = 5) {
+      const time = pick([8, 10, 12, 15, 20, 25]);
+      const rate = randInt(2, 8);
+      const vol = time * rate;
+      const gas = pick(["hydrogen", "carbon dioxide", "oxygen"]);
+      return {
+        topic: "2.3 Rates of Reaction", marks, type: "input",
+        prompt: `In a reaction, <code>${vol} cm³</code> of ${gas} gas is collected in <code>${time} seconds</code>. Calculate the average rate of reaction in cm³/s.`,
+        hint: "Volume ÷ Time", modelAnswer: String(rate), acceptedAnswers: [String(rate)],
+        steps: [`${vol} ÷ ${time} = ${rate} cm³/s.`]
+      };
+    }
+
+    function genTempChange(marks = 5) {
+      const t1 = randInt(18, 23), delta = randInt(5, 12), isEndo = randInt(0, 1) === 0;
+      const t2 = isEndo ? t1 - delta : t1 + delta;
+      return {
+        topic: "2.8 Energy Changes", marks, type: "input",
+        prompt: `During an ${isEndo ? "endothermic" : "exothermic"} reaction in a polystyrene cup, the temperature changes from <code>${t1}°C</code> to <code>${t2}°C</code>. Calculate the temperature ${isEndo ? "drop" : "rise"} in °C (positive number).`,
+        hint: "Difference between start and end temperature",
+        modelAnswer: String(delta), acceptedAnswers: [String(delta), delta + "°c"],
+        steps: [`|${t2} - ${t1}| = ${delta}°C.`]
+      };
+    }
+
+    function genHydrocarbonFormula(marks = 5) {
+      const sub = (n) => String(n).replace(/0/g,"₀").replace(/1/g,"₁").replace(/2/g,"₂").replace(/3/g,"₃").replace(/4/g,"₄").replace(/5/g,"₅").replace(/6/g,"₆").replace(/7/g,"₇").replace(/8/g,"₈").replace(/9/g,"₉");
+      const alkaneNames = { 2:"ethane", 3:"propane", 4:"butane", 5:"pentane" };
+      const alkeneNames = { 2:"ethene", 3:"propene", 4:"butene", 5:"pentene" };
+      if (randInt(0, 1) === 0) {
+        const n = randInt(2, 5), h = 2 * n + 2, cStr = "C" + sub(n);
+        return {
+          topic: "2.5 Alkanes", marks, type: "mcq",
+          prompt: `What is the molecular formula of ${alkaneNames[n]} (an alkane with ${n} carbon atoms)?`,
+          options: [`${cStr}H${sub(h)}`, `${cStr}H${sub(2 * n)}`, `${cStr}H${sub(2 * n + 4)}`, `${cStr}H${sub(2 * n - 2)}`],
+          correctIndex: 0,
+          steps: [`Alkanes follow CₙH₂ₙ₊₂. With n=${n}, 2(${n})+2 = ${h}, giving ${cStr}H${sub(h)}.`]
+        };
+      }
+      const n = randInt(2, 5), h = 2 * n, cStr = "C" + sub(n);
+      return {
+        topic: "2.5 Alkenes Formula", marks, type: "mcq",
+        prompt: `What is the molecular formula of ${alkeneNames[n]} (an alkene with ${n} carbon atoms)?`,
+        options: [`${cStr}H${sub(h)}`, `${cStr}H${sub(h + 2)}`, `${cStr}H${sub(h - 2)}`, `${cStr}H${sub(h + 4)}`],
+        correctIndex: 0,
+        steps: [`Alkenes follow CₙH₂ₙ. With n=${n}, 2(${n}) = ${h}, giving ${cStr}H${sub(h)}.`]
+      };
+    }
+
+    function genRfmCalc(marks = 6) {
+      const items = [
+        ["sulfuric acid, <code>H₂SO₄</code>", "H=1, S=32, O=16", "98", ["(2×1) + 32 + (4×16) = 98."]],
+        ["magnesium hydroxide, <code>Mg(OH)₂</code>", "Mg=24, O=16, H=1", "58", ["24 + 2×(16 + 1) = 58."]],
+        ["calcium carbonate, <code>CaCO₃</code>", "Ca=40, C=12, O=16", "100", ["40 + 12 + (3×16) = 100."]],
+        ["calcium hydroxide, <code>Ca(OH)₂</code>", "Ca=40, O=16, H=1", "74", ["40 + 2×(16 + 1) = 74."]],
+        ["sodium carbonate, <code>Na₂CO₃</code>", "Na=23, C=12, O=16", "106", ["(2×23) + 12 + (3×16) = 106."]],
+        ["copper(II) sulfate, <code>CuSO₄</code>", "Cu=64, S=32, O=16", "160", ["64 + 32 + (4×16) = 160."]],
+        ["nitric acid, <code>HNO₃</code>", "H=1, N=14, O=16", "63", ["1 + 14 + (3×16) = 63."]],
+        ["carbon dioxide, <code>CO₂</code>", "C=12, O=16", "44", ["12 + (2×16) = 44."]],
+        ["ammonia, <code>NH₃</code>", "N=14, H=1", "17", ["14 + (3×1) = 17."]],
+        ["magnesium oxide, <code>MgO</code>", "Mg=24, O=16", "40", ["24 + 16 = 40."]]
+      ];
+      const [name, ars, ans, steps] = pick(items);
+      return {
+        topic: "2.6 Relative Formula Mass", marks, type: "input",
+        prompt: `Calculate the Relative Formula Mass (Mr) of ${name} (${ars}).`,
+        hint: "Enter exact integer", modelAnswer: ans, acceptedAnswers: [ans], steps
+      };
+    }
+
+    function genPercentMass(marks = 4) {
+      const items = [
+        ["magnesium", "<code>MgO</code>", 24, 40, 60, "Mg=24, O=16"],
+        ["oxygen", "<code>MgO</code>", 16, 40, 40, "Mg=24, O=16"],
+        ["carbon", "<code>CH₄</code>", 12, 16, 75, "C=12, H=1"],
+        ["hydrogen", "<code>CH₄</code>", 4, 16, 25, "C=12, H=1"],
+        ["calcium", "<code>CaCO₃</code>", 40, 100, 40, "Ca=40, C=12, O=16"],
+        ["oxygen", "<code>CaCO₃</code>", 48, 100, 48, "Ca=40, C=12, O=16"],
+        ["sulfur", "<code>SO₂</code>", 32, 64, 50, "S=32, O=16"],
+        ["iron", "<code>Fe₂O₃</code>", 112, 160, 70, "Fe=56, O=16"]
+      ];
+      const [el, form, part, tot, pct, ars] = pick(items);
+      return {
+        topic: "2.6 Percentage by Mass", marks, type: "input",
+        prompt: `Calculate the percentage (%) by mass of ${el} in ${form} (${ars}).`,
+        hint: "Number only", modelAnswer: String(pct), acceptedAnswers: [String(pct), pct + "%"],
+        steps: [`Mr = ${tot}. (${part} ÷ ${tot}) × 100 = ${pct}%.`]
+      };
+    }
+
+    function genConservationMass(marks = 5) {
+      const k = randInt(1, 4);
+      const scenarios = [
+        {
+          prompt: `<code>${100 * k} g</code> of calcium carbonate decomposes completely into <code>${56 * k} g</code> of calcium oxide and carbon dioxide gas. What mass (in g) of carbon dioxide is formed?`,
+          ans: String(44 * k), steps: [`${100 * k} - ${56 * k} = ${44 * k} g.`]
+        },
+        {
+          prompt: `<code>${24 * k} g</code> of magnesium reacts completely with <code>${16 * k} g</code> of oxygen. What mass (in g) of magnesium oxide is formed?`,
+          ans: String(40 * k), steps: [`${24 * k} + ${16 * k} = ${40 * k} g.`]
+        },
+        {
+          prompt: `<code>${12 * k} g</code> of carbon burns completely in <code>${32 * k} g</code> of oxygen. What mass (in g) of carbon dioxide is produced?`,
+          ans: String(44 * k), steps: [`${12 * k} + ${32 * k} = ${44 * k} g.`]
+        }
+      ];
+      const s = pick(scenarios);
+      return {
+        topic: "2.6 Conservation of Mass", marks, type: "input",
+        prompt: s.prompt, hint: "Number only", modelAnswer: s.ans, acceptedAnswers: [s.ans, s.ans + "g"], steps: s.steps
+      };
+    }
+
+    function genAtomEconomy(marks = 5) {
+      const items = [
+        [56, 100, 56], [40, 50, 80], [28, 40, 70], [45, 75, 60], [36, 80, 45], [140, 200, 70]
+      ];
+      const [des, tot, pct] = pick(items);
+      return {
+        topic: "2.6 Atom Economy", marks, type: "input",
+        prompt: `In a chemical reaction, the Mr of the desired product is <code>${des}</code> and the total Mr of all products is <code>${tot}</code>. Calculate the percentage (%) atom economy.`,
+        hint: "Number only", modelAnswer: String(pct), acceptedAnswers: [String(pct), pct + "%"],
+        steps: [`(${des} ÷ ${tot}) × 100 = ${pct}%.`]
+      };
+    }
+
+    /* ============================================================
+       12 CCEA UNIT C2 LEARN TOPICS
+       ============================================================ */
+    const LEARN_TOPICS = [
+      {
+        id:"reactivity", title:"2.1 Metals & Reactivity Series", section:"metals", sectionLabel:"2.1 Metals",
+        shortDesc:"Order K, Na, Ca, Mg, Al, Zn, Fe, Cu; reactions with water, steam & acid; displacement.",
+        whatItIs:"CCEA's reactivity series lists metals from most reactive to least reactive: <strong>K, Na, Ca, Mg, Al, Zn, Fe, Cu</strong>. A more reactive metal displaces a less reactive metal from its salt solution.",
+        keyRule:"Metal + Water → Metal Hydroxide + H₂ (K, Na, Ca) | Metal + Acid → Salt + H₂ | Test H₂: Lit splint pops",
+        howToSolve:[
+          "K, Na, Ca react with cold water; Mg reacts slowly with cold water but rapidly with steam (forming MgO + H₂).",
+          "In displacement: e.g. Magnesium + Copper(II) sulfate → Magnesium sulfate + Copper (blue solution turns colourless, brown copper forms).",
+          "Copper does NOT react with dilute hydrochloric or sulfuric acid because it is below hydrogen."
+        ],
+        workedExample:{ q:"State two observations when zinc is added to blue copper(II) sulfate solution.", steps:["1. The blue solution fades / becomes colourless.", "2. A reddish-brown solid (copper) forms on the zinc."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which metal reacts vigorously with cold water, floating and melting into a silvery ball that fizzes?", options:["Copper","Sodium","Iron","Zinc"], correctIndex:1, steps:["Sodium (and potassium) float, melt, and fizz rapidly on cold water."] },
+          { type:"mcq", prompt:"Which metal will NOT react with dilute hydrochloric acid to produce hydrogen gas?", options:["Magnesium","Zinc","Iron","Copper"], correctIndex:3, steps:["Copper is below hydrogen in the reactivity series so does not react with dilute acids."] },
+          { type:"mcq", prompt:"What is the positive test for hydrogen gas?", options:["Turns limewater milky","Relights a glowing splint","A lit splint burns with a squeaky pop","Bleaches damp litmus paper"], correctIndex:2, steps:["Hydrogen burns with a squeaky pop when tested with a lit splint."] }
+        ]
+      },
+      {
+        id:"redox-rusting", title:"2.2 Redox, Rusting & Iron Extraction", section:"metals", sectionLabel:"2.2 Redox & Iron",
+        shortDesc:"Oxidation & reduction (oxygen & OILRIG), rusting conditions, rust prevention & Blast Furnace.",
+        whatItIs:"<strong>Oxidation</strong> is gain of oxygen (or loss of electrons: <strong>OILRIG</strong>). <strong>Reduction</strong> is loss of oxygen (or gain of electrons). <strong>Rusting</strong> requires iron, water, and oxygen.",
+        keyRule:"OILRIG: Oxidation Is Loss, Reduction Is Gain (of electrons) | Rust = Iron + Water + Oxygen",
+        howToSolve:["Both water AND oxygen are needed for iron to rust; salt speeds up rusting.", "Galvanising (zinc) provides barrier + sacrificial protection.", "Blast Furnace: iron(III) oxide is reduced by CO to iron."],
+        workedExample:{ q:"In Fe₂O₃ + 3CO → 2Fe + 3CO₂, which substance is reduced?", steps:["Fe₂O₃ loses oxygen to become Fe, so it is reduced."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which two substances must BOTH be present for iron to rust?", options:["Carbon dioxide and water","Oxygen and water","Nitrogen and oil","Oxygen and salt only"], correctIndex:1, steps:["Rusting requires both oxygen (air) and water."] },
+          { type:"mcq", prompt:"Why does coating steel with zinc (galvanising) still protect it even if scratched?", options:["Zinc is less reactive than iron","Zinc is more reactive than iron and corrodes sacrificially instead","Zinc turns iron into copper","Zinc absorbs all water"], correctIndex:1, steps:["Zinc is higher in the reactivity series, so it loses electrons instead of iron."] },
+          { type:"mcq", prompt:"In terms of oxygen, what happens during REDUCTION?", options:["Gain of oxygen","Loss of oxygen","Gain of water","Loss of nitrogen"], correctIndex:1, steps:["Reduction is the loss of oxygen (or gain of electrons)."] }
+        ]
+      },
+      {
+        id:"rates", title:"2.3 Rates of Reaction & Collision Theory", section:"rates", sectionLabel:"2.3 Rates",
+        shortDesc:"Measuring gas/mass loss; effect of temperature, concentration, surface area & catalysts.",
+        whatItIs:"Reactions happen when particles collide with enough energy (<strong>activation energy</strong>). Increasing collision frequency or energy increases the rate.",
+        keyRule:"Rate = Amount of reactant used (or product formed) ÷ Time | Catalyst: speeds up rate without being used up",
+        howToSolve:["Higher temp → faster particles → more frequent AND more energetic collisions.", "Powder (larger surface area) → more frequent collisions.", "Catalysts lower activation energy without being used up."],
+        workedExample:{ q:"48 cm³ of hydrogen gas is collected in 12 seconds. Calculate the mean rate of reaction.", steps:["48 ÷ 12 = 4 cm³/s."] },
+        practicePool:[
+          () => genRateCalc(5),
+          { type:"mcq", prompt:"Why does powdered calcium carbonate react faster with acid than large marble chips of the same mass?", options:["Powder has a larger total surface area for more frequent collisions","Powder has a higher temperature","Powder acts as a catalyst","Large chips contain less calcium"], correctIndex:0, steps:["Smaller pieces expose a larger surface area, increasing collision frequency."] },
+          { type:"mcq", prompt:"What does a catalyst do to a chemical reaction?", options:["Increases the total mass of product made","Speeds up the reaction without being used up","Decreases the temperature","Stops collisions"], correctIndex:1, steps:["Catalysts lower activation energy and speed up reactions without being consumed."] }
+        ]
+      },
+      {
+        id:"equilibrium", title:"2.4 Reversible Reactions & Equilibrium", section:"rates", sectionLabel:"2.4 Equilibrium",
+        shortDesc:"Reversible symbol ⇌, hydrated vs anhydrous copper(II) sulfate, and dynamic equilibrium.",
+        whatItIs:"A <strong>reversible reaction</strong> (<code>⇌</code>) goes forwards and backwards. At <strong>dynamic equilibrium</strong> in a closed system, forward and reverse rates are equal.",
+        keyRule:"Hydrated CuSO₄ (blue) ⇌ Anhydrous CuSO₄ (white) + Water",
+        howToSolve:["Heating blue hydrated CuSO₄ leaves white anhydrous CuSO₄.", "Adding water turns it blue again."],
+        workedExample:{ q:"What colour change is seen when water is added to anhydrous copper(II) sulfate?", steps:["White to blue."] },
+        practicePool:[
+          { type:"mcq", prompt:"What colour change occurs when white anhydrous copper(II) sulfate has water added to it?", options:["White to blue","Blue to white","Orange to colourless","Green to black"], correctIndex:0, steps:["Hydrated copper(II) sulfate is blue."] },
+          { type:"mcq", prompt:"Which statement is true at dynamic equilibrium in a closed system?", options:["Both reactions stop completely","Forward rate equals reverse rate and amounts stay constant","All reactants have run out","Only the forward reaction occurs"], correctIndex:1, steps:["At equilibrium, forward and reverse rates are equal so amounts remain constant."] },
+          { type:"mcq", prompt:"What does the symbol ⇌ mean in a chemical equation?", options:["The reaction is explosive","The reaction is reversible","A catalyst is required","An acid is present"], correctIndex:1, steps:["⇌ shows a reversible reaction."] }
+        ]
+      },
+      {
+        id:"energy-changes", title:"2.8 Exothermic & Endothermic Reactions", section:"rates", sectionLabel:"2.8 Energy",
+        shortDesc:"Temperature changes, reaction profile diagrams, activation energy, neutralisation & combustion.",
+        whatItIs:"<strong>Exothermic</strong> reactions release heat (temperature rises). <strong>Endothermic</strong> reactions take in heat (temperature falls).",
+        keyRule:"Exothermic: Temp ↑ (products lower energy) | Endothermic: Temp ↓ (products higher energy)",
+        diagramSvg:`<svg width="240" height="120" viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg"><line x1="25" y1="15" x2="25" y2="105" stroke="#64748b" stroke-width="1.5"/><line x1="25" y1="105" x2="220" y2="105" stroke="#64748b" stroke-width="1.5"/><path d="M 30 45 L 75 45 Q 110 15, 145 85 L 210 85" fill="none" stroke="#f59e0b" stroke-width="2.4"/><text x="35" y="38" fill="#bae6fd" font-size="10" font-family="monospace">Reactants</text><text x="150" y="78" fill="#6ee7b7" font-size="10" font-family="monospace">Products (Exo)</text></svg>`,
+        howToSolve:["Measure start and highest/lowest temp in a polystyrene cup.", "Activation energy is the minimum energy needed for particles to react."],
+        workedExample:{ q:"Temperature drops from 21°C to 13°C. What type of reaction is this?", steps:["Endothermic — heat is absorbed from surroundings."] },
+        practicePool:[
+          () => genTempChange(5),
+          { type:"mcq", prompt:"In an experiment, two solutions are mixed and the thermometer rises from 19°C to 31°C. This reaction is:", options:["Endothermic","Exothermic","Reversible only","Thermal decomposition"], correctIndex:1, steps:["A temperature rise shows heat energy was released (exothermic)."] },
+          { type:"mcq", prompt:"What is 'activation energy'?", options:["Energy released at the end of combustion","The minimum energy required for particles to react on collision","Energy stored in a catalyst","Heat lost from a polystyrene cup"], correctIndex:1, steps:["Activation energy is the minimum energy needed to start a reaction."] }
+        ]
+      },
+      {
+        id:"crude-oil-alkanes", title:"2.5 Crude Oil, Alkanes & Combustion", section:"organic", sectionLabel:"2.5 Organic",
+        shortDesc:"Hydrocarbons, fractional distillation, alkanes CₙH₂ₙ₊₂, complete & incomplete combustion.",
+        whatItIs:"A <strong>hydrocarbon</strong> contains hydrogen and carbon ONLY. <strong>Alkanes</strong> (<code>CₙH₂ₙ₊₂</code>) are separated from crude oil by <strong>fractional distillation</strong> based on boiling points.",
+        keyRule:"Alkanes: CₙH₂ₙ₊₂ (Methane CH₄, Ethane C₂H₆, Propane C₃H₈, Butane C₄H₁₀)",
+        howToSolve:["Shorter chains have lower boiling points and condense near the cool top.", "Incomplete combustion produces poisonous carbon monoxide (CO)."],
+        workedExample:{ q:"Give the formula of propane (3 carbons).", steps:["C₃H₂₍₃₎₊₂ = C₃H₈."] },
+        practicePool:[
+          () => genHydrocarbonFormula(5),
+          { type:"mcq", prompt:"Which toxic gas is formed during the INCOMPLETE combustion of alkanes in a limited oxygen supply?", options:["Carbon dioxide","Nitrogen","Carbon monoxide","Hydrogen"], correctIndex:2, steps:["Incomplete combustion forms poisonous carbon monoxide (CO) and soot."] },
+          { type:"mcq", prompt:"Which physical property allows fractional distillation to separate crude oil into fractions?", options:["Different densities only","Different boiling points","Different colours","Different pH values"], correctIndex:1, steps:["Fractions condense at different heights due to different boiling points."] }
+        ]
+      },
+      {
+        id:"alkenes-polymers", title:"2.5 Alkenes, Bromine Test & Polymers", section:"organic", sectionLabel:"2.5 Organic",
+        shortDesc:"Unsaturated alkenes (C=C), CₙH₂ₙ, bromine water test, and addition polymerisation (polythene).",
+        whatItIs:"<strong>Alkenes</strong> are <strong>unsaturated</strong> hydrocarbons with a <strong>C=C double bond</strong> (<code>CₙH₂ₙ</code>). Monomers join to form <strong>addition polymers</strong>.",
+        keyRule:"Alkenes: CₙH₂ₙ | Bromine Water Test: Orange/Brown → COLOURLESS (alkane stays orange)",
+        howToSolve:["Ethene monomers open their C=C double bond to join into poly(ethene)."],
+        workedExample:{ q:"How do you distinguish ethene from ethane using bromine water?", steps:["Ethene turns orange bromine water colourless; ethane leaves it orange."] },
+        practicePool:[
+          { type:"mcq", prompt:"What colour change is observed when ethene is shaken with bromine water?", options:["Colourless to orange","Orange/brown to colourless","Blue to white","Remains orange"], correctIndex:1, steps:["Alkenes react with bromine water, turning it from orange to colourless."] },
+          () => genHydrocarbonFormula(4),
+          { type:"mcq", prompt:"Which small molecule (monomer) reacts by addition polymerisation to make poly(ethene)?", options:["Methane","Ethane","Ethene","Ethanol"], correctIndex:2, steps:["Many ethene monomers join together to form poly(ethene)."] }
+        ]
+      },
+      {
+        id:"alcohols", title:"2.5 Alcohols & Fermentation", section:"organic", sectionLabel:"2.5 Organic",
+        shortDesc:"Methanol, ethanol, propanol; making ethanol by fermentation; combustion & oxidation.",
+        whatItIs:"<strong>Alcohols</strong> contain the <code>–OH</code> functional group (<code>CₙH₂ₙ₊₁OH</code>). <strong>Ethanol</strong> is made by <strong>fermenting</strong> sugars using yeast.",
+        keyRule:"Fermentation: Sugar → Ethanol + CO₂ (yeast enzymes, warm ~30–37°C, ANAEROBIC / no air)",
+        howToSolve:["Keep air out so ethanol doesn't oxidise to ethanoic acid.", "Acidified potassium dichromate turns orange → green."],
+        workedExample:{ q:"Why must air be kept out during fermentation of sugar?", steps:["In air, ethanol is oxidised into ethanoic acid (vinegar)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which gas is produced alongside ethanol when yeast ferments sugar solution?", options:["Hydrogen","Oxygen","Carbon dioxide","Carbon monoxide"], correctIndex:2, steps:["Yeast anaerobic respiration turns sugar into ethanol and carbon dioxide."] },
+          { type:"mcq", prompt:"What functional group is present in all alcohols such as ethanol?", options:["C=C","–OH","–COOH","–NH₂"], correctIndex:1, steps:["Alcohols contain the hydroxyl (–OH) functional group."] },
+          { type:"mcq", prompt:"What colour change occurs when ethanol is warmed with acidified potassium dichromate solution?", options:["Orange to green","Blue to white","Colourless to milky","Orange to colourless"], correctIndex:0, steps:["Acidified potassium dichromate turns from orange to green during oxidation."] }
+        ]
+      },
+      {
+        id:"rfm", title:"2.6 Relative Formula Mass (Mr)", section:"quant", sectionLabel:"2.6 Quantitative",
+        shortDesc:"Calculating Mr of compounds including brackets using Ar values from the Data Leaflet.",
+        whatItIs:"The <strong>Relative Formula Mass (Mr)</strong> is the sum of the Relative Atomic Masses (Ar) of all atoms in the chemical formula.",
+        keyRule:"Mr = sum of (number of atoms × Ar) | Watch brackets: Ca(OH)₂ has 1 Ca, 2 O, 2 H",
+        howToSolve:["Look up Ar on the Data Leaflet and multiply subscripts outside brackets by everything inside."],
+        workedExample:{ q:"Calculate the Mr of calcium carbonate, CaCO₃ (Ca=40, C=12, O=16).", steps:["40 + 12 + (3 × 16) = 100."] },
+        practicePool:[() => genRfmCalc(6)]
+      },
+      {
+        id:"percentage-mass", title:"2.6 Percentage by Mass & Atom Economy", section:"quant", sectionLabel:"2.6 Quantitative",
+        shortDesc:"Finding % of an element in a formula and % atom economy of a reaction.",
+        whatItIs:"<strong>Percentage by mass</strong> finds the % of a compound's mass from one element. <strong>Atom economy</strong> measures how much reactant ends up in the desired product.",
+        keyRule:"% Element = (Total Ar of element ÷ Mr) × 100 | Atom Economy = (Mr desired ÷ Total Mr products) × 100",
+        howToSolve:["Find full Mr first, divide total mass of target element by Mr, then × 100."],
+        workedExample:{ q:"Calculate the % by mass of oxygen in MgO (Mg=24, O=16).", steps:["Mr = 40. (16 ÷ 40) × 100 = 40%."] },
+        practicePool:[() => genPercentMass(4), () => genAtomEconomy(5)]
+      },
+      {
+        id:"conservation-reacting-mass", title:"2.6 Conservation of Mass & Reacting Masses", section:"quant", sectionLabel:"2.6 Quantitative",
+        shortDesc:"Balancing equations, total mass before = total mass after, and simple mass ratios.",
+        whatItIs:"<strong>Conservation of mass</strong> states that no atoms are created or destroyed in a chemical reaction.",
+        keyRule:"Total Mass of Reactants = Total Mass of Products (unless a gas escapes!)",
+        howToSolve:["If an open flask loses mass, a gas escaped into the air."],
+        workedExample:{ q:"100 g of CaCO₃ decomposes into 56 g of CaO and CO₂ gas. What mass of CO₂ escapes?", steps:["100 - 56 = 44 g."] },
+        practicePool:[
+          () => genConservationMass(5),
+          { type:"mcq", prompt:"Why does the mass of marble chips and acid in an open conical flask decrease during a reaction?", options:["Atoms are destroyed","Carbon dioxide gas escapes into the air","Water evaporates instantly","The balance breaks"], correctIndex:1, steps:["CO₂ gas escapes from the open flask."] }
+        ]
+      },
+      {
+        id:"gas-tests", title:"2.1 / 2.5 / 2.6 Laboratory Gas Tests", section:"quant", sectionLabel:"Gas Tests",
+        shortDesc:"Identifying hydrogen, oxygen, and carbon dioxide safely in CCEA practicals.",
+        whatItIs:"CCEA C2 papers frequently ask for the exact method and positive observation for <strong>hydrogen</strong>, <strong>oxygen</strong>, and <strong>carbon dioxide</strong>.",
+        keyRule:"H₂: Lit splint → squeaky pop | O₂: Glowing splint → relights | CO₂: Limewater → milky/cloudy",
+        howToSolve:["Always state BOTH what you use (e.g. glowing splint) AND what you see/hear (relights)."],
+        workedExample:{ q:"Describe the test for carbon dioxide gas and give the positive result.", steps:["Bubble through limewater → turns milky / cloudy."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which gas relights a glowing wooden splint?", options:["Hydrogen","Carbon dioxide","Oxygen","Methane"], correctIndex:2, steps:["Oxygen supports combustion and relights a glowing splint."] },
+          { type:"mcq", prompt:"What is observed when carbon dioxide is bubbled through limewater?", options:["A squeaky pop","The limewater turns milky / cloudy","The splint goes out with a pop","The limewater turns bright blue"], correctIndex:1, steps:["CO₂ turns limewater milky/cloudy."] },
+          { type:"mcq", prompt:"Which gas is produced when magnesium reacts with dilute hydrochloric acid?", options:["Oxygen","Carbon dioxide","Hydrogen","Chlorine"], correctIndex:2, steps:["Metal + Acid → Salt + Hydrogen."] }
+        ]
+      }
+    ];
+
+    /* 14 CCEA UNIT C2 [GDW51] EXAM POOLS (Sum = 70 Marks) */
+    const FULL_C2_POOLS = [
+      [
+        { topic:"2.1 Metals & Acid", marks:4, type:"mcq", prompt:"Which metal will NOT react with dilute hydrochloric acid to produce hydrogen gas?", options:["Magnesium","Zinc","Iron","Copper"], correctIndex:3, steps:["Copper is below hydrogen in the reactivity series."] },
+        { topic:"2.1 Metals & Water", marks:4, type:"mcq", prompt:"Which metal floats, melts into a silvery ball, and fizzes rapidly on cold water?", options:["Copper","Sodium","Iron","Aluminium"], correctIndex:1, steps:["Sodium (Group 1) reacts vigorously with cold water."] },
+        { topic:"2.1 Metals & Steam", marks:4, type:"mcq", prompt:"Which metal reacts very slowly with cold water but rapidly with steam to form white metal oxide and hydrogen?", options:["Potassium","Magnesium","Copper","Gold"], correctIndex:1, steps:["Magnesium reacts vigorously with steam to give MgO + H₂."] }
+      ],
+      [
+        { topic:"2.1 Gas Tests", marks:5, type:"mcq", prompt:"What is the correct test and positive result for hydrogen gas?", options:["Glowing splint relights","Lit splint burns with a squeaky pop","Limewater turns milky","Bromine water turns colourless"], correctIndex:1, steps:["Hydrogen gives a squeaky pop with a lit splint."] },
+        { topic:"2.1 Displacement", marks:5, type:"mcq", prompt:"When zinc is placed in blue copper(II) sulfate solution, what happens?", options:["No reaction occurs","Blue colour fades and brown copper forms","Green gas is given off","Zinc turns into potassium"], correctIndex:1, steps:["Zinc is more reactive than copper and displaces it."] },
+        { topic:"2.1 Gas Tests (O₂)", marks:5, type:"mcq", prompt:"What is the positive test for oxygen gas?", options:["Lit splint pops","Glowing splint relights","Limewater turns milky","Litmus turns red"], correctIndex:1, steps:["Oxygen relights a glowing splint."] }
+      ],
+      [
+        { topic:"2.2 Rusting", marks:6, type:"mcq", prompt:"Which two substances must BOTH be present for iron to rust?", options:["Carbon dioxide and water","Oxygen and water","Salt and oil","Nitrogen and hydrogen"], correctIndex:1, steps:["Rusting requires iron + water + oxygen."] },
+        { topic:"2.2 Sacrificial Protection", marks:6, type:"mcq", prompt:"Why does coating steel with zinc (galvanising) protect it even if the coating is scratched?", options:["Zinc is more reactive than iron so corrodes instead","Zinc is less reactive than iron","Zinc acts as a lubricant","Zinc absorbs oxygen"], correctIndex:0, steps:["Zinc is higher in the reactivity series and corrodes sacrificially."] },
+        { topic:"2.2 Redox (OILRIG)", marks:6, type:"mcq", prompt:"In terms of electrons (OILRIG), what happens during OXIDATION?", options:["Gain of electrons","Loss of electrons","Gain of protons","Loss of neutrons"], correctIndex:1, steps:["Oxidation Is Loss of electrons."] }
+      ],
+      [
+        () => genRateCalc(5),
+        { topic:"2.3 Collision Theory", marks:5, type:"mcq", prompt:"Why does raising the temperature increase the rate of a chemical reaction?", options:["Particles move faster causing more frequent and more energetic collisions","Particles get larger","Activation energy increases","Catalysts are formed"], correctIndex:0, steps:["Higher temperature increases particle speed and collision energy."] },
+        { topic:"2.3 Surface Area", marks:5, type:"mcq", prompt:"Why does powdered marble react faster with acid than large lumps of the same mass?", options:["Powder has a larger total surface area for more frequent collisions","Powder is hotter","Powder contains a catalyst","Lumps have no calcium"], correctIndex:0, steps:["Smaller pieces expose greater surface area."] }
+      ],
+      [
+        () => genTempChange(5),
+        { topic:"2.4 Reversible Reactions", marks:5, type:"mcq", prompt:"What colour change happens when water is added to white anhydrous copper(II) sulfate?", options:["White to blue","Blue to white","Orange to colourless","Green to orange"], correctIndex:0, steps:["Hydrated copper(II) sulfate is blue."] },
+        { topic:"2.4 Dynamic Equilibrium", marks:5, type:"mcq", prompt:"Which statement is true at dynamic equilibrium in a closed system?", options:["Both reactions stop completely","Forward and reverse rates are equal and amounts stay constant","All reactants run out","Only the forward reaction occurs"], correctIndex:1, steps:["At dynamic equilibrium both rates are equal."] }
+      ],
+      [
+        () => genHydrocarbonFormula(5),
+        { topic:"2.5 Incomplete Combustion", marks:5, type:"mcq", prompt:"Which toxic gas is formed by the INCOMPLETE combustion of hydrocarbons in a limited oxygen supply?", options:["Carbon dioxide","Carbon monoxide","Oxygen","Nitrogen"], correctIndex:1, steps:["Incomplete combustion produces poisonous carbon monoxide (CO)."] }
+      ],
+      [
+        { topic:"2.5 Alkenes & Bromine Water", marks:4, type:"mcq", prompt:"What colour change is seen when ethene is shaken with bromine water?", options:["Colourless to orange","Orange/brown to colourless","Blue to white","Remains orange"], correctIndex:1, steps:["Unsaturated alkenes (C=C) turn bromine water from orange to colourless."] },
+        { topic:"2.5 Addition Polymers", marks:4, type:"mcq", prompt:"Which monomer joins together to form the polymer poly(ethene)?", options:["Methane","Ethane","Ethene","Ethanol"], correctIndex:2, steps:["Ethene monomers undergo addition polymerisation to form poly(ethene)."] },
+        { topic:"2.5 Plastics Disposal", marks:4, type:"mcq", prompt:"Why do addition polymers like poly(ethene) cause landfill problems?", options:["They dissolve in rain","They are non-biodegradable and do not rot","They turn into crude oil","They attract lightning"], correctIndex:1, steps:["Poly(ethene) is non-biodegradable."] }
+      ],
+      [
+        { topic:"2.5 Alcohols & Fermentation", marks:5, type:"mcq", prompt:"Which gas is produced alongside ethanol when yeast ferments sugar solution?", options:["Hydrogen","Oxygen","Carbon dioxide","Carbon monoxide"], correctIndex:2, steps:["Fermentation of sugar produces ethanol and carbon dioxide."] },
+        { topic:"2.5 Oxidation of Alcohols", marks:5, type:"mcq", prompt:"What colour change happens when ethanol is warmed with acidified potassium dichromate?", options:["Orange to green","Blue to white","Orange to colourless","White to blue"], correctIndex:0, steps:["Acidified potassium dichromate turns orange to green."] },
+        { topic:"2.5 Alcohol Functional Group", marks:5, type:"mcq", prompt:"Which functional group is present in all alcohols?", options:["C=C","–OH","–COOH","–Cl"], correctIndex:1, steps:["Alcohols contain the –OH group."] }
+      ],
+      [() => genRfmCalc(6)],
+      [() => genPercentMass(4)],
+      [
+        () => genConservationMass(5),
+        () => genAtomEconomy(5),
+        { topic:"2.6 Open Flask Mass Loss", marks:5, type:"mcq", prompt:"Why does the mass of marble chips and acid in an open flask decrease during the reaction?", options:["Atoms are destroyed","Carbon dioxide gas escapes into the air","The flask shrinks","Calcium disappears"], correctIndex:1, steps:["CO₂ gas escapes from the open flask."] }
+      ],
+      [
+        { topic:"2.5 Crude Oil", marks:5, type:"mcq", prompt:"Which property enables fractional distillation to separate crude oil into useful fractions?", options:["Different boiling points","Different colours","Different pH values","Different reactivity with acid"], correctIndex:0, steps:["Hydrocarbon fractions separate according to their boiling points."] },
+        { topic:"2.2 Blast Furnace / Redox", marks:5, type:"mcq", prompt:"In <code>Fe₂O₃ + 3CO → 2Fe + 3CO₂</code>, which substance is REDUCED (loses oxygen)?", options:["CO","Fe₂O₃","Fe","CO₂"], correctIndex:1, steps:["Fe₂O₃ loses oxygen to become Fe, so it is reduced."] },
+        { topic:"2.5 Fractional Distillation", marks:5, type:"mcq", prompt:"Where in a fractionating column do short-chain hydrocarbons with low boiling points condense?", options:["Near the cool top","At the hot bottom","Only outside the column","In the furnace"], correctIndex:0, steps:["Low-boiling-point fractions rise to the cool top before condensing."] }
+      ],
+      [
+        { topic:"2.3 Catalysts", marks:6, type:"mcq", prompt:"Which statement accurately describes a catalyst?", options:["It is used up during the reaction","It speeds up a reaction without being chemically changed or used up","It increases the mass of product","It makes endothermic reactions exothermic"], correctIndex:1, steps:["A catalyst lowers activation energy and is not used up."] },
+        { topic:"2.6 Gas Tests (CO₂)", marks:6, type:"mcq", prompt:"Which gas turns colourless limewater milky/cloudy?", options:["Hydrogen","Oxygen","Carbon dioxide","Nitrogen"], correctIndex:2, steps:["CO₂ reacts with limewater to form a cloudy white precipitate."] },
+        { topic:"2.8 Activation Energy", marks:6, type:"mcq", prompt:"What is 'activation energy'?", options:["Heat released by burning","Minimum energy needed for colliding particles to react","Mass of catalyst","Temperature of water"], correctIndex:1, steps:["Activation energy is the minimum collision energy required for reaction."] }
+      ],
+      [
+        { topic:"2.8 Exothermic & Endothermic", marks:5, type:"mcq", prompt:"When an acid reacts with an alkali, the temperature rises from 20°C to 29°C. This reaction is:", options:["Endothermic","Exothermic","Thermal decomposition","Incomplete combustion"], correctIndex:1, steps:["Heat energy is released to the surroundings, so it is exothermic."] },
+        () => genHydrocarbonFormula(5)
+      ]
+    ];
+
+    /* ============================================================
+       APP STATE & UI LOGIC
+       ============================================================ */
+    const state = { examMode:"full", durationSeconds:75*60, activePaper:[], responses:[], checked:[], isCorrect:[], skipped:[], currentIdx:0, timeRemaining:75*60, timerId:null, paperSubmitted:false, paperCode:"", learnFilter:"all", activeTopic:null, learnQuestion:null, learnResponse:"", learnChecked:false, learnIsCorrect:false };
+    const views = { home:document.getElementById("home-view"), learnMenu:document.getElementById("learn-menu-view"), learnDetail:document.getElementById("learn-detail-view"), testSelect:document.getElementById("test-select-view"), hud:document.getElementById("hud-bar"), workspace:document.getElementById("workspace-view"), results:document.getElementById("results-view") };
+
+    function showOnlyViews(...keys) { stopCountdownTimer(); Object.entries(views).forEach(([k,el])=>el.classList.toggle("hidden",!keys.includes(k))); window.scrollTo({top:0,behavior:"auto"}); }
+    function escapeHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+    function normAns(s) { return String(s||"").toLowerCase().trim().replace(/(?:\s*(?:cm3\/s|cm³\/s|°c|%|g))+$/i,"").replace(/\s+/g,""); }
+    function isRight(q, r) { if(q.type==="mcq") return r!==""&&r!==null&&Number(r)===q.correctIndex; const n=normAns(r); return Boolean(n)&&q.acceptedAnswers.some(a=>normAns(a)===n); }
+    function modelDisp(q) { return q.type==="mcq" ? `${["A","B","C","D"][q.correctIndex]}: ${q.options[q.correctIndex]}` : q.modelAnswer; }
+    function userDisp(q, r) { return q.type==="mcq" ? (r===""||r===null?"[No Option Selected]":`${["A","B","C","D"][Number(r)]}: ${q.options[Number(r)]}`) : (String(r||"").trim()||"[No Response]"); }
+
+    function renderTopicsGrid() {
+      const grid = document.getElementById("topics-grid"); grid.innerHTML="";
+      LEARN_TOPICS.filter(t=>state.learnFilter==="all"||t.section===state.learnFilter).forEach(topic=>{
+        const idx = LEARN_TOPICS.indexOf(topic)+1, btn = document.createElement("button");
+        btn.type="button"; btn.className="topic-btn";
+        btn.innerHTML=`<div><div class="topic-btn-top"><span class="topic-num">TOPIC ${String(idx).padStart(2,"0")}</span><span class="topic-section-tag tag-${topic.section}">${escapeHtml(topic.sectionLabel)}</span></div><div class="topic-btn-title" style="margin-top:8px;">${escapeHtml(topic.title)}</div></div><div class="topic-btn-sub">${escapeHtml(topic.shortDesc)}</div>`;
+        btn.addEventListener("click",()=>openLearnTopic(topic.id)); grid.appendChild(btn);
+      });
+    }
+
+    document.querySelectorAll(".filter-pill").forEach(p=>p.addEventListener("click",()=>{ state.learnFilter=p.dataset.filter; document.querySelectorAll(".filter-pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); renderTopicsGrid(); }));
+
+    function openLearnTopic(id) {
+      const t = LEARN_TOPICS.find(x=>x.id===id); if(!t) return; state.activeTopic=t; showOnlyViews("learnDetail");
+      const badge=document.getElementById("detail-section-badge"); badge.textContent=t.sectionLabel; badge.className="badge-pill "+(t.section==="rates"?"blue":t.section==="organic"?"emerald":"");
+      document.getElementById("detail-title").textContent=t.title; document.getElementById("detail-subtitle").textContent=t.shortDesc;
+      document.getElementById("detail-what").innerHTML=t.whatItIs; document.getElementById("detail-rule").textContent=t.keyRule;
+      const d=document.getElementById("detail-diagram"); if(t.diagramSvg){d.innerHTML=t.diagramSvg;d.classList.remove("hidden");}else{d.innerHTML="";d.classList.add("hidden");}
+      document.getElementById("detail-howto").innerHTML=t.howToSolve.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+      document.getElementById("detail-example-q").textContent=t.workedExample.q;
+      document.getElementById("detail-example-steps").innerHTML=t.workedExample.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+      drawLearnPracticeQuestion();
+    }
+
+    function drawLearnPracticeQuestion() {
+      const t=state.activeTopic; if(!t) return;
+      state.learnQuestion = drawFromDeck(`learn:${t.id}`, t.practicePool);
+      state.learnResponse=""; state.learnChecked=false; state.learnIsCorrect=false; renderLearnPracticeCard();
+    }
+
+    function renderLearnPracticeCard() {
+      const slot=document.getElementById("learn-practice-slot"), q=state.learnQuestion; if(!q) return;
+      const isC=state.learnChecked, isOk=state.learnIsCorrect, letters=["A","B","C","D"];
+      let ui = q.type==="mcq"
+        ? `<div class="mcq-grid">`+q.options.map((o,i)=>{ let cls="mcq-option"; if(!isC&&state.learnResponse===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(state.learnResponse===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`; }).join("")+`</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="learn-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(state.learnResponse)}" ${isC?"disabled":""} />`;
+
+      const fb = isC ? `<div class="feedback-panel ${isOk?"correct":"incorrect"}" style="margin-top:16px;margin-bottom:0;"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?"✓ Correct!":"✗ Incorrect — check the CCEA mark scheme:"}</div>${!isOk?`<div class="feedback-answer-line"><span>Right Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">Explanation:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>` : "";
+      slot.innerHTML=`<div class="worked-example-box"><p class="q-prompt">${q.prompt}</p>${ui}<div class="q-nav-actions"><div></div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-learn-q">✓ Check Answer</button>`:`<button type="button" class="btn-action btn-next" id="btn-next-learn-q">🎲 Another Random Question</button>`}</div></div>${fb}</div>`;
+
+      if(q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach(b=>b.addEventListener("click",()=>{if(!state.learnChecked){state.learnResponse=b.dataset.optIdx;renderLearnPracticeCard();}}));
+      else { const inp=document.getElementById("learn-text-input"); if(inp){inp.addEventListener("input",e=>state.learnResponse=e.target.value); inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!state.learnChecked)document.getElementById("btn-check-learn-q").click();});} }
+
+      const cb=document.getElementById("btn-check-learn-q"); if(cb) cb.addEventListener("click",()=>{ if(state.learnResponse==="")return alert("Enter or select an answer first."); state.learnChecked=true; state.learnIsCorrect=isRight(q,state.learnResponse); renderLearnPracticeCard(); });
+      const nb=document.getElementById("btn-next-learn-q"); if(nb) nb.addEventListener("click",drawLearnPracticeQuestion);
+    }
+
+    function startMockExam(mode) {
+      state.examMode=mode; state.durationSeconds=mode==="full"?75*60:25*60;
+      const count = mode==="full" ? FULL_C2_POOLS.length : 7;
+      state.activePaper = buildUniquePaper(mode, FULL_C2_POOLS, count);
+
+      const n=state.activePaper.length;
+      state.responses=new Array(n).fill(""); state.checked=new Array(n).fill(false); state.isCorrect=new Array(n).fill(false); state.skipped=new Array(n).fill(false);
+      state.currentIdx=0; state.timeRemaining=state.durationSeconds; state.paperSubmitted=false;
+      state.paperCode=(mode==="full"?"GDW51-":"BLITZ-")+randInt(1000,9999);
+      const tot=state.activePaper.reduce((s,q)=>s+q.marks,0);
+      document.getElementById("hud-title").textContent=mode==="full"?`CCEA Chemistry Unit C2 Foundation (${tot} Marks)`:`Chemistry Unit C2 Quick Blitz (${tot} Marks)`;
+      document.getElementById("hud-paper-id").textContent="PAPER ID: "+state.paperCode;
+      document.getElementById("prog-total").textContent=n;
+      showOnlyViews("hud","workspace"); renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); startCountdownTimer();
+    }
+
+    function updateTestProgressMeta() {
+      const tot=state.activePaper.reduce((s,q)=>s+q.marks,0), chk=state.checked.filter(Boolean).length;
+      const earn=state.activePaper.reduce((s,q,i)=>s+(state.checked[i]&&state.isCorrect[i]?q.marks:0),0);
+      document.getElementById("prog-current").textContent=state.currentIdx+1;
+      document.getElementById("prog-checked").textContent=`${chk} / ${state.activePaper.length}`;
+      document.getElementById("prog-score").textContent=`${earn} / ${tot}`;
+    }
+
+    function renderQuestionDots() {
+      const row=document.getElementById("q-dots-row"); row.innerHTML="";
+      state.activePaper.forEach((q,i)=>{
+        const d=document.createElement("button"); d.type="button"; d.className="q-dot-btn"; d.textContent=q.qNum;
+        if(i===state.currentIdx)d.classList.add("current");
+        if(state.checked[i])d.classList.add(state.isCorrect[i]?"correct":"incorrect"); else if(state.skipped[i])d.classList.add("skipped");
+        d.addEventListener("click",()=>goToTestQuestion(i)); row.appendChild(d);
+      });
+    }
+
+    function goToTestQuestion(i) {
+      if(i<0||i>=state.activePaper.length)return;
+      state.currentIdx=i; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      document.getElementById("questions-pane").scrollTop=0;
+    }
+
+    function renderCurrentTestQuestion() {
+      const slot=document.getElementById("active-question-slot"), idx=state.currentIdx, q=state.activePaper[idx];
+      const isLast=idx===state.activePaper.length-1, isC=state.checked[idx], isOk=state.isCorrect[idx], val=state.responses[idx], letters=["A","B","C","D"];
+      let ui = q.type==="mcq"
+        ? `<div class="mcq-grid">`+q.options.map((o,i)=>{ let cls="mcq-option"; if(!isC&&val===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(val===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`; }).join("")+`</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="test-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(val)}" ${isC?"disabled":""} />`;
+
+      const fb = isC ? `<div class="feedback-panel ${isOk?"correct":"incorrect"}"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?`✓ Correct! (+${q.marks}/${q.marks} marks)`:`✗ Incorrect (0/${q.marks} marks)`}</div>${!isOk?`<div class="feedback-answer-line"><span>Correct Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">CCEA Mark Scheme Note:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>` : "";
+      slot.innerHTML=`<article class="question-card"><div class="q-top-row"><div class="q-number-group"><span class="q-badge">Question ${q.qNum} / ${state.activePaper.length}</span><span class="q-topic">${escapeHtml(q.topic)}</span></div><span class="q-marks">[${q.marks} marks]</span></div><p class="q-prompt">${q.prompt}</p>${ui}${fb}<div class="q-nav-actions"><div class="q-nav-left"><button type="button" class="btn-action" id="btn-prev-q" ${idx===0?"disabled":""}>← Back</button>${!isC&&!isLast?`<button type="button" class="btn-action btn-skip" id="btn-skip-q">Skip →</button>`:""}</div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-q">✓ Submit Answer</button>`:""}${!isLast&&isC?`<button type="button" class="btn-action btn-next" id="btn-next-q">Next Question →</button>`:""}${isLast?`<button type="button" class="btn-action btn-finish-test" id="btn-finish-test">🏁 Submit Test &amp; See Score</button>`:""}</div></div></article>`;
+
+      if(q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach(b=>b.addEventListener("click",()=>{if(!state.checked[idx]){state.responses[idx]=b.dataset.optIdx;renderCurrentTestQuestion();}}));
+      else { const inp=document.getElementById("test-text-input"); if(inp){inp.addEventListener("input",e=>state.responses[idx]=e.target.value); inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!state.checked[idx])document.getElementById("btn-check-q").click();});} }
+
+      document.getElementById("btn-prev-q").addEventListener("click",()=>goToTestQuestion(idx-1));
+      const sb=document.getElementById("btn-skip-q"); if(sb)sb.addEventListener("click",()=>{if(!state.checked[idx])state.skipped[idx]=true;goToTestQuestion(idx+1);});
+      const cb=document.getElementById("btn-check-q"); if(cb)cb.addEventListener("click",()=>{if(state.responses[idx]==="")return alert("Select or type an answer, or Skip →."); state.checked[idx]=true; state.isCorrect[idx]=isRight(q,state.responses[idx]); state.skipped[idx]=false; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();});
+      const nb=document.getElementById("btn-next-q"); if(nb)nb.addEventListener("click",()=>goToTestQuestion(idx+1));
+      const fbBtn=document.getElementById("btn-finish-test"); if(fbBtn)fbBtn.addEventListener("click",handleManualTestSubmit);
+    }
+
+    function startCountdownTimer(){ stopCountdownTimer(); renderTimer(); state.timerId=setInterval(()=>{state.timeRemaining-=1;renderTimer();if(state.timeRemaining<=0){stopCountdownTimer();submitFinalTest(true);}},1000); }
+    function stopCountdownTimer(){ if(state.timerId!==null){clearInterval(state.timerId);state.timerId=null;} }
+    function renderTimer(){ const s=Math.max(0,state.timeRemaining),m=Math.floor(s/60),r=s%60; document.getElementById("timer-clock").textContent=`${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`; const p=document.getElementById("timer-display"); p.classList.remove("warning","critical"); if(s<=180)p.classList.add("critical"); else if(s<=600)p.classList.add("warning"); }
+    function handleManualTestSubmit(){ const u=state.checked.filter(c=>!c).length; if(u>0&&!confirm(`You have ${u} unchecked question(s). Submit now?`))return; submitFinalTest(false); }
+
+    function submitFinalTest(isTimeout=false){
+      if(state.paperSubmitted)return; state.paperSubmitted=true; stopCountdownTimer();
+      let earn=0,tot=0,cnt=0;
+      const res=state.activePaper.map((q,i)=>{ tot+=q.marks; const ur=state.responses[i],ok=state.checked[i]?state.isCorrect[i]:isRight(q,ur); if(ok){earn+=q.marks;cnt++;} return {...q,ur,ok}; });
+      const pct=tot>0?Math.round((earn/tot)*1000)/10:0, grade=pct>=74?"C*":pct>=60?"C":pct>=48?"D":pct>=36?"E":pct>=25?"F":pct>=15?"G":"U";
+      const el=state.durationSeconds-Math.max(0,state.timeRemaining), tStr=`${String(Math.floor(el/60)).padStart(2,"0")}m ${String(el%60).padStart(2,"0")}s`;
+      document.getElementById("sheet-modal").classList.add("hidden"); showOnlyViews("results");
+      const ml=state.examMode==="full"?"Full Unit C2 Foundation [GDW51]":"Quick Blitz (7 Randomised)";
+      document.getElementById("report-submission-meta").textContent=`${state.paperCode} • ${ml} • ${isTimeout?"Auto-Submitted":"Completed"}`;
+      document.getElementById("stat-marks").textContent=`${earn} / ${tot}`; document.getElementById("stat-paper-type").textContent=ml;
+      document.getElementById("stat-percent").textContent=`${pct}%`; document.getElementById("stat-percent-sub").textContent=`${earn} marks out of ${tot}`;
+      document.getElementById("stat-time").textContent=tStr; document.getElementById("stat-allowed-time").textContent=`Allowed: ${Math.floor(state.durationSeconds/60)}m 00s`;
+      document.getElementById("stat-grade").textContent=grade; document.getElementById("stat-q-correct").textContent=`${cnt} / ${state.activePaper.length} correct`;
+      const sheet=document.getElementById("graded-sheet"); sheet.innerHTML="";
+      res.forEach(item=>{
+        const c=document.createElement("article"); c.className=`graded-card ${item.ok?"correct":"incorrect"}`;
+        c.innerHTML=`<div class="graded-top"><div class="q-number-group"><span class="q-badge">Q${item.qNum}</span><span class="q-topic">${escapeHtml(item.topic)}</span></div><span class="status-pill ${item.ok?"correct":"incorrect"}">${item.ok?`✓ Correct (+${item.marks}/${item.marks})`:`✗ Incorrect (0/${item.marks})`}</span></div><p class="q-prompt">${item.prompt}</p><div class="graded-answers-grid"><div class="ans-box"><div class="ans-box-label">Your Response</div><div class="ans-box-value ${item.ok?"model":"wrong"}">${escapeHtml(userDisp(item,item.ur))}</div></div><div class="ans-box"><div class="ans-box-label">Expected Answer</div><div class="ans-box-value model">${escapeHtml(modelDisp(item))}</div></div></div><div class="mark-scheme-note"><div class="feedback-steps-title">Mark Scheme Note:</div><ol class="feedback-steps-list">${item.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`;
+        sheet.appendChild(c);
+      });
+    }
+
+    const calcState={expression:"",lastStr:"0",justEval:false}, calcExprEl=document.getElementById("calc-expr"), calcOutEl=document.getElementById("calc-output");
+    document.querySelectorAll("#calculator-pane .calc-btn").forEach(b=>b.addEventListener("click",()=>{
+      const t=b.dataset.calc,a=b.dataset.action;
+      if(a==="ac"){calcState.expression="";calcState.justEval=false;calcExprEl.textContent="";calcOutEl.classList.remove("error");calcOutEl.textContent="0";return;}
+      if(a==="del"){calcState.expression=calcState.justEval?"":calcState.expression.slice(0,-1);calcState.justEval=false;calcExprEl.textContent=calcState.expression;return;}
+      if(a==="eval"){try{const safe=calcState.expression.replace(/×/g,"*").replace(/÷/g,"/");if(/[^0-9+\-*/().\s]/.test(safe))throw 0;const v=Function(`"use strict";return(${safe});`)();if(!Number.isFinite(v))throw 0;calcState.lastStr=String(Number(v.toFixed(6)));calcState.justEval=true;calcOutEl.classList.remove("error");calcOutEl.textContent=calcState.lastStr;}catch{calcOutEl.classList.add("error");calcOutEl.textContent="Math Error";calcState.justEval=true;}return;}
+      if(t!==undefined){if(calcState.justEval){calcState.expression=["+","-","×","÷"].includes(t)?calcState.lastStr:"";calcState.justEval=false;}calcState.expression+=t;calcExprEl.textContent=calcState.expression;}
+    }));
+
+    document.getElementById("btn-go-learn").addEventListener("click",()=>{renderTopicsGrid();showOnlyViews("learnMenu");});
+    document.getElementById("btn-go-test").addEventListener("click",()=>showOnlyViews("testSelect"));
+    document.getElementById("btn-learn-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-detail-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-test-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-results-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-back-to-topics").addEventListener("click",()=>{renderTopicsGrid();showOnlyViews("learnMenu");});
+    document.getElementById("btn-new-learn-q").addEventListener("click",drawLearnPracticeQuestion);
+    document.getElementById("btn-start-full").addEventListener("click",()=>startMockExam("full"));
+    document.getElementById("btn-start-blitz").addEventListener("click",()=>startMockExam("blitz"));
+    document.getElementById("btn-retry-same").addEventListener("click",()=>startMockExam(state.examMode));
+    document.getElementById("btn-switch-paper").addEventListener("click",()=>showOnlyViews("testSelect"));
+    document.getElementById("btn-hud-submit").addEventListener("click",handleManualTestSubmit);
+    const sheetModal=document.getElementById("sheet-modal");
+    document.getElementById("btn-open-sheet").addEventListener("click",()=>sheetModal.classList.remove("hidden"));
+    document.getElementById("btn-close-sheet").addEventListener("click",()=>sheetModal.classList.add("hidden"));
+    sheetModal.addEventListener("click",e=>{if(e.target===sheetModal)sheetModal.classList.add("hidden");});
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheetModal.classList.contains("hidden"))sheetModal.classList.add("hidden");});
+  </script>
+</body>
+</html>

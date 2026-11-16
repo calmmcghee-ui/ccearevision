@@ -1,0 +1,1459 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — Biology Unit B2 (CCEA Foundation)</title>
+  <style>
+    :root {
+      --bg-base: #070b14;
+      --bg-surface: #0f172a;
+      --bg-elevated: #162033;
+      --bg-card: #111b2e;
+      --bg-input: #090f1d;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-strong: rgba(148, 163, 184, 0.32);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-emerald-bg: rgba(16, 185, 129, 0.1);
+      --accent-emerald-border: rgba(16, 185, 129, 0.5);
+      --accent-rose: #f43f5e;
+      --accent-rose-bg: rgba(244, 63, 94, 0.1);
+      --accent-rose-border: rgba(244, 63, 94, 0.5);
+      --accent-amber: #f59e0b;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --hud-height: 68px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --shadow-panel: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background-color: var(--bg-base); color: var(--text-primary); font-family: var(--font-sans); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: #27354d; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b4f73; }
+    .hidden { display: none !important; }
+
+    .page-shell {
+      min-height: 100vh; padding: 36px 24px 70px;
+      background: radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.1), transparent 40%), radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.09), transparent 45%), var(--bg-base);
+    }
+    .container-md { max-width: 960px; margin: 0 auto; }
+    .container-lg { max-width: 1120px; margin: 0 auto; }
+    .top-nav-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+
+    .btn-ghost {
+      padding: 9px 16px; border-radius: 9px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary);
+      display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    }
+    .btn-ghost:hover { background: var(--bg-elevated); border-color: rgba(148, 163, 184, 0.55); }
+
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+      font-size: 0.76rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #6ee7b7; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .badge-pill.blue { color: var(--accent-blue); background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3); }
+    .badge-pill.amber { color: #fcd34d; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); }
+
+    #home-view {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px 20px;
+      background: radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.12), transparent 42%), radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.1), transparent 45%), var(--bg-base);
+    }
+    .home-wrapper { width: 100%; max-width: 920px; text-align: center; }
+    .home-top-links { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .home-title { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 800; letter-spacing: -0.03em; margin: 12px 0; line-height: 1.15; }
+    .home-subtitle { color: var(--text-secondary); font-size: 1.04rem; max-width: 660px; margin: 0 auto 36px; }
+
+    .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; text-align: left; }
+    .mode-card {
+      background: linear-gradient(180deg, rgba(22, 32, 51, 0.94), rgba(15, 23, 42, 0.98));
+      border: 1px solid var(--border-strong); border-radius: 18px; padding: 32px; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 20px; box-shadow: var(--shadow-panel);
+      transition: transform 0.16s ease, border-color 0.16s ease; position: relative; overflow: hidden;
+    }
+    .mode-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .mode-card.learn-card::before { background: linear-gradient(90deg, #10b981, #38bdf8); }
+    .mode-card.test-card::before { background: linear-gradient(90deg, #38bdf8, #6366f1); }
+    .mode-card:hover { transform: translateY(-4px); border-color: var(--accent-emerald); }
+    .mode-icon { width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.65rem; margin-bottom: 14px; }
+    .learn-card .mode-icon { background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35); }
+    .test-card .mode-icon { background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); }
+    .mode-card h2 { font-size: 1.55rem; font-weight: 800; margin-bottom: 8px; }
+    .mode-card p { color: var(--text-secondary); font-size: 0.96rem; line-height: 1.6; }
+    .mode-cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: #6ee7b7; }
+    .test-card .mode-cta { color: var(--accent-blue); }
+
+    .section-header { margin-bottom: 24px; }
+    .section-header h1 { font-size: clamp(1.6rem, 3vw, 2.15rem); font-weight: 800; margin-bottom: 6px; }
+    .section-header p { color: var(--text-secondary); font-size: 0.96rem; }
+
+    .learn-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .filter-pill { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); font-size: 0.83rem; font-weight: 600; cursor: pointer; }
+    .filter-pill.active { background: rgba(16, 185, 129, 0.16); border-color: var(--accent-emerald); color: #6ee7b7; }
+
+    .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 14px; }
+    .topic-btn {
+      background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;
+      text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+    .topic-btn:hover { transform: translateY(-2px); border-color: var(--accent-emerald); background: var(--bg-elevated); }
+    .topic-btn-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .topic-num { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+    .topic-section-tag { font-family: var(--font-mono); font-size: 0.69rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+    .tag-plants { color: #6ee7b7; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.35); }
+    .tag-body { color: #fda4af; background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.35); }
+    .tag-genetics { color: #bae6fd; background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.35); }
+    .tag-health { color: #fcd34d; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.35); }
+    .topic-btn-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); line-height: 1.35; }
+    .topic-btn-sub { font-size: 0.8rem; color: var(--text-secondary); }
+
+    .learn-detail-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .study-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 26px; }
+    .study-card-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7b7; font-weight: 800; margin-bottom: 10px; }
+    .study-body { color: var(--text-primary); font-size: 0.98rem; line-height: 1.7; }
+    .study-body code, .q-prompt code { font-family: var(--font-mono); background: rgba(30, 41, 59, 0.9); padding: 2px 7px; border-radius: 5px; color: #bae6fd; font-size: 0.93em; }
+    .key-rule-box { margin-top: 14px; padding: 13px 16px; background: var(--bg-input); border-left: 3px solid var(--accent-emerald); border-radius: 0 8px 8px 0; font-family: var(--font-mono); font-size: 0.92rem; color: #d1fae5; line-height: 1.6; }
+    .diagram-box { margin-top: 16px; padding: 16px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; display: flex; justify-content: center; }
+    .steps-ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; color: var(--text-primary); }
+    .worked-example-box { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 18px; }
+    .worked-q { font-weight: 700; color: #bae6fd; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+    .learn-practice-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+
+    .mcq-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 18px; }
+    .mcq-option { width: 100%; text-align: left; padding: 13px 16px; border-radius: var(--radius-md); border: 1.5px solid var(--border-strong); background: var(--bg-input); color: var(--text-primary); font-size: 0.97rem; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .mcq-option:hover:not(:disabled) { background: var(--bg-elevated); border-color: var(--accent-blue); }
+    .mcq-option.selected { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.14); }
+    .mcq-option.correct-opt { border-color: var(--accent-emerald-border); background: rgba(16, 185, 129, 0.18); }
+    .mcq-option.wrong-opt { border-color: var(--accent-rose-border); background: rgba(244, 63, 94, 0.18); }
+    .mcq-option:disabled { cursor: default; }
+    .mcq-letter { width: 28px; height: 28px; border-radius: 7px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; flex-shrink: 0; color: var(--text-secondary); }
+    .mcq-option.selected .mcq-letter { background: var(--accent-blue); color: #031120; border-color: var(--accent-blue); }
+    .mcq-option.correct-opt .mcq-letter { background: var(--accent-emerald); color: #03150e; border-color: var(--accent-emerald); }
+    .mcq-option.wrong-opt .mcq-letter { background: var(--accent-rose); color: #fff; border-color: var(--accent-rose); }
+
+    .bio-input-box { width: 100%; padding: 14px 16px; background: var(--bg-input); border: 1.5px solid var(--border-strong); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 1.08rem; color: var(--text-primary); outline: none; margin-bottom: 14px; }
+    .bio-input-box:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.18); }
+    .bio-input-box.locked-correct { border-color: var(--accent-emerald-border); background: rgba(16, 185, 129, 0.08); }
+    .bio-input-box.locked-incorrect { border-color: var(--accent-rose-border); background: rgba(244, 63, 94, 0.08); }
+
+    .paper-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+    .paper-card { background: linear-gradient(180deg, rgba(22, 32, 51, 0.94), rgba(15, 23, 42, 0.98)); border: 1px solid var(--border-strong); border-radius: 18px; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; box-shadow: var(--shadow-panel); }
+    .paper-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .paper-spec-item { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 11px 13px; }
+    .paper-spec-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .paper-spec-val { font-family: var(--font-mono); font-weight: 700; font-size: 1rem; margin-top: 2px; }
+
+    .btn-primary-lg { width: 100%; padding: 15px 22px; font-size: 1rem; font-weight: 700; color: #03150e; background: linear-gradient(135deg, #10b981, #34d399); border: none; border-radius: 11px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary-lg.blue { color: #04101d; background: linear-gradient(135deg, #38bdf8, #60a5fa); }
+    .btn-primary-lg:hover { filter: brightness(1.06); }
+
+    #hud-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--hud-height); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-strong); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 100; }
+    .hud-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .hud-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald); flex-shrink: 0; }
+    .hud-title { font-weight: 700; font-size: 0.96rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hud-meta { font-size: 0.76rem; color: var(--text-secondary); font-family: var(--font-mono); }
+    .hud-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    .timer-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px; background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: 10px; font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--accent-blue); min-width: 120px; justify-content: center; }
+    .timer-pill.warning { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.55); background: rgba(245, 158, 11, 0.08); }
+    .timer-pill.critical { color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.65); background: rgba(244, 63, 94, 0.12); animation: pulseAlert 1s infinite; }
+    @keyframes pulseAlert { 0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.3); } 50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); } }
+
+    .btn-hud { padding: 9px 14px; border-radius: 9px; font-size: 0.86rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+    .btn-hud:hover { background: #1e2d47; }
+    .btn-submit { background: linear-gradient(135deg, #10b981, #059669); border-color: rgba(16, 185, 129, 0.6); color: #03150e; font-weight: 700; }
+
+    #workspace-view { padding-top: var(--hud-height); height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) 360px; overflow: hidden; }
+    #questions-pane { height: calc(100vh - var(--hud-height)); overflow-y: auto; padding: 24px 34px 56px; }
+    .exam-shell { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+    .q-progress-bar { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .q-progress-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); }
+    .q-progress-meta strong { color: var(--text-primary); font-family: var(--font-mono); }
+    .q-dots-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .q-dot-btn { height: 32px; border-radius: 7px; border: 1px solid var(--border-subtle); background: var(--bg-input); color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .q-dot-btn.current { border-color: var(--accent-blue); box-shadow: 0 0 0 1px var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.14); }
+    .q-dot-btn.correct { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.55); color: #6ee7b7; }
+    .q-dot-btn.incorrect { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.55); color: #fda4af; }
+    .q-dot-btn.skipped { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+
+    .question-card { background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 26px; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28); }
+    .q-top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .q-number-group { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .q-badge { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.32); font-family: var(--font-mono); font-weight: 700; font-size: 0.84rem; padding: 4px 11px; border-radius: 6px; }
+    .q-topic { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .q-marks { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-secondary); background: var(--bg-elevated); border: 1px solid var(--border-subtle); padding: 4px 11px; border-radius: 999px; }
+    .q-prompt { font-size: 1.07rem; color: var(--text-primary); margin-bottom: 10px; line-height: 1.65; }
+    .q-hint { font-size: 0.84rem; color: var(--accent-amber); margin-bottom: 16px; }
+
+    .feedback-panel { border-radius: var(--radius-md); padding: 18px 20px; margin-bottom: 18px; border: 1.5px solid; }
+    .feedback-panel.correct { background: var(--accent-emerald-bg); border-color: var(--accent-emerald-border); }
+    .feedback-panel.incorrect { background: var(--accent-rose-bg); border-color: var(--accent-rose-border); }
+    .feedback-heading { font-weight: 800; font-size: 1.05rem; margin-bottom: 10px; }
+    .feedback-heading.correct { color: #6ee7b7; }
+    .feedback-heading.incorrect { color: #fda4af; }
+    .feedback-answer-line { background: rgba(9, 15, 29, 0.72); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-family: var(--font-mono); font-size: 0.96rem; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .feedback-answer-line strong { color: #6ee7b7; font-size: 1.05rem; }
+    .feedback-steps-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-secondary); margin-bottom: 6px; font-weight: 700; }
+    .feedback-steps-list { padding-left: 20px; color: var(--text-primary); font-size: 0.94rem; display: flex; flex-direction: column; gap: 5px; }
+
+    .q-nav-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; }
+    .q-nav-left, .q-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .btn-action { padding: 11px 18px; border-radius: 9px; font-size: 0.92rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text-primary); display: inline-flex; align-items: center; gap: 7px; }
+    .btn-action:hover:not(:disabled) { background: #21304b; }
+    .btn-action:disabled { opacity: 0.38; cursor: not-allowed; }
+    .btn-skip { background: rgba(245, 158, 11, 0.1); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
+    .btn-check { background: linear-gradient(135deg, #38bdf8, #3b82f6); color: #031120; border: none; }
+    .btn-next { background: linear-gradient(135deg, #10b981, #059669); color: #03150e; border: none; }
+    .btn-finish-test { background: linear-gradient(135deg, #10b981, #059669); color: #03150e; border: none; padding: 12px 22px; }
+
+    #calculator-pane { height: calc(100vh - var(--hud-height)); background: var(--bg-surface); border-left: 1px solid var(--border-strong); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    .calc-header { display: flex; align-items: center; justify-content: space-between; }
+    .calc-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
+    .calc-badge { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 5px; background: rgba(16, 185, 129, 0.14); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.35); }
+    .calc-screen { background: var(--bg-input); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 13px 16px; min-height: 98px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; word-break: break-all; }
+    .calc-expr { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-secondary); min-height: 24px; text-align: right; }
+    .calc-output { font-family: var(--font-mono); font-size: 1.65rem; font-weight: 700; color: var(--text-primary); text-align: right; line-height: 1.2; }
+    .calc-output.error { color: var(--accent-rose); font-size: 1.2rem; }
+    .calc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .calc-btn { height: 43px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    .calc-btn:hover { background: #21304b; }
+    .calc-btn.op { background: rgba(56, 189, 248, 0.12); color: var(--accent-blue); border-color: rgba(56, 189, 248, 0.26); }
+    .calc-btn.sci { background: rgba(99, 102, 241, 0.14); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.3); font-size: 0.85rem; }
+    .calc-btn.danger { background: rgba(244, 63, 94, 0.14); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
+    .calc-btn.equals { background: linear-gradient(135deg, #10b981, #059669); color: #03150e; font-weight: 800; border: none; }
+    .calc-tip { font-size: 0.76rem; color: var(--text-muted); line-height: 1.45; }
+
+    .report-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 18px; padding: 32px; box-shadow: var(--shadow-panel); margin-bottom: 32px; }
+    .report-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 24px; }
+    .report-title { font-size: 1.65rem; font-weight: 800; }
+    .report-sub { color: var(--text-secondary); font-size: 0.92rem; margin-top: 4px; }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+    .stat-tile { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; }
+    .stat-tile-label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-tile-value { font-family: var(--font-mono); font-size: 1.55rem; font-weight: 800; }
+    .stat-tile-value.highlight { color: #6ee7b7; }
+    .stat-tile-sub { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; }
+
+    .graded-sheet-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .graded-list { display: flex; flex-direction: column; gap: 18px; }
+    .graded-card { border-radius: var(--radius-lg); padding: 22px 24px; border: 1.5px solid; }
+    .graded-card.correct { background: var(--accent-emerald-bg); border-color: var(--accent-emerald-border); }
+    .graded-card.incorrect { background: var(--accent-rose-bg); border-color: var(--accent-rose-border); }
+    .graded-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .status-pill { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; text-transform: uppercase; }
+    .status-pill.correct { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+    .status-pill.incorrect { background: rgba(244, 63, 94, 0.22); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.5); }
+    .graded-answers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px; }
+    .ans-box { background: rgba(9, 15, 29, 0.78); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; }
+    .ans-box-label { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; }
+    .ans-box-value { font-family: var(--font-mono); font-size: 1.02rem; font-weight: 700; }
+    .ans-box-value.model { color: #6ee7b7; }
+    .ans-box-value.wrong { color: #fda4af; }
+    .mark-scheme-note { margin-top: 14px; font-size: 0.9rem; color: var(--text-secondary); padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.16); }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(4, 7, 15, 0.78); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
+    .modal-panel { width: 100%; max-width: 740px; max-height: 86vh; overflow-y: auto; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 16px; padding: 28px; box-shadow: var(--shadow-panel); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 18px; }
+    .modal-close { background: var(--bg-elevated); border: 1px solid var(--border-subtle); color: var(--text-primary); width: 34px; height: 34px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; }
+    .formula-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .formula-item { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px 16px; }
+    .formula-name { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #6ee7b7; margin-bottom: 6px; font-weight: 700; }
+    .formula-expr { font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.55; }
+
+    @media (max-width: 980px) {
+      #workspace-view { grid-template-columns: 1fr; height: auto; overflow: visible; }
+      #questions-pane { height: auto; overflow-y: visible; padding: 20px 16px 32px; }
+      #calculator-pane { height: auto; border-left: none; border-top: 1px solid var(--border-strong); }
+      #hud-bar { padding: 0 12px; }
+      .hud-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. HOME SCREEN -->
+  <section id="home-view">
+    <div class="home-wrapper">
+      <div class="home-top-links">
+        <a href="index.html" class="btn-ghost">← All Subjects</a>
+        <div class="badge-pill">CCEA (NI) Double Award Science • Biology Unit B2 (Foundation)</div>
+      </div>
+
+      <h1 class="home-title">Biology Unit B2 Revision Engine</h1>
+      <p class="home-subtitle">
+        Body Systems, Genetics, Microorganisms &amp; Health (<code>[GDW41]</code>). Revise all 15 CCEA Unit B2 Foundation topics or sit a randomised timed mock exam.
+      </p>
+
+      <div class="mode-grid">
+        <button type="button" class="mode-card learn-card" id="btn-go-learn">
+          <div>
+            <div class="mode-icon">🔬</div>
+            <h2>Learn</h2>
+            <p>
+              Browse all 15 CCEA Unit B2 topics individually (Spec 2.1–2.6). Each topic includes key mark-scheme wording, diagrams, a worked example, and non-repeating RNG practice questions.
+            </p>
+          </div>
+          <span class="mode-cta">Open 15 CCEA Topics →</span>
+        </button>
+
+        <button type="button" class="mode-card test-card" id="btn-go-test">
+          <div>
+            <div class="mode-icon">📝</div>
+            <h2>Test</h2>
+            <p>
+              Sit a fresh randomised 70-mark, 1h 15m CCEA Unit B2 Foundation mock exam (<code>[GDW41]</code>) or a 7-question Blitz test. Includes live coaching, calculator helper, and Foundation grade report.
+            </p>
+          </div>
+          <span class="mode-cta">Choose Mock Paper Mode →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. LEARN TOPICS DIRECTORY -->
+  <section id="learn-menu-view" class="page-shell hidden">
+    <div class="container-lg">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+          <button type="button" class="btn-ghost" id="btn-learn-home">← Biology Home</button>
+        </div>
+        <span class="badge-pill">CCEA Unit B2 • Foundation Learn Hub</span>
+      </div>
+
+      <div class="section-header">
+        <h1>CCEA Unit B2 Topic Revision Hub (15 Topics)</h1>
+        <p>Every topic below follows the Northern Ireland CCEA Double Award Biology Unit B2 (2.1–2.6) Foundation specification.</p>
+      </div>
+
+      <div class="learn-filter-bar">
+        <button type="button" class="filter-pill active" data-filter="all">All 15 Topics</button>
+        <button type="button" class="filter-pill" data-filter="plants">2.1 Plants &amp; Osmosis</button>
+        <button type="button" class="filter-pill" data-filter="body">2.2–2.3 Circulation &amp; Reproduction</button>
+        <button type="button" class="filter-pill" data-filter="genetics">2.4–2.5 Genetics &amp; Selection</button>
+        <button type="button" class="filter-pill" data-filter="health">2.6 Health &amp; Microorganisms</button>
+      </div>
+
+      <div id="topics-grid" class="topics-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. LEARN TOPIC DETAIL VIEW -->
+  <section id="learn-detail-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-back-to-topics">← All Topics</button>
+          <button type="button" class="btn-ghost" id="btn-detail-home">🧬 Bio Home</button>
+          <a href="index.html" class="btn-ghost">🏠 Subjects</a>
+        </div>
+        <span id="detail-section-badge" class="badge-pill">Topic</span>
+      </div>
+
+      <div class="section-header">
+        <h1 id="detail-title">Topic Title</h1>
+        <p id="detail-subtitle">CCEA Unit B2 Foundation Guide &amp; RNG Practice</p>
+      </div>
+
+      <div class="learn-detail-grid">
+        <div class="study-card">
+          <div class="study-card-title">1. What You Need to Know</div>
+          <div id="detail-what" class="study-body"></div>
+          <div id="detail-rule" class="key-rule-box"></div>
+          <div id="detail-diagram" class="diagram-box hidden"></div>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-title">2. Key Exam Points (CCEA Mark Scheme)</div>
+          <ol id="detail-howto" class="steps-ol"></ol>
+        </div>
+
+        <div class="study-card">
+          <div class="study-card-title">3. Worked Exam-Style Example</div>
+          <div class="worked-example-box">
+            <div id="detail-example-q" class="worked-q"></div>
+            <ol id="detail-example-steps" class="steps-ol"></ol>
+          </div>
+        </div>
+
+        <div class="study-card">
+          <div class="learn-practice-header">
+            <div>
+              <div class="study-card-title" style="margin-bottom:2px;">4. Topic RNG Practice</div>
+              <p style="font-size:0.86rem; color:var(--text-secondary);">Test yourself with freshly randomised CCEA Foundation questions on this topic.</p>
+            </div>
+            <button type="button" class="btn-action btn-next" id="btn-new-learn-q">🎲 New Random Question</button>
+          </div>
+          <div id="learn-practice-slot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. TEST PAPER SELECTION VIEW -->
+  <section id="test-select-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-test-home">← Biology Home</button>
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+        </div>
+        <span class="badge-pill blue">CCEA Unit B2 • Foundation Exam Mode</span>
+      </div>
+
+      <div class="section-header">
+        <h1>Choose Your Unit B2 Mock Paper</h1>
+        <p>Every paper uses shuffled question order, non-repeating decks, shuffled options, and dynamic values for CCEA Northern Ireland Foundation Unit B2 (<code>[GDW41]</code>).</p>
+      </div>
+
+      <div class="paper-choice-grid">
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill" style="margin-bottom:14px;">Full Specification Mock • [GDW41]</div>
+            <h2 style="font-size:1.45rem; margin-bottom:10px;">Unit B2 Foundation Full Paper</h2>
+            <p style="color:var(--text-secondary); font-size:0.94rem; margin-bottom:20px;">
+              Matches the official CCEA <code>[GDW41]</code> structure: 70 total marks, 1 hour 15 minutes, calculator allowed. Covers all sections 2.1 to 2.6 including calculations and Punnett squares.
+            </p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">70 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 15m (75:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">14 Structured</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg" id="btn-start-full">⚡ Generate Full 70-Mark B2 Paper</button>
+        </div>
+
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill blue" style="margin-bottom:14px;">Rapid Revision • Quick Check</div>
+            <h2 style="font-size:1.45rem; margin-bottom:10px;">Unit B2 Quick Blitz (7 Qs)</h2>
+            <p style="color:var(--text-secondary); font-size:0.94rem; margin-bottom:20px;">
+              Short on time? Draws 7 completely random topics across CCEA Unit B2 for a fast 25-minute burst with immediate mark-scheme feedback and grading.
+            </p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">~35 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">25m (25:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">7 Randomised</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg blue" id="btn-start-blitz">⚡ Generate Quick Blitz Paper</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. PINNED HUD BAR -->
+  <header id="hud-bar" class="hidden">
+    <div class="hud-brand">
+      <div class="hud-dot"></div>
+      <div>
+        <div class="hud-title" id="hud-title">CCEA Biology Unit B2 (Foundation)</div>
+        <div class="hud-meta" id="hud-paper-id">PAPER ID: GDW41-0000</div>
+      </div>
+    </div>
+
+    <div class="hud-controls">
+      <div id="timer-display" class="timer-pill" aria-live="polite">
+        <span>⏱</span>
+        <span id="timer-clock">75:00</span>
+      </div>
+      <button id="btn-open-sheet" class="btn-hud" type="button">🧬 B2 Revision Sheet</button>
+      <button id="btn-hud-submit" class="btn-hud btn-submit" type="button">Submit Test</button>
+    </div>
+  </header>
+
+  <!-- 6. EXAM WORKSPACE -->
+  <main id="workspace-view" class="hidden">
+    <section id="questions-pane" aria-label="Active Exam Question">
+      <div class="exam-shell">
+        <div class="q-progress-bar">
+          <div class="q-progress-meta">
+            <span>Question <strong id="prog-current">1</strong> of <strong id="prog-total">14</strong></span>
+            <span>Tier: <strong>CCEA Foundation [GDW41]</strong></span>
+            <span>Checked: <strong id="prog-checked">0 / 14</strong></span>
+            <span>Score: <strong id="prog-score">0 / 70</strong></span>
+          </div>
+          <div id="q-dots-row" class="q-dots-row"></div>
+        </div>
+        <div id="active-question-slot"></div>
+      </div>
+    </section>
+
+    <aside id="calculator-pane" aria-label="Science Calculator">
+      <div class="calc-header">
+        <span class="calc-title">Biology Calc Helper</span>
+        <span class="calc-badge">CCEA B2 ALLOWED</span>
+      </div>
+      <div class="calc-screen">
+        <div id="calc-expr" class="calc-expr"></div>
+        <div id="calc-output" class="calc-output">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-btn sci" data-calc="(">(</button><button class="calc-btn sci" data-calc=")">)</button><button class="calc-btn danger" data-action="del">DEL</button><button class="calc-btn danger" data-action="ac">AC</button>
+        <button class="calc-btn" data-calc="7">7</button><button class="calc-btn" data-calc="8">8</button><button class="calc-btn" data-calc="9">9</button><button class="calc-btn op" data-calc="÷">÷</button>
+        <button class="calc-btn" data-calc="4">4</button><button class="calc-btn" data-calc="5">5</button><button class="calc-btn" data-calc="6">6</button><button class="calc-btn op" data-calc="×">×</button>
+        <button class="calc-btn" data-calc="1">1</button><button class="calc-btn" data-calc="2">2</button><button class="calc-btn" data-calc="3">3</button><button class="calc-btn op" data-calc="-">−</button>
+        <button class="calc-btn" data-calc="0">0</button><button class="calc-btn" data-calc=".">.</button><button class="calc-btn equals" data-action="eval">=</button><button class="calc-btn op" data-calc="+">+</button>
+      </div>
+      <p class="calc-tip">
+        Useful for <strong>% Change in Mass</strong> (Osmosis), <strong>Potometer Rates</strong>, and <strong>Punnett Square %</strong> calculations.
+      </p>
+    </aside>
+  </main>
+
+  <!-- 7. FINAL REPORT CARD -->
+  <section id="results-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="report-card">
+        <div class="report-header">
+          <div>
+            <h2 class="report-title">CCEA Biology Unit B2 Report Card</h2>
+            <p class="report-sub" id="report-submission-meta">Submitted</p>
+          </div>
+          <div class="report-actions">
+            <button id="btn-retry-same" class="btn-hud btn-submit" type="button">⚡ New Random Paper</button>
+            <button id="btn-switch-paper" class="btn-hud" type="button">Switch Mode</button>
+            <button id="btn-results-home" class="btn-hud" type="button">🧬 Bio Home</button>
+            <a href="index.html" class="btn-hud">🏠 All Subjects</a>
+          </div>
+        </div>
+
+        <div class="report-stats">
+          <div class="stat-tile"><div class="stat-tile-label">Paper Score</div><div class="stat-tile-value highlight" id="stat-marks">0 / 70</div><div class="stat-tile-sub" id="stat-paper-type">Unit B2 Foundation</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Percentage</div><div class="stat-tile-value" id="stat-percent">0%</div><div class="stat-tile-sub" id="stat-percent-sub">Overall mark</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Time Taken</div><div class="stat-tile-value" id="stat-time">00m 00s</div><div class="stat-tile-sub" id="stat-allowed-time">Allowed: 75m 00s</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Indicative CCEA Grade</div><div class="stat-tile-value" id="stat-grade">—</div><div class="stat-tile-sub" id="stat-q-correct">0 / 14 questions correct</div></div>
+        </div>
+      </div>
+
+      <h3 class="graded-sheet-title">Full Question Review &amp; CCEA Mark Scheme Notes</h3>
+      <div id="graded-sheet" class="graded-list"></div>
+    </div>
+  </section>
+
+  <!-- 8. CCEA B2 REVISION SHEET MODAL -->
+  <div id="sheet-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="sheet-modal-title">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 id="sheet-modal-title">🧬 CCEA (NI) Biology Unit B2 Quick Reference</h3>
+        <button id="btn-close-sheet" class="modal-close" type="button" aria-label="Close Reference Sheet">×</button>
+      </div>
+      <div class="formula-grid">
+        <div class="formula-item"><div class="formula-name">% Change in Mass (2.1 Osmosis)</div><div class="formula-expr">% Change = [(Final - Start) ÷ Start] × 100</div></div>
+        <div class="formula-item"><div class="formula-name">DNA Base Pairing (2.4)</div><div class="formula-expr">A pairs with T | C pairs with G<br />(Double helix held by complementary pairs)</div></div>
+        <div class="formula-item"><div class="formula-name">Mitosis vs Meiosis (2.4)</div><div class="formula-expr">Mitosis: 2 identical diploid cells (growth/repair)<br />Meiosis: 4 different haploid gametes</div></div>
+        <div class="formula-item"><div class="formula-name">Blood Components (2.2)</div><div class="formula-expr">RBC: oxygen (haemoglobin) | WBC: lymphocytes &amp; phagocytes<br />Platelets: clotting | Plasma: liquid carrier</div></div>
+        <div class="formula-item"><div class="formula-name">Blood Vessels (2.2)</div><div class="formula-expr">Artery: thick elastic wall, small lumen, away<br />Vein: thinner wall, large lumen, VALVES<br />Capillary: 1-cell thick, diffusion</div></div>
+        <div class="formula-item"><div class="formula-name">Immunity Phrasing (2.6)</div><div class="formula-expr">Lymphocytes make antibodies → latch onto antigens → clumping → phagocytes engulf &amp; digest</div></div>
+        <div class="formula-item"><div class="formula-name">Transpiration Factors (2.1)</div><div class="formula-expr">Faster with: ↑ Temp, ↑ Wind, ↑ Light<br />Slower with: ↑ Humidity</div></div>
+        <div class="formula-item"><div class="formula-name">Tumours &amp; Smoking (2.6)</div><div class="formula-expr">Benign: capsule, stays in one place<br />Malignant: spreads in blood (cancerous)<br />Tar = lung cancer/bronchitis | CO = less O₂</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* ============================================================
+       ANTI-REPEAT CRYPTO RNG ENGINE (Persisted in localStorage)
+       ============================================================ */
+    const DECK_STORAGE_KEY = "calum_bio_b2_decks_v1";
+    const PAPER_HISTORY_KEY = "calum_bio_b2_history_v1";
+    const memDecks = {};
+    const memHistory = {};
+
+    function cryptoFloat() {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+      return Math.random();
+    }
+    function randInt(min, max) { return Math.floor(cryptoFloat() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadStore(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) return obj;
+        }
+      } catch (_) {}
+      return null;
+    }
+    function saveStore(key, obj) {
+      try { window.localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
+    }
+
+    function resolveEntry(entry) {
+      const q = typeof entry === "function" ? entry() : { ...entry };
+      if (q.type === "mcq" && Array.isArray(q.options)) {
+        const mixed = shuffle(q.options.map((opt, idx) => ({ opt, ok: idx === q.correctIndex })));
+        q.options = mixed.map((x) => x.opt);
+        q.correctIndex = mixed.findIndex((x) => x.ok);
+      }
+      return q;
+    }
+
+    function drawFromDeck(deckKey, pool) {
+      if (!pool || !pool.length) return null;
+      const decks = loadStore(DECK_STORAGE_KEY) || memDecks;
+      let deck = decks[deckKey];
+      const valid = deck && deck.len === pool.length && Array.isArray(deck.remaining) &&
+        deck.remaining.every((i) => Number.isInteger(i) && i >= 0 && i < pool.length) &&
+        new Set(deck.remaining).size === deck.remaining.length;
+
+      if (!valid) deck = { len: pool.length, remaining: [], last: null };
+      if (deck.remaining.length === 0) {
+        deck.remaining = shuffle(Array.from({ length: pool.length }, (_, i) => i));
+        if (pool.length > 1 && deck.remaining[deck.remaining.length - 1] === deck.last) {
+          const last = deck.remaining.length - 1;
+          [deck.remaining[last], deck.remaining[0]] = [deck.remaining[0], deck.remaining[last]];
+        }
+      }
+      const idx = deck.remaining.pop();
+      deck.last = idx;
+      decks[deckKey] = deck;
+      memDecks[deckKey] = deck;
+      saveStore(DECK_STORAGE_KEY, decks);
+      return resolveEntry(pool[idx]);
+    }
+
+    function buildUniquePaper(mode, pools, count) {
+      const history = loadStore(PAPER_HISTORY_KEY) || memHistory;
+      const recentPrompts = Array.isArray(history.recentPrompts) ? history.recentPrompts : [];
+      const lastFirstPool = history["firstPool_" + mode];
+
+      let ordered = shuffle(Array.from({ length: pools.length }, (_, i) => i));
+      if (ordered.length > 1 && ordered[0] === lastFirstPool) {
+        ordered.push(ordered.shift());
+      }
+      if (count && count < ordered.length) ordered = ordered.slice(0, count);
+
+      const paper = ordered.map((poolIdx, pos) => {
+        const pool = pools[poolIdx];
+        let q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        for (let attempt = 0; attempt < 5; attempt++) {
+          if (!recentPrompts.includes(q.prompt)) break;
+          q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        }
+        return { qNum: pos + 1, ...q };
+      });
+
+      history.recentPrompts = paper.map((q) => q.prompt).concat(recentPrompts).slice(0, 45);
+      history["firstPool_" + mode] = ordered[0];
+      memHistory.recentPrompts = history.recentPrompts;
+      memHistory["firstPool_" + mode] = ordered[0];
+      saveStore(PAPER_HISTORY_KEY, history);
+      return paper;
+    }
+
+    /* ============================================================
+       PROCEDURAL BIOLOGY UNIT B2 QUESTION GENERATORS
+       ============================================================ */
+    function genOsmosisMass(marks = 6) {
+      const start = pick([4.0, 5.0, 10.0]);
+      const pctChoices = start === 4.0
+        ? [-20, -15, -10, 10, 15, 20, 25]
+        : start === 5.0
+        ? [-20, -16, -14, -12, 12, 14, 16, 18, 22, 24]
+        : [-18, -15, -12, -8, 8, 12, 15, 19, 24];
+      const pct = pick(pctChoices);
+      const end = Number((start + (start * pct) / 100).toFixed(1));
+      const diff = Number((end - start).toFixed(1));
+      const ans = String(pct);
+      const accepted = pct > 0 ? [ans, ans + "%", "+" + ans, "+" + ans + "%"] : [ans, ans + "%"];
+      return {
+        topic: "2.1 Osmosis Practical (% Change)", marks, type: "input",
+        prompt: `A potato cylinder started at <code>${start.toFixed(1)} g</code>. After soaking in ${pct > 0 ? "distilled water" : "concentrated sugar solution"}, its mass was <code>${end.toFixed(1)} g</code>. Calculate the percentage change in mass${pct < 0 ? " (include minus sign)" : ""}.`,
+        hint: "[(Final - Start) ÷ Start] × 100",
+        modelAnswer: ans, acceptedAnswers: accepted,
+        steps: [`Change = ${end.toFixed(1)} - ${start.toFixed(1)} = ${diff > 0 ? "+" : ""}${diff} g.`, `(${diff} ÷ ${start.toFixed(1)}) × 100 = ${pct}%.`]
+      };
+    }
+
+    function genPotometerRate(marks = 5) {
+      const time = pick([4, 5, 6, 8, 9, 10, 12]);
+      const rate = randInt(3, 9);
+      const dist = time * rate;
+      return {
+        topic: "2.1 Transpiration & Potometer", marks, type: "input",
+        prompt: `In a bubble potometer, the air bubble moved <code>${dist} mm</code> in <code>${time} minutes</code>. Calculate the mean rate of water uptake in mm/min.`,
+        hint: "Distance ÷ Time", modelAnswer: String(rate), acceptedAnswers: [String(rate)],
+        steps: [`${dist} ÷ ${time} = ${rate} mm/min.`]
+      };
+    }
+
+    function genDnaComplement(marks = 4) {
+      const pairs = { A: "T", T: "A", C: "G", G: "C" };
+      const bases = Array.from({ length: 6 }, () => pick(["A", "T", "C", "G"]));
+      const comp = bases.map((b) => pairs[b]).join("");
+      return {
+        topic: "2.4 DNA Base Pairing", marks, type: "input",
+        prompt: `One DNA strand has the base sequence <code>${bases.join(" ")}</code>. Enter the complementary strand sequence (letters only, no spaces).`,
+        hint: "A pairs with T, C pairs with G",
+        modelAnswer: comp, acceptedAnswers: [comp, comp.split("").join("-")],
+        steps: [`Swap A↔T and C↔G: ${bases.join("")} → ${comp}.`]
+      };
+    }
+
+    function genChromosomeDiv(marks = 5) {
+      const [species, dip] = pick([["human", 46], ["cat", 38], ["dog", 78], ["mouse", 40], ["horse", 64], ["pea plant", 14], ["onion", 16]]);
+      if (randInt(0, 1) === 0) {
+        return {
+          topic: "2.4 Mitosis & Meiosis", marks, type: "input",
+          prompt: `A ${species} body cell has <code>${dip}</code> chromosomes. How many chromosomes are in each new cell after MITOSIS?`,
+          hint: "Enter exact integer", modelAnswer: String(dip), acceptedAnswers: [String(dip)],
+          steps: [`Mitosis produces diploid cells with the same chromosome number (${dip}).`]
+        };
+      }
+      const hap = dip / 2;
+      return {
+        topic: "2.4 Mitosis & Meiosis", marks, type: "input",
+        prompt: `A ${species} body cell has <code>${dip}</code> chromosomes. How many chromosomes are in a ${species} gamete (sex cell) produced by MEIOSIS?`,
+        hint: "Gametes are haploid (half)", modelAnswer: String(hap), acceptedAnswers: [String(hap)],
+        steps: [`Meiosis halves the chromosome number: ${dip} ÷ 2 = ${hap}.`]
+      };
+    }
+
+    function genPunnett(marks = 6) {
+      const scenarios = [
+        { topic: "2.4 Punnett Squares", prompt: "In guinea pigs, black coat (<code>B</code>) is dominant to white coat (<code>b</code>). Two heterozygous black guinea pigs (<code>Bb × Bb</code>) cross. What <strong>percentage (%)</strong> of offspring are expected to be WHITE?", ans: "25", steps: ["Bb × Bb gives BB, Bb, Bb, bb → 1/4 = 25%."] },
+        { topic: "2.4 Punnett Squares", prompt: "In mice, brown fur (<code>B</code>) is dominant to white fur (<code>b</code>). Two heterozygous mice (<code>Bb × Bb</code>) cross. What <strong>percentage (%)</strong> of offspring are expected to have BROWN fur?", ans: "75", steps: ["Bb × Bb gives BB, Bb, Bb, bb → 3/4 = 75%."] },
+        { topic: "2.4 Punnett Squares", prompt: "A heterozygous tall pea plant (<code>Tt</code>) is crossed with a dwarf pea plant (<code>tt</code>). What <strong>percentage (%)</strong> of offspring are expected to be TALL?", ans: "50", steps: ["Tt × tt gives Tt, Tt, tt, tt → 2/4 = 50%."] },
+        { topic: "2.4 Cystic Fibrosis", prompt: "Cystic fibrosis is caused by a recessive allele (<code>c</code>). Two healthy carriers (<code>Cc × Cc</code>) have a child. What is the <strong>percentage (%)</strong> chance the child has cystic fibrosis?", ans: "25", steps: ["Cc × Cc gives CC, Cc, Cc, cc → 1/4 = 25%."] },
+        { topic: "2.4 Sex Inheritance (XX / XY)", prompt: `Parents already have ${randInt(2, 5)} boys and are expecting another baby. What is the <strong>percentage (%)</strong> probability this baby will be a girl?`, ans: "50", steps: ["XX × XY always gives 50% XX (girl) and 50% XY (boy)."] }
+      ];
+      const s = pick(scenarios);
+      return { topic: s.topic, marks, type: "input", prompt: s.prompt, hint: "Number only, e.g. 25", modelAnswer: s.ans, acceptedAnswers: [s.ans, s.ans + "%"], steps: s.steps };
+    }
+
+    /* ============================================================
+       PART A: 15 CCEA (NI) DA BIOLOGY UNIT B2 FOUNDATION TOPICS (2.1 - 2.6)
+       ============================================================ */
+    const LEARN_TOPICS = [
+      {
+        id: "osmosis", title: "2.1 Osmosis & Plant Cells", section: "plants", sectionLabel: "2.1 Plants",
+        shortDesc: "Water movement across a selectively permeable membrane, potato cylinders, turgid vs plasmolysed.",
+        whatItIs: "<strong>Osmosis</strong> is the diffusion of <strong>water molecules</strong> from a region of higher water concentration (dilute solution) to a region of lower water concentration (concentrated solution) across a <strong>selectively permeable membrane</strong>.",
+        keyRule: "% Change in Mass = [(Final Mass - Starting Mass) ÷ Starting Mass] × 100",
+        diagramSvg: `<svg width="260" height="145" viewBox="0 0 260 145" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="25" width="95" height="95" rx="8" fill="rgba(56,189,248,0.1)" stroke="#38bdf8" stroke-width="2"/><rect x="145" y="25" width="95" height="95" rx="8" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-width="2"/><line x1="130" y1="15" x2="130" y2="130" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4"/><text x="32" y="55" fill="#bae6fd" font-size="11" font-family="monospace">Pure Water</text><text x="32" y="73" fill="#94a3b8" font-size="10" font-family="monospace">(High H₂O)</text><text x="155" y="55" fill="#6ee7b7" font-size="11" font-family="monospace">Sugar Soln</text><text x="155" y="73" fill="#94a3b8" font-size="10" font-family="monospace">(Low H₂O)</text><line x1="100" y1="95" x2="160" y2="95" stroke="#fcd34d" stroke-width="2.5"/><polygon points="160,95 152,90 152,100" fill="#fcd34d"/><text x="96" y="138" fill="#fcd34d" font-size="10" font-family="monospace">Osmosis (H₂O)</text></svg>`,
+        howToSolve: [
+          "CCEA mark schemes require: 'water molecules', 'high to low water concentration', and 'selectively/partially permeable membrane'.",
+          "Plant cell in pure water gains water → vacuole swells and pushes cytoplasm against cell wall → cell becomes TURGID (cell wall stops it bursting).",
+          "Plant cell in concentrated sugar/salt loses water → cytoplasm/membrane pulls away from cell wall → cell becomes PLASMOLYSED (flaccid).",
+          "Potato practical: blot cylinders dry before weighing so surface water doesn't affect the mass, and calculate % change in mass for fair comparison."
+        ],
+        workedExample: { q: "A potato cylinder starts at 4.0 g and ends at 4.6 g in pure water. Calculate the % change in mass.", steps: ["Change = 4.6 - 4.0 = +0.6 g.", "(0.6 ÷ 4.0) × 100 = +15%."] },
+        practicePool: [
+          () => genOsmosisMass(6),
+          { type: "mcq", prompt: "Why does a plant cell NOT burst when placed in pure water?", options: ["It has a strong cell wall that resists outward pressure", "Osmosis stops before water enters", "Its membrane is impermeable to water", "Water leaves via the xylem"], correctIndex: 0, steps: ["Water enters by osmosis making it turgid, and the cellulose cell wall prevents bursting."] },
+          { type: "mcq", prompt: "Which word describes a plant cell whose cell membrane has pulled away from the cell wall after losing water by osmosis?", options: ["Turgid", "Plasmolysed", "Diploid", "Haploid"], correctIndex: 1, steps: ["Plasmolysed cells have lost water by osmosis in a concentrated solution."] }
+        ]
+      },
+      {
+        id: "transpiration", title: "2.1 Transpiration & Potometers", section: "plants", sectionLabel: "2.1 Plants",
+        shortDesc: "Xylem transport, 4 uses of water in plants, transpiration stream, potometer & environmental factors.",
+        whatItIs: "<strong>Transpiration</strong> is the <strong>evaporation</strong> of water from mesophyll cells inside leaves followed by <strong>diffusion</strong> of water vapour out through the <strong>stomata</strong>. Water is pulled up the stem in hollow <strong>xylem</strong> vessels.",
+        keyRule: "↑ Temperature, ↑ Wind speed, ↑ Light → Faster Transpiration   |   ↑ Humidity → Slower Transpiration",
+        howToSolve: [
+          "4 uses of water in plants (CCEA spec): photosynthesis, support (turgidity), transport of dissolved minerals, and cooling.",
+          "Potometer (bubble or weight potometer): measures the rate of water uptake (used to estimate transpiration rate). Cut shoot underwater so air bubbles do not block xylem.",
+          "High humidity slows transpiration by decreasing the water vapour concentration gradient."
+        ],
+        workedExample: { q: "In a bubble potometer, an air bubble moves 42 mm in 6 minutes. Calculate the rate of water uptake.", steps: ["Rate = distance ÷ time = 42 ÷ 6 = 7 mm/min."] },
+        practicePool: [
+          () => genPotometerRate(5),
+          { type: "mcq", prompt: "Which change will DECREASE the rate of transpiration in a leafy shoot?", options: ["Increasing wind speed", "Increasing air humidity", "Increasing temperature", "Increasing light intensity"], correctIndex: 1, steps: ["High humidity reduces the diffusion gradient of water vapour out of the stomata."] },
+          { type: "mcq", prompt: "Which plant tissue transports water and dissolved minerals from the roots up to the leaves?", options: ["Phloem", "Xylem", "Palisade layer", "Epidermis"], correctIndex: 1, steps: ["Xylem vessels carry water and minerals upwards."] }
+        ]
+      },
+      {
+        id: "blood-components", title: "2.2 Components of Blood", section: "body", sectionLabel: "2.2 Circulation",
+        shortDesc: "Red blood cells, white blood cells (phagocytes & lymphocytes), platelets, and plasma.",
+        whatItIs: "Blood consists of straw-coloured liquid <strong>plasma</strong> carrying <strong>red blood cells</strong> (oxygen transport), <strong>white blood cells</strong> (defence), and <strong>platelets</strong> (clotting).",
+        keyRule: "RBC: biconcave, no nucleus, haemoglobin   |   WBC: nucleus, phagocytosis/antibodies   |   Platelets: clotting",
+        howToSolve: [
+          "Red blood cells (RBCs): biconcave disc shape (large surface area), no nucleus (room for more haemoglobin), thin membrane (short diffusion distance).",
+          "White blood cells (WBCs): have a nucleus; phagocytes engulf & digest microbes, lymphocytes produce antibodies.",
+          "Platelets: cell fragments that help blood clot at a cut — stops blood loss and blocks entry of bacteria.",
+          "Plasma: carries dissolved CO₂, glucose, amino acids, urea, hormones, and heat."
+        ],
+        workedExample: { q: "Give two ways a red blood cell is adapted to carry oxygen.", steps: ["1. Biconcave disc shape gives a large surface area for diffusion.", "2. No nucleus allows more room for haemoglobin."] },
+        practicePool: [
+          { type: "mcq", prompt: "Which component of blood consists of small fragments that help blood clot at a wound?", options: ["Plasma", "Red blood cells", "Platelets", "Lymphocytes"], correctIndex: 2, steps: ["Platelets trigger clotting to seal wounds and prevent infection."] },
+          { type: "mcq", prompt: "Which substance is transported mainly dissolved in blood plasma rather than inside red blood cells?", options: ["Haemoglobin", "Carbon dioxide and urea", "Oxygen", "Cellulose"], correctIndex: 1, steps: ["Plasma transports dissolved CO₂, urea, glucose, amino acids, and hormones."] },
+          { type: "mcq", prompt: "Why do red blood cells have NO nucleus?", options: ["To divide faster by mitosis", "To allow more space for haemoglobin to carry oxygen", "To pass through valves", "To produce antibodies"], correctIndex: 1, steps: ["No nucleus maximises space for haemoglobin."] }
+        ]
+      },
+      {
+        id: "heart-vessels", title: "2.2 Blood Vessels & The Heart", section: "body", sectionLabel: "2.2 Circulation",
+        shortDesc: "Arteries, veins, capillaries, double circulation, heart chambers, valves, and coronary arteries.",
+        whatItIs: "Humans have a <strong>double circulatory system</strong>: the right side pumps deoxygenated blood to the lungs, and the left side pumps oxygenated blood at high pressure to the body.",
+        keyRule: "Artery = Away (thick muscular wall, small lumen)   |   Vein = In (thin wall, large lumen, VALVES)   |   Capillary = 1 cell thick",
+        diagramSvg: `<svg width="260" height="145" viewBox="0 0 260 145" xmlns="http://www.w3.org/2000/svg"><rect x="65" y="30" width="130" height="90" rx="14" fill="rgba(244,63,94,0.08)" stroke="#f43f5e" stroke-width="2"/><line x1="130" y1="30" x2="130" y2="120" stroke="#f43f5e" stroke-width="2"/><line x1="65" y1="68" x2="195" y2="68" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4 3"/><text x="78" y="54" fill="#93c5fd" font-size="11" font-family="monospace">RA (Deox)</text><text x="140" y="54" fill="#fca5a5" font-size="11" font-family="monospace">LA (Oxy)</text><text x="78" y="98" fill="#93c5fd" font-size="11" font-family="monospace">RV</text><text x="140" y="98" fill="#fca5a5" font-size="11" font-family="monospace">LV (Thick)</text><text x="72" y="138" fill="#94a3b8" font-size="10" font-family="monospace">Diagram view: Right on Left!</text></svg>`,
+        howToSolve: [
+          "Left ventricle wall is thicker than right ventricle because it pumps blood at higher pressure around the whole body.",
+          "Valves in the heart and veins prevent backflow of blood.",
+          "Coronary arteries supply the heart muscle itself with oxygen and glucose for respiration.",
+          "Capillaries are one cell thick for a short diffusion distance."
+        ],
+        workedExample: { q: "Explain why veins have valves while arteries do not.", steps: ["Blood in veins flows at low pressure back to the heart, so valves stop backflow.", "Arteries carry blood at high pressure directly from the heart."] },
+        practicePool: [
+          { type: "mcq", prompt: "Which blood vessels contain valves to prevent the backflow of low-pressure blood?", options: ["Arteries", "Capillaries", "Veins", "Aorta"], correctIndex: 2, steps: ["Veins have valves to stop low-pressure blood flowing backwards."] },
+          { type: "mcq", prompt: "Which blood vessel supplies the heart muscle itself with oxygen and glucose?", options: ["Pulmonary artery", "Coronary artery", "Vena cava", "Renal vein"], correctIndex: 1, steps: ["Coronary arteries feed oxygenated blood directly to the heart muscle."] },
+          { type: "mcq", prompt: "Why are capillary walls only one cell thick?", options: ["To withstand high pressure", "To provide a short diffusion distance for exchange", "To store platelets", "To pump blood forward"], correctIndex: 1, steps: ["One-cell-thick walls allow rapid diffusion of oxygen, glucose, and carbon dioxide."] }
+        ]
+      },
+      {
+        id: "reproduction", title: "2.3 Human Reproduction & Pregnancy", section: "body", sectionLabel: "2.3 Reproduction",
+        shortDesc: "Male & female systems, sperm/egg adaptations, fertilisation in the oviduct, placenta & amniotic fluid.",
+        whatItIs: "<strong>Fertilisation</strong> is the fusion of a haploid sperm nucleus and a haploid egg nucleus inside the <strong>oviduct</strong> to form a diploid <strong>zygote</strong>.",
+        keyRule: "Ovary → Eggs | Oviduct → Fertilisation | Uterus → Implantation | Placenta → Exchange (blood does NOT mix)",
+        howToSolve: [
+          "Sperm adaptations: tail to swim, mitochondria for respiration energy, streamlined head.",
+          "Placenta: oxygen, glucose, amino acids, antibodies diffuse from mother to foetus; CO₂ and urea diffuse back.",
+          "Amniotic fluid cushions and protects the foetus from physical knocks."
+        ],
+        workedExample: { q: "Where does fertilisation take place, and where does the embryo implant?", steps: ["Fertilisation happens in the oviduct.", "The embryo implants in the uterus lining."] },
+        practicePool: [
+          { type: "mcq", prompt: "In which structure does fertilisation normally take place?", options: ["Ovary", "Uterus", "Oviduct (fallopian tube)", "Cervix"], correctIndex: 2, steps: ["Fertilisation happens in the oviduct; implantation happens in the uterus."] },
+          { type: "mcq", prompt: "What is the main function of amniotic fluid around a foetus?", options: ["To supply oxygen", "To cushion and protect the foetus from physical knocks", "To produce oestrogen", "To filter urea"], correctIndex: 1, steps: ["Amniotic fluid acts as a shock absorber protecting the developing foetus."] },
+          { type: "mcq", prompt: "Why do sperm cells contain many mitochondria in their middle piece?", options: ["To release energy by respiration for swimming", "To store DNA", "To digest the egg wall", "To trigger ovulation"], correctIndex: 0, steps: ["Mitochondria carry out respiration to release energy for the tail to swim."] }
+        ]
+      },
+      {
+        id: "menstrual-contraception", title: "2.3 Menstrual Cycle, Contraception & STIs", section: "body", sectionLabel: "2.3 Reproduction",
+        shortDesc: "Oestrogen & progesterone, ovulation around Day 14, hormonal/barrier/surgical contraception & STIs.",
+        whatItIs: "The ~28-day <strong>menstrual cycle</strong> prepares the uterus lining for pregnancy. <strong>Oestrogen</strong> repairs/thickens the lining; <strong>ovulation</strong> happens around Day 14; <strong>progesterone</strong> maintains the lining.",
+        keyRule: "Oestrogen repairs lining | Progesterone maintains lining | Condoms ONLY protect against STIs (HIV & Chlamydia)",
+        howToSolve: ["Day 1–5: Menstruation. Day ~14: Ovulation.", "Condoms provide a physical barrier blocking body fluids, protecting against STIs (Chlamydia = bacteria; HIV = virus)."],
+        workedExample: { q: "Why does a condom protect against HIV while the contraceptive pill does not?", steps: ["A condom provides a physical barrier preventing exchange of body fluids carrying HIV."] },
+        practicePool: [
+          { type: "input", prompt: "In a typical 28-day menstrual cycle, around which day does ovulation occur?", hint: "Enter day number", modelAnswer: "14", acceptedAnswers: ["14", "day 14"], steps: ["Ovulation occurs halfway through a 28-day cycle, around Day 14."] },
+          { type: "mcq", prompt: "Which hormone maintains the thick lining of the uterus during the second half of the menstrual cycle?", options: ["Testosterone", "Progesterone", "Insulin", "Adrenaline"], correctIndex: 1, steps: ["Progesterone maintains the uterus lining."] },
+          { type: "mcq", prompt: "Which contraceptive method also protects against sexually transmitted infections (STIs) such as Chlamydia and HIV?", options: ["Contraceptive pill", "Condom", "Contraceptive implant", "Vasectomy"], correctIndex: 1, steps: ["Condoms act as a physical barrier blocking body fluids."] }
+        ]
+      },
+      {
+        id: "dna-genome", title: "2.4 Genome, Chromosomes, Genes & DNA", section: "genetics", sectionLabel: "2.4 Genetics",
+        shortDesc: "Nucleus → chromosomes → DNA double helix → genes, and complementary base pairing (A-T, C-G).",
+        whatItIs: "The <strong>genome</strong> is the entire genetic material of an organism. Inside the nucleus are <strong>chromosomes</strong> made of <strong>DNA</strong> (double helix). A <strong>gene</strong> is a section of DNA coding for a protein.",
+        keyRule: "Largest → Smallest: Cell → Nucleus → Chromosome → DNA / Gene   |   Base pairs: A–T and C–G",
+        diagramSvg: `<svg width="240" height="120" viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg"><path d="M 20 35 Q 55 5, 90 35 T 160 35 T 225 35" fill="none" stroke="#38bdf8" stroke-width="3"/><path d="M 20 85 Q 55 115, 90 85 T 160 85 T 225 85" fill="none" stroke="#10b981" stroke-width="3"/><line x1="55" y1="20" x2="55" y2="100" stroke="#fcd34d" stroke-width="2"/><line x1="125" y1="20" x2="125" y2="100" stroke="#fcd34d" stroke-width="2"/><line x1="195" y1="20" x2="195" y2="100" stroke="#fcd34d" stroke-width="2"/><text x="48" y="14" fill="#fcd34d" font-size="10" font-family="monospace">A-T</text><text x="118" y="14" fill="#fcd34d" font-size="10" font-family="monospace">C-G</text><text x="188" y="14" fill="#fcd34d" font-size="10" font-family="monospace">G-C</text></svg>`,
+        howToSolve: ["Human diploid body cells have 46 chromosomes; haploid gametes have 23.", "DNA complementary base pairs: A↔T and C↔G."],
+        workedExample: { q: "One DNA strand reads A-T-G-C-C-A. Write the complementary base sequence.", steps: ["Swap A↔T and C↔G: T-A-C-G-G-T."] },
+        practicePool: [
+          () => genDnaComplement(4),
+          { type: "input", prompt: "A human cheek cell has <code>46</code> chromosomes. How many chromosomes are in a human egg cell?", hint: "Gametes are haploid (half)", modelAnswer: "23", acceptedAnswers: ["23"], steps: ["46 ÷ 2 = 23 chromosomes."] },
+          { type: "mcq", prompt: "Which statement correctly defines a 'gene'?", options: ["All the DNA in an organism", "A short section of DNA that codes for a specific protein", "A type of lymphocyte", "A cell made by meiosis"], correctIndex: 1, steps: ["A gene is a section of DNA coding for a protein."] }
+        ]
+      },
+      {
+        id: "cell-division", title: "2.4 Cell Division: Mitosis & Meiosis", section: "genetics", sectionLabel: "2.4 Genetics",
+        shortDesc: "Mitosis (2 identical diploid cells for growth/repair) vs Meiosis (4 different haploid gametes).",
+        whatItIs: "<strong>Mitosis</strong> produces two genetically identical diploid body cells. <strong>Meiosis</strong> produces four genetically different haploid gametes.",
+        keyRule: "Mitosis → 2 identical DIPLOID cells (growth/repair)   |   Meiosis → 4 different HAPLOID gametes (testes/ovaries)",
+        howToSolve: ["Mitosis occurs in body cells for growth/repair.", "Meiosis occurs ONLY in testes and ovaries to make gametes."],
+        workedExample: { q: "A mammal body cell has 38 chromosomes. How many after (a) mitosis and (b) meiosis?", steps: ["(a) Mitosis: 38.", "(b) Meiosis: 19."] },
+        practicePool: [
+          () => genChromosomeDiv(5),
+          { type: "mcq", prompt: "Which statement correctly describes the cells produced by MITOSIS?", options: ["Four genetically different haploid cells", "Two genetically identical diploid cells", "Two genetically different haploid cells", "Four genetically identical diploid cells"], correctIndex: 1, steps: ["Mitosis makes 2 genetically identical diploid cells."] },
+          { type: "mcq", prompt: "Where in the human body does meiosis occur?", options: ["Skin and bone marrow", "Testes and ovaries", "Red blood cells", "Small intestine"], correctIndex: 1, steps: ["Meiosis only occurs in testes and ovaries to produce gametes."] }
+        ]
+      },
+      {
+        id: "punnett-genetics", title: "2.4 Monohybrid Crosses & Punnett Squares", section: "genetics", sectionLabel: "2.4 Genetics",
+        shortDesc: "Dominant/recessive alleles, homozygous vs heterozygous, genotype/phenotype, and sex inheritance (XX/XY).",
+        whatItIs: "<strong>Genotype</strong> is the pair of alleles carried (e.g. Bb); <strong>phenotype</strong> is the physical trait shown. A dominant allele shows even when only one copy is present.",
+        keyRule: "BB = homozygous dominant | bb = homozygous recessive | Bb = heterozygous | XX = female, XY = male",
+        diagramSvg: `<svg width="220" height="145" viewBox="0 0 220 145" xmlns="http://www.w3.org/2000/svg"><rect x="65" y="40" width="60" height="45" fill="rgba(56,189,248,0.12)" stroke="#475569"/><rect x="125" y="40" width="60" height="45" fill="rgba(56,189,248,0.12)" stroke="#475569"/><rect x="65" y="85" width="60" height="45" fill="rgba(56,189,248,0.12)" stroke="#475569"/><rect x="125" y="85" width="60" height="45" fill="rgba(244,63,94,0.15)" stroke="#475569"/><text x="90" y="28" fill="#bae6fd" font-size="13" font-family="monospace">B</text><text x="150" y="28" fill="#bae6fd" font-size="13" font-family="monospace">b</text><text x="43" y="67" fill="#6ee7b7" font-size="13" font-family="monospace">B</text><text x="43" y="112" fill="#6ee7b7" font-size="13" font-family="monospace">b</text><text x="86" y="67" fill="#f1f5f9" font-size="13" font-family="monospace">BB</text><text x="146" y="67" fill="#f1f5f9" font-size="13" font-family="monospace">Bb</text><text x="86" y="112" fill="#f1f5f9" font-size="13" font-family="monospace">Bb</text><text x="146" y="112" fill="#fda4af" font-size="13" font-family="monospace">bb</text></svg>`,
+        howToSolve: ["Fill a 2×2 Punnett square: 1/4 = 25%, 2/4 = 50%, 3/4 = 75%, 4/4 = 100%."],
+        workedExample: { q: "Two heterozygous brown-eyed parents (Bb × Bb) have a child. Find the % chance of blue eyes (bb).", steps: ["Boxes: BB, Bb, Bb, bb → 1/4 = 25%."] },
+        practicePool: [
+          () => genPunnett(6),
+          { type: "mcq", prompt: "Which genotype is 'heterozygous'?", options: ["BB", "bb", "Bb", "TT"], correctIndex: 2, steps: ["Heterozygous means two different alleles (one dominant B, one recessive b)."] }
+        ]
+      },
+      {
+        id: "inherited-conditions", title: "2.4 Inherited Conditions & Screening", section: "genetics", sectionLabel: "2.4 Genetics",
+        shortDesc: "Cystic fibrosis (recessive), Down's syndrome (extra chromosome 21), amniocentesis & ethical issues.",
+        whatItIs: "<strong>Cystic fibrosis</strong> is caused by a recessive allele (cc). <strong>Down's syndrome</strong> is caused by an extra chromosome 21 (47 chromosomes total).",
+        keyRule: "Cystic fibrosis = recessive (cc) | Carrier = Cc | Down's syndrome = 47 chromosomes",
+        howToSolve: ["Amniocentesis samples fluid around the foetus to test foetal cells (small risk of miscarriage)."],
+        workedExample: { q: "Two healthy carriers of cystic fibrosis (Cc × Cc) have a child. What is the chance of cystic fibrosis?", steps: ["Cc × Cc gives CC, Cc, Cc, cc → 25%."] },
+        practicePool: [
+          { type: "input", prompt: "Down's syndrome is caused by an extra copy of chromosome 21. How many chromosomes are in a body cell of a person with Down's syndrome?", hint: "Normal human body cell = 46", modelAnswer: "47", acceptedAnswers: ["47"], steps: ["46 + 1 = 47."] },
+          { type: "mcq", prompt: "Cystic fibrosis is caused by a recessive allele (c). What is the genotype of a healthy CARRIER?", options: ["CC", "Cc", "cc", "XY"], correctIndex: 1, steps: ["A healthy carrier is heterozygous (Cc)."] },
+          { type: "mcq", prompt: "Which procedure takes a sample of fluid surrounding the foetus to test cells for chromosome abnormalities?", options: ["Vaccination", "Amniocentesis", "Osmosis", "Phagocytosis"], correctIndex: 1, steps: ["Amniocentesis tests foetal cells taken from amniotic fluid."] }
+        ]
+      },
+      {
+        id: "variation-selection", title: "2.5 Variation, Mutations & Natural Selection", section: "genetics", sectionLabel: "2.5 Variation",
+        shortDesc: "Continuous (histogram) vs discontinuous (bar chart), mutations, Darwin's natural selection & MRSA.",
+        whatItIs: "<strong>Continuous variation</strong> (height, weight) is plotted as a <strong>histogram</strong>. <strong>Discontinuous variation</strong> (blood group, tongue rolling) has distinct categories plotted as a <strong>bar chart</strong> with gaps.",
+        keyRule: "Mutation → Variation → Best adapted survive & reproduce → Pass advantageous alleles to offspring",
+        howToSolve: ["MRSA antibiotic resistance: random mutation → antibiotic acts as selection pressure → resistant bacteria survive & reproduce → resistance gene passed on."],
+        workedExample: { q: "How do bacteria such as MRSA become resistant to antibiotics?", steps: ["A random mutation gives resistance; resistant bacteria survive antibiotics, reproduce, and pass on the resistance gene."] },
+        practicePool: [
+          { type: "mcq", prompt: "Which human characteristic shows DISCONTINUOUS variation?", options: ["Height", "Body mass", "ABO blood group (or tongue rolling)", "Hand span"], correctIndex: 2, steps: ["Blood group and tongue rolling fall into distinct categories."] },
+          { type: "mcq", prompt: "Which type of graph should be drawn for DISCONTINUOUS variation data such as tongue rolling?", options: ["Bar chart with gaps between bars", "Histogram with touching bars", "Line graph", "Scatter graph"], correctIndex: 0, steps: ["CCEA marks bar chart with gaps between bars for discontinuous categories."] },
+          { type: "mcq", prompt: "How does antibiotic resistance (e.g. MRSA) develop in a bacterial population?", options: ["Antibiotics force bacteria to mutate on purpose", "Random mutation gives resistance; resistant bacteria survive treatment and reproduce", "White blood cells create MRSA", "Antibiotics turn viruses into bacteria"], correctIndex: 1, steps: ["Random mutation occurs first; antibiotic acts as selection pressure."] }
+        ]
+      },
+      {
+        id: "selective-breeding", title: "2.5 Selective Breeding", section: "genetics", sectionLabel: "2.5 Variation",
+        shortDesc: "Choosing parents with desired characteristics over many generations in crops and livestock, plus risks.",
+        whatItIs: "<strong>Selective breeding</strong> is when humans choose parents with desirable traits, breed them together, select the best offspring, and repeat over many generations.",
+        keyRule: "Choose best parents → Breed → Select best offspring → Repeat over many generations (Risk: inbreeding)",
+        howToSolve: ["Disadvantage: inbreeding reduces genetic variation, increasing inherited diseases or vulnerability to a new disease."],
+        workedExample: { q: "Give one disadvantage of selective breeding dogs or cattle over many generations.", steps: ["Inbreeding reduces genetic variation, increasing the chance of inherited diseases."] },
+        practicePool: [
+          { type: "mcq", prompt: "A farmer breeds only the highest milk-yielding cows over 10 generations. What is this called?", options: ["Natural selection", "Selective breeding", "Meiosis", "Osmosis"], correctIndex: 1, steps: ["Humans selecting parents for desired traits over generations is selective breeding."] },
+          { type: "mcq", prompt: "What is a major risk of selective breeding animals closely related to each other?", options: ["Inbreeding reduces genetic variation and increases inherited health problems", "Offspring become haploid", "Animals stop respiring", "Bacteria invade the blood"], correctIndex: 0, steps: ["Reduced genetic variation makes harmful recessive disorders more common."] },
+          { type: "mcq", prompt: "Why might a selectively bred crop field be badly affected by a new fungal disease?", options: ["All plants are genetically very similar, so none may have resistance", "Selective breeding creates antibiotics", "The plants have no cell walls", "Transpiration stops completely"], correctIndex: 0, steps: ["Low genetic variation means few or no plants carry resistant alleles."] }
+        ]
+      },
+      {
+        id: "microorganisms-aseptic", title: "2.6 Microorganisms & Aseptic Technique", section: "health", sectionLabel: "2.6 Health",
+        shortDesc: "Bacteria, viruses & fungi pathogens; culturing safely on agar at 25°C and measuring clear zones.",
+        whatItIs: "<strong>Pathogens</strong> are disease-causing microbes: <strong>bacteria</strong> (Salmonella, Chlamydia), <strong>viruses</strong> (Flu, HIV), and <strong>fungi</strong> (Athlete's foot). School labs use <strong>aseptic techniques</strong>.",
+        keyRule: "Flame loop before & after | Incubate upside down at max 25°C | Tape lid partially (allows O₂ in)",
+        diagramSvg: `<svg width="240" height="125" viewBox="0 0 240 125" xmlns="http://www.w3.org/2000/svg"><circle cx="120" cy="62" r="50" fill="rgba(245,158,11,0.12)" stroke="#fcd34d" stroke-width="2"/><circle cx="95" cy="48" r="14" fill="rgba(56,189,248,0.18)" stroke="#38bdf8" stroke-dasharray="3 2"/><circle cx="95" cy="48" r="5" fill="#f1f5f9"/><circle cx="145" cy="68" r="20" fill="rgba(16,185,129,0.18)" stroke="#10b981" stroke-dasharray="3 2"/><circle cx="145" cy="68" r="5" fill="#f1f5f9"/><text x="176" y="45" fill="#6ee7b7" font-size="10" font-family="monospace">Clear zone</text><text x="176" y="58" fill="#94a3b8" font-size="10" font-family="monospace">(bigger =</text><text x="176" y="71" fill="#94a3b8" font-size="10" font-family="monospace">more effective)</text></svg>`,
+        howToSolve: ["Flame loop to sterilise; incubate upside down at max 25°C so human pathogens do not grow; largest clear zone = most effective antibiotic."],
+        workedExample: { q: "Why are school agar plates taped at two opposite sides rather than sealed all the way around?", steps: ["To allow oxygen into the dish so dangerous anaerobic bacteria do not grow."] },
+        practicePool: [
+          { type: "input", prompt: "What is the maximum recommended temperature (in °C) for incubating bacterial cultures in a school lab?", hint: "Number only", modelAnswer: "25", acceptedAnswers: ["25", "25°C"], steps: ["25°C stops harmful human pathogens (which prefer 37°C) from growing."] },
+          { type: "mcq", prompt: "Which communicable disease is caused by a FUNGUS?", options: ["Salmonella", "HIV", "Athlete's foot", "Influenza"], correctIndex: 2, steps: ["Athlete's foot is fungal; Salmonella is bacterial; HIV and Flu are viral."] },
+          { type: "mcq", prompt: "Why is an inoculating loop passed through a Bunsen flame before dipping it into bacteria?", options: ["To warm the bacteria", "To sterilise the loop and kill unwanted microorganisms", "To melt the agar", "To seal the Petri dish"], correctIndex: 1, steps: ["Flaming kills contaminating microbes on the loop."] }
+        ]
+      },
+      {
+        id: "defences-vaccines", title: "2.6 Body Defences, Vaccines & Antibiotics", section: "health", sectionLabel: "2.6 Health",
+        shortDesc: "Physical/chemical barriers, antibodies & antigens, clumping, phagocytosis, vaccination & antibiotics.",
+        whatItIs: "Barriers (skin, clotting, mucus & cilia, stomach acid) block microbes. Inside, <strong>lymphocytes</strong> make <strong>antibodies</strong> that match pathogen <strong>antigens</strong>, causing <strong>clumping</strong> so <strong>phagocytes</strong> engulf and digest them.",
+        keyRule: "Lymphocytes → Antibodies → latch onto Antigens → Clumping → Phagocytosis   |   Antibiotics kill BACTERIA only!",
+        howToSolve: ["Vaccines trigger lymphocytes to make antibodies and MEMORY CELLS for a faster, larger secondary response.", "Antibiotics kill BACTERIA ONLY — never viruses."],
+        workedExample: { q: "Explain why a vaccinated person does not get ill when exposed to the live measles virus later.", steps: ["Memory cells remain in the blood and produce antibodies much faster and in larger quantities."] },
+        practicePool: [
+          { type: "mcq", prompt: "Why will penicillin NOT cure influenza (the flu)?", options: ["Flu is caused by a fungus", "Antibiotics kill bacteria only and do not affect viruses", "Flu patients have no lymphocytes", "Penicillin only works on skin"], correctIndex: 1, steps: ["Antibiotics only kill bacteria; flu is a virus."] },
+          { type: "mcq", prompt: "What happens when antibodies made by lymphocytes latch onto antigens on bacteria?", options: ["The bacteria clump together so phagocytes can engulf and digest them", "The bacteria turn into red blood cells", "Platelets dissolve", "The bacteria multiply faster"], correctIndex: 0, steps: ["Antibodies cause clumping so phagocytes can engulf and digest them."] },
+          { type: "mcq", prompt: "Which cells remain in the blood after vaccination to trigger a faster, larger secondary antibody response?", options: ["Red blood cells", "Platelets", "Memory cells", "Ciliated cells"], correctIndex: 2, steps: ["Memory cells allow rapid antibody production on future exposure."] }
+        ]
+      },
+      {
+        id: "lifestyle-cancer", title: "2.6 Heart Disease, Lifestyle & Cancer", section: "health", sectionLabel: "2.6 Health",
+        shortDesc: "Blocked coronary arteries (heart attack), stents/statins, smoking (tar, nicotine, CO), alcohol & tumours.",
+        whatItIs: "<strong>Coronary heart disease</strong> occurs when fatty plaques block coronary arteries, starving heart muscle of oxygen. <strong>Cancer</strong> is uncontrolled cell division (mitosis) forming a tumour.",
+        keyRule: "Benign = stays in one place (capsule), non-cancerous   |   Malignant = invades & spreads in blood (cancerous)",
+        diagramSvg: `<svg width="260" height="125" viewBox="0 0 260 125" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="20" width="100" height="82" rx="10" fill="rgba(16,185,129,0.08)" stroke="#10b981"/><circle cx="68" cy="61" r="19" fill="rgba(56,189,248,0.25)" stroke="#38bdf8" stroke-width="2"/><text x="45" y="114" fill="#6ee7b7" font-size="10" font-family="monospace">Benign (contained)</text><rect x="142" y="20" width="100" height="82" rx="10" fill="rgba(244,63,94,0.08)" stroke="#f43f5e"/><circle cx="185" cy="58" r="15" fill="rgba(244,63,94,0.35)" stroke="#f43f5e" stroke-width="2"/><circle cx="215" cy="40" r="5" fill="#f43f5e"/><circle cx="220" cy="82" r="6" fill="#f43f5e"/><text x="150" y="114" fill="#fda4af" font-size="10" font-family="monospace">Malignant (spreads)</text></svg>`,
+        howToSolve: ["Tar = lung cancer/bronchitis; Nicotine = addictive; Carbon monoxide = binds haemoglobin reducing oxygen.", "Benign stays in one place; malignant spreads in blood."],
+        workedExample: { q: "State two differences between a benign tumour and a malignant tumour.", steps: ["1. Benign stays in one place inside a capsule and does not spread.", "2. Malignant is cancerous and spreads via the blood."] },
+        practicePool: [
+          { type: "mcq", prompt: "Which type of tumour invades nearby tissues and spreads in the bloodstream to form secondary tumours?", options: ["Benign tumour", "Malignant tumour", "Turgid tumour", "Plasmolysed tumour"], correctIndex: 1, steps: ["Malignant tumours are cancerous and spread around the body."] },
+          { type: "mcq", prompt: "Which chemical in cigarette smoke binds to haemoglobin and reduces the oxygen carried by red blood cells?", options: ["Nicotine", "Tar", "Carbon monoxide", "Alcohol"], correctIndex: 2, steps: ["Carbon monoxide binds to haemoglobin, reducing oxygen transport."] },
+          { type: "mcq", prompt: "Which chemical in cigarette smoke is a carcinogen that causes lung cancer and bronchitis?", options: ["Tar", "Carbon monoxide", "Nicotine", "Glucose"], correctIndex: 0, steps: ["Tar is carcinogenic and damages cilia in the airways, causing bronchitis and lung cancer."] }
+        ]
+      }
+    ];
+
+    /* ============================================================
+       PART B: 14 CCEA UNIT B2 [GDW41] EXAM POOLS (SUM = 70 MARKS)
+       ============================================================ */
+    const FULL_B2_POOLS = [
+      [
+        { topic: "2.2 Blood Components", marks: 4, type: "mcq", prompt: "Which component of human blood has NO nucleus and a biconcave disc shape to carry maximum oxygen?", options: ["White blood cell", "Red blood cell", "Platelet", "Plasma"], correctIndex: 1, steps: ["Red blood cells have no nucleus (more room for haemoglobin) and a biconcave shape (larger surface area)."] },
+        { topic: "2.2 Blood Components", marks: 4, type: "mcq", prompt: "A patient has a very low platelet count. Which process in their body will be slowed down?", options: ["Oxygen transport", "Clotting of blood at a wound", "Antibody production", "Urea transport in plasma"], correctIndex: 1, steps: ["Platelets are required to clot blood and seal wounds."] },
+        { topic: "2.2 Blood Components", marks: 4, type: "mcq", prompt: "Which substance is transported mainly dissolved in liquid blood plasma?", options: ["Haemoglobin", "Carbon dioxide and urea", "Cellulose", "Starch"], correctIndex: 1, steps: ["Plasma transports dissolved CO₂, urea, glucose, amino acids, and hormones."] }
+      ],
+      [
+        { topic: "2.2 Blood Vessels & Heart", marks: 5, type: "mcq", prompt: "Which blood vessel has a thick muscular, elastic wall and a narrow lumen to carry blood at high pressure AWAY from the heart?", options: ["Vein", "Capillary", "Artery", "Vena cava"], correctIndex: 2, steps: ["Arteries carry high-pressure blood away from the heart."] },
+        { topic: "2.2 Blood Vessels & Heart", marks: 5, type: "mcq", prompt: "Why is the muscular wall of the LEFT ventricle thicker than the wall of the RIGHT ventricle?", options: ["It pumps blood all around the whole body at higher pressure", "It only pumps blood to the lungs", "It stores more plasma", "It contains more valves"], correctIndex: 0, steps: ["Left ventricle pumps blood to the whole body; right ventricle only pumps to the lungs."] },
+        { topic: "2.2 Capillaries", marks: 5, type: "mcq", prompt: "Why are capillary walls only one cell thick?", options: ["To withstand high blood pressure", "To provide a short diffusion distance for exchange of substances", "To store platelets", "To prevent backflow"], correctIndex: 1, steps: ["One-cell-thick walls allow rapid diffusion between blood and cells."] }
+      ],
+      [() => genOsmosisMass(6)],
+      [
+        () => genPotometerRate(5),
+        { topic: "2.1 Transpiration", marks: 5, type: "mcq", prompt: "Which combination of conditions makes a leafy shoot lose water FASTEST by transpiration?", options: ["Cold, still, humid air in darkness", "Warm, windy, dry air in bright light", "Warm, very humid air in darkness", "Cold, windy, humid air"], correctIndex: 1, steps: ["High temperature, wind, low humidity, and bright light all speed up transpiration."] },
+        { topic: "2.1 Plant Transport", marks: 5, type: "mcq", prompt: "Which plant tissue transports water and dissolved minerals from the roots up to the leaves?", options: ["Phloem", "Xylem", "Stomata", "Vacuole"], correctIndex: 1, steps: ["Hollow xylem vessels carry water and minerals upwards."] }
+      ],
+      [
+        { topic: "2.3 Human Reproduction", marks: 5, type: "mcq", prompt: "In the female reproductive system, where does fertilisation normally take place and where does the embryo implant?", options: ["Fertilisation in ovary; implantation in cervix", "Fertilisation in oviduct; implantation in uterus", "Fertilisation in uterus; implantation in oviduct", "Fertilisation in vagina; implantation in ovary"], correctIndex: 1, steps: ["Fertilisation occurs in the oviduct; the embryo implants in the uterus lining."] },
+        { topic: "2.3 Placenta & Foetus", marks: 5, type: "mcq", prompt: "Which two waste substances pass from the FOETUS's blood across the placenta into the MOTHER's blood?", options: ["Oxygen and glucose", "Carbon dioxide and urea", "Amino acids and antibodies", "Amniotic fluid and sperm"], correctIndex: 1, steps: ["Carbon dioxide and urea diffuse from foetal blood to maternal blood across the placenta."] },
+        { topic: "2.3 Amniotic Fluid", marks: 5, type: "mcq", prompt: "What is the main function of amniotic fluid surrounding a developing foetus?", options: ["To supply glucose", "To cushion and protect the foetus from physical knocks", "To carry out meiosis", "To pump blood"], correctIndex: 1, steps: ["Amniotic fluid acts as a shock absorber."] }
+      ],
+      [
+        { topic: "2.3 Contraception & STIs", marks: 5, type: "mcq", prompt: "Which contraceptive method protects against BOTH unintended pregnancy AND sexually transmitted infections (STIs) such as HIV?", options: ["The contraceptive pill", "The contraceptive implant", "A condom", "Vasectomy"], correctIndex: 2, steps: ["Condoms act as a physical barrier blocking body fluids."] },
+        { topic: "2.3 Menstrual Cycle", marks: 5, type: "mcq", prompt: "What happens around Day 14 of a typical 28-day menstrual cycle?", options: ["The uterus lining breaks down", "An egg is released from an ovary (ovulation)", "The placenta forms", "Meiosis stops permanently"], correctIndex: 1, steps: ["Ovulation (egg release) occurs around Day 14."] },
+        { topic: "2.3 Menstrual Hormones", marks: 5, type: "mcq", prompt: "Which hormone maintains the thick lining of the uterus during the second half of the menstrual cycle?", options: ["Testosterone", "Progesterone", "Insulin", "Adrenaline"], correctIndex: 1, steps: ["Progesterone maintains the uterus lining."] }
+      ],
+      [
+        () => genDnaComplement(4),
+        { topic: "2.4 Genome & Chromosomes", marks: 4, type: "mcq", prompt: "Which list puts genetic structures in correct order from LARGEST to SMALLEST?", options: ["Gene → Chromosome → DNA → Nucleus", "Nucleus → Chromosome → DNA → Gene", "Chromosome → Nucleus → Gene → DNA", "DNA → Gene → Nucleus → Chromosome"], correctIndex: 1, steps: ["Nucleus contains chromosomes, made of DNA, divided into genes."] }
+      ],
+      [
+        () => genChromosomeDiv(5),
+        { topic: "2.4 Mitosis & Meiosis", marks: 5, type: "mcq", prompt: "Which type of cell division occurs in testes and ovaries to produce 4 genetically different haploid gametes?", options: ["Mitosis", "Meiosis", "Osmosis", "Fertilisation"], correctIndex: 1, steps: ["Meiosis produces 4 genetically different haploid gametes."] }
+      ],
+      [() => genPunnett(6)],
+      [
+        { topic: "2.4 Inherited Conditions", marks: 4, type: "input", prompt: "Down's syndrome is caused by an extra chromosome 21. How many chromosomes are in each body cell of a person with Down's syndrome?", hint: "Normal human body cell = 46", modelAnswer: "47", acceptedAnswers: ["47"], steps: ["46 + 1 = 47 chromosomes."] },
+        { topic: "2.4 Cystic Fibrosis", marks: 4, type: "mcq", prompt: "Cystic fibrosis is caused by a recessive allele (c). Two parents have genotypes <code>CC</code> and <code>Cc</code>. What percentage of their children could inherit cystic fibrosis (cc)?", options: ["0%", "25%", "50%", "75%"], correctIndex: 0, steps: ["CC × Cc gives CC, CC, Cc, Cc → 0% cc."] },
+        { topic: "2.4 Genetic Screening", marks: 4, type: "mcq", prompt: "Which procedure samples fluid surrounding the foetus to test foetal cells for chromosome disorders?", options: ["Vaccination", "Amniocentesis", "Phagocytosis", "Transpiration"], correctIndex: 1, steps: ["Amniocentesis tests foetal cells from amniotic fluid."] }
+      ],
+      [
+        { topic: "2.5 Variation", marks: 5, type: "mcq", prompt: "Which of the following is an example of CONTINUOUS variation?", options: ["Human ABO blood group", "Ability to roll your tongue", "Height of 16-year-old students", "Biological sex (XX or XY)"], correctIndex: 2, steps: ["Height varies smoothly across a range (continuous variation)."] },
+        { topic: "2.5 Selective Breeding", marks: 5, type: "mcq", prompt: "A farmer breeds only the highest-yielding cows over 10 generations. What is this process called?", options: ["Natural selection", "Selective breeding", "Meiosis", "Antibiotic resistance"], correctIndex: 1, steps: ["Humans choosing parents with desirable traits over generations is selective breeding."] },
+        { topic: "2.5 Variation Graphs", marks: 5, type: "mcq", prompt: "Which graph type should be drawn for DISCONTINUOUS variation data such as tongue rolling?", options: ["Bar chart with gaps between bars", "Histogram with touching bars", "Line graph", "Scatter graph"], correctIndex: 0, steps: ["Discontinuous categories are plotted as a bar chart with gaps."] }
+      ],
+      [
+        { topic: "2.6 Aseptic Technique", marks: 5, type: "input", prompt: "At what maximum temperature (in °C) should bacterial agar plates be incubated in a school lab to stop harmful human pathogens growing?", hint: "Number only", modelAnswer: "25", acceptedAnswers: ["25", "25°C"], steps: ["25°C is safe in school labs; human pathogens thrive at 37°C."] },
+        { topic: "2.5 MRSA & Natural Selection", marks: 5, type: "mcq", prompt: "How does a strain of bacteria like MRSA become resistant to an antibiotic?", options: ["A random mutation gives resistance; resistant bacteria survive the antibiotic and reproduce", "The antibiotic deliberately mutates the bacteria", "Bacteria choose to grow thicker walls", "White blood cells give resistance to bacteria"], correctIndex: 0, steps: ["Random mutation creates variation; antibiotics select for resistant bacteria which survive and reproduce."] },
+        { topic: "2.6 Pathogens", marks: 5, type: "mcq", prompt: "Which communicable disease is caused by a FUNGUS?", options: ["Salmonella", "HIV", "Athlete's foot", "Influenza"], correctIndex: 2, steps: ["Athlete's foot is fungal; Salmonella is bacterial; HIV and Flu are viral."] }
+      ],
+      [
+        { topic: "2.6 Body Defences", marks: 6, type: "mcq", prompt: "In the trachea (windpipe), how do mucus and cilia work together to protect the lungs?", options: ["Mucus digests microbes and cilia make antibodies", "Mucus traps dust/microbes and cilia sweep it up to the throat to be swallowed", "Cilia trap bacteria and mucus pumps blood", "Mucus clots the blood in the alveoli"], correctIndex: 1, steps: ["Sticky mucus traps microbes and cilia sweep it up to the throat to be swallowed into stomach acid."] },
+        { topic: "2.6 Antibiotics & Viruses", marks: 6, type: "mcq", prompt: "Why do doctors NOT prescribe antibiotics to treat a viral flu infection?", options: ["Antibiotics kill bacteria only and have no effect on viruses", "Antibiotics are too slow for flu", "Viruses are already killed by stomach acid", "Antibiotics only work on fungi"], correctIndex: 0, steps: ["Antibiotics destroy bacteria only and cannot kill viruses."] },
+        { topic: "2.6 Immunity & Vaccines", marks: 6, type: "mcq", prompt: "Which cells stay in the blood after vaccination to make antibodies faster if the live pathogen enters later?", options: ["Red blood cells", "Platelets", "Memory cells", "Ciliated cells"], correctIndex: 2, steps: ["Memory cells give a rapid secondary antibody response."] }
+      ],
+      [
+        { topic: "2.6 Cancer (Tumours)", marks: 5, type: "mcq", prompt: "Which type of tumour stays in one place inside a capsule and does NOT spread around the body?", options: ["Malignant tumour", "Benign tumour", "Secondary tumour", "Metastatic tumour"], correctIndex: 1, steps: ["Benign tumours stay in one place and are non-cancerous; malignant tumours spread."] },
+        { topic: "2.6 Smoking & Health", marks: 5, type: "mcq", prompt: "Which chemical in cigarette smoke binds to haemoglobin in red blood cells, reducing the oxygen supplied to body tissues?", options: ["Tar", "Nicotine", "Carbon monoxide", "Statin"], correctIndex: 2, steps: ["Carbon monoxide binds to haemoglobin, reducing oxygen transport."] },
+        { topic: "2.6 Smoking & Cancer", marks: 5, type: "mcq", prompt: "Which chemical in cigarette smoke is a carcinogen that causes lung cancer and bronchitis?", options: ["Tar", "Nicotine", "Carbon monoxide", "Insulin"], correctIndex: 0, steps: ["Tar is carcinogenic and damages airway cilia."] }
+      ]
+    ];
+
+    /* ============================================================
+       APP STATE & UI LOGIC
+       ============================================================ */
+    const state = {
+      examMode: "full", durationSeconds: 75 * 60, activePaper: [], responses: [], checked: [], isCorrect: [], skipped: [],
+      currentIdx: 0, timeRemaining: 75 * 60, timerId: null, paperSubmitted: false, paperCode: "",
+      learnFilter: "all", activeTopic: null, learnQuestion: null, learnResponse: "", learnChecked: false, learnIsCorrect: false
+    };
+
+    const views = {
+      home: document.getElementById("home-view"), learnMenu: document.getElementById("learn-menu-view"),
+      learnDetail: document.getElementById("learn-detail-view"), testSelect: document.getElementById("test-select-view"),
+      hud: document.getElementById("hud-bar"), workspace: document.getElementById("workspace-view"), results: document.getElementById("results-view")
+    };
+
+    function showOnlyViews(...visibleKeys) {
+      stopCountdownTimer();
+      Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", !visibleKeys.includes(key)));
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function normalizeTextAnswer(str) {
+      return String(str || "").toLowerCase().replace(/°c|%|mm\/min|\s+|-/gi, "").trim();
+    }
+
+    function checkQuestionCorrectness(q, userResp) {
+      if (q.type === "mcq") return userResp !== "" && userResp !== null && Number(userResp) === q.correctIndex;
+      const norm = normalizeTextAnswer(userResp);
+      if (!norm) return false;
+      return q.acceptedAnswers.some((a) => normalizeTextAnswer(a) === norm);
+    }
+
+    function getModelAnswerDisplay(q) {
+      if (q.type === "mcq") return `${["A", "B", "C", "D"][q.correctIndex]}: ${q.options[q.correctIndex]}`;
+      return q.modelAnswer;
+    }
+
+    function getUserAnswerDisplay(q, userResp) {
+      if (q.type === "mcq") {
+        if (userResp === "" || userResp === null || userResp === undefined) return "[No Option Selected]";
+        const idx = Number(userResp);
+        return `${["A", "B", "C", "D"][idx]}: ${q.options[idx]}`;
+      }
+      return String(userResp || "").trim().length > 0 ? userResp : "[No Response Entered]";
+    }
+
+    function renderTopicsGrid() {
+      const grid = document.getElementById("topics-grid");
+      grid.innerHTML = "";
+      LEARN_TOPICS.filter((t) => state.learnFilter === "all" ? true : t.section === state.learnFilter).forEach((topic) => {
+        const originalIdx = LEARN_TOPICS.indexOf(topic) + 1;
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "topic-btn";
+        btn.innerHTML = `
+          <div>
+            <div class="topic-btn-top"><span class="topic-num">TOPIC ${String(originalIdx).padStart(2, "0")}</span><span class="topic-section-tag tag-${topic.section}">${escapeHtml(topic.sectionLabel)}</span></div>
+            <div class="topic-btn-title" style="margin-top:8px;">${escapeHtml(topic.title)}</div>
+          </div>
+          <div class="topic-btn-sub">${escapeHtml(topic.shortDesc)}</div>`;
+        btn.addEventListener("click", () => openLearnTopic(topic.id));
+        grid.appendChild(btn);
+      });
+    }
+
+    document.querySelectorAll(".filter-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        state.learnFilter = pill.dataset.filter;
+        document.querySelectorAll(".filter-pill").forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        renderTopicsGrid();
+      });
+    });
+
+    function openLearnTopic(topicId) {
+      const topic = LEARN_TOPICS.find((t) => t.id === topicId);
+      if (!topic) return;
+      state.activeTopic = topic; showOnlyViews("learnDetail");
+
+      const badge = document.getElementById("detail-section-badge");
+      badge.textContent = topic.sectionLabel;
+      badge.className = "badge-pill " + (topic.section === "genetics" ? "blue" : topic.section === "health" ? "amber" : "");
+      document.getElementById("detail-title").textContent = topic.title;
+      document.getElementById("detail-subtitle").textContent = topic.shortDesc;
+      document.getElementById("detail-what").innerHTML = topic.whatItIs;
+      document.getElementById("detail-rule").textContent = topic.keyRule;
+
+      const diagEl = document.getElementById("detail-diagram");
+      if (topic.diagramSvg) { diagEl.innerHTML = topic.diagramSvg; diagEl.classList.remove("hidden"); }
+      else { diagEl.innerHTML = ""; diagEl.classList.add("hidden"); }
+
+      document.getElementById("detail-howto").innerHTML = topic.howToSolve.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      document.getElementById("detail-example-q").textContent = topic.workedExample.q;
+      document.getElementById("detail-example-steps").innerHTML = topic.workedExample.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+      drawLearnPracticeQuestion();
+    }
+
+    function drawLearnPracticeQuestion() {
+      const topic = state.activeTopic;
+      if (!topic || !topic.practicePool.length) return;
+      state.learnQuestion = drawFromDeck(`learn:${topic.id}`, topic.practicePool);
+      state.learnResponse = ""; state.learnChecked = false; state.learnIsCorrect = false;
+      renderLearnPracticeCard();
+    }
+
+    function renderLearnPracticeCard() {
+      const slot = document.getElementById("learn-practice-slot"), q = state.learnQuestion;
+      if (!q) return;
+      const isChecked = state.learnChecked, isCorrect = state.learnIsCorrect, letters = ["A", "B", "C", "D"];
+      let answerUiHtml = "";
+      if (q.type === "mcq") {
+        answerUiHtml = `<div class="mcq-grid">` + q.options.map((opt, idx) => {
+          let cls = "mcq-option";
+          if (!isChecked && state.learnResponse === String(idx)) cls += " selected";
+          if (isChecked) {
+            if (idx === q.correctIndex) cls += " correct-opt";
+            else if (state.learnResponse === String(idx)) cls += " wrong-opt";
+          }
+          return `<button type="button" class="${cls}" data-opt-idx="${idx}" ${isChecked ? "disabled" : ""}><span class="mcq-letter">${letters[idx]}</span><span>${escapeHtml(opt)}</span></button>`;
+        }).join("") + `</div>`;
+      } else {
+        let inputCls = "bio-input-box" + (isChecked ? (isCorrect ? " locked-correct" : " locked-incorrect") : "");
+        answerUiHtml = `<p class="q-hint">Format guide: ${escapeHtml(q.hint || "Type your answer")}</p><input type="text" id="learn-text-input" class="${inputCls}" placeholder="Type your answer here..." value="${escapeHtml(state.learnResponse)}" ${isChecked ? "disabled" : ""} />`;
+      }
+
+      const feedbackHtml = isChecked ? `
+        <div class="feedback-panel ${isCorrect ? "correct" : "incorrect"}" style="margin-top:16px; margin-bottom:0;">
+          <div class="feedback-heading ${isCorrect ? "correct" : "incorrect"}">${isCorrect ? "✓ Correct! Well done." : "✗ Incorrect — check the CCEA mark scheme:"}</div>
+          ${!isCorrect ? `<div class="feedback-answer-line"><span>Right Answer:</span><strong>${escapeHtml(getModelAnswerDisplay(q))}</strong></div>` : ""}
+          <div class="feedback-steps-title">Explanation:</div>
+          <ol class="feedback-steps-list">${q.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol>
+        </div>` : "";
+
+      slot.innerHTML = `
+        <div class="worked-example-box">
+          <p class="q-prompt">${q.prompt}</p>${answerUiHtml}
+          <div class="q-nav-actions"><div></div><div class="q-nav-right">
+            ${!isChecked ? `<button type="button" class="btn-action btn-check" id="btn-check-learn-q">✓ Check Answer</button>` : ""}
+            ${isChecked ? `<button type="button" class="btn-action btn-next" id="btn-next-learn-q">🎲 Try Another Random Question</button>` : ""}
+          </div></div>
+          ${feedbackHtml}
+        </div>`;
+
+      if (q.type === "mcq") {
+        slot.querySelectorAll(".mcq-option").forEach((btn) => {
+          btn.addEventListener("click", () => { if (!state.learnChecked) { state.learnResponse = btn.dataset.optIdx; renderLearnPracticeCard(); } });
+        });
+      } else {
+        const inp = document.getElementById("learn-text-input");
+        if (inp) {
+          inp.addEventListener("input", (e) => { state.learnResponse = e.target.value; });
+          inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !state.learnChecked) document.getElementById("btn-check-learn-q").click(); });
+        }
+      }
+
+      const checkBtn = document.getElementById("btn-check-learn-q");
+      if (checkBtn) checkBtn.addEventListener("click", () => {
+        if (state.learnResponse === "" || state.learnResponse === null) return alert("Select an option or type an answer before checking.");
+        state.learnChecked = true; state.learnIsCorrect = checkQuestionCorrectness(q, state.learnResponse);
+        renderLearnPracticeCard();
+      });
+      const nextBtn = document.getElementById("btn-next-learn-q");
+      if (nextBtn) nextBtn.addEventListener("click", drawLearnPracticeQuestion);
+    }
+
+    function startMockExam(mode) {
+      state.examMode = mode;
+      state.durationSeconds = mode === "full" ? 75 * 60 : 25 * 60;
+      const count = mode === "full" ? FULL_B2_POOLS.length : 7;
+      state.activePaper = buildUniquePaper(mode, FULL_B2_POOLS, count);
+
+      const n = state.activePaper.length;
+      state.responses = new Array(n).fill(""); state.checked = new Array(n).fill(false);
+      state.isCorrect = new Array(n).fill(false); state.skipped = new Array(n).fill(false);
+      state.currentIdx = 0; state.timeRemaining = state.durationSeconds; state.paperSubmitted = false;
+      state.paperCode = (mode === "full" ? "GDW41-" : "BLITZ-") + randInt(1000, 9999);
+
+      const totalMarks = state.activePaper.reduce((s, q) => s + q.marks, 0);
+      document.getElementById("hud-title").textContent = mode === "full"
+        ? `CCEA Biology Unit B2 Foundation (${totalMarks} Marks)`
+        : `Biology Unit B2 Quick Blitz (${totalMarks} Marks)`;
+      document.getElementById("hud-paper-id").textContent = "PAPER ID: " + state.paperCode;
+      document.getElementById("prog-total").textContent = n;
+
+      showOnlyViews("hud", "workspace");
+      renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); startCountdownTimer();
+    }
+
+    function updateTestProgressMeta() {
+      const totalMarks = state.activePaper.reduce((s, q) => s + q.marks, 0);
+      const checkedCount = state.checked.filter(Boolean).length;
+      const earned = state.activePaper.reduce((s, q, i) => s + (state.checked[i] && state.isCorrect[i] ? q.marks : 0), 0);
+      document.getElementById("prog-current").textContent = state.currentIdx + 1;
+      document.getElementById("prog-checked").textContent = `${checkedCount} / ${state.activePaper.length}`;
+      document.getElementById("prog-score").textContent = `${earned} / ${totalMarks}`;
+    }
+
+    function renderQuestionDots() {
+      const row = document.getElementById("q-dots-row"); row.innerHTML = "";
+      state.activePaper.forEach((q, idx) => {
+        const dot = document.createElement("button");
+        dot.type = "button"; dot.className = "q-dot-btn"; dot.textContent = q.qNum;
+        if (idx === state.currentIdx) dot.classList.add("current");
+        if (state.checked[idx]) dot.classList.add(state.isCorrect[idx] ? "correct" : "incorrect");
+        else if (state.skipped[idx]) dot.classList.add("skipped");
+        dot.addEventListener("click", () => goToTestQuestion(idx));
+        row.appendChild(dot);
+      });
+    }
+
+    function goToTestQuestion(idx) {
+      if (idx < 0 || idx >= state.activePaper.length) return;
+      state.currentIdx = idx; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      document.getElementById("questions-pane").scrollTop = 0;
+    }
+
+    function renderCurrentTestQuestion() {
+      const slot = document.getElementById("active-question-slot"), idx = state.currentIdx, q = state.activePaper[idx];
+      const isLast = idx === state.activePaper.length - 1, isChecked = state.checked[idx], isCorrect = state.isCorrect[idx], val = state.responses[idx], letters = ["A", "B", "C", "D"];
+
+      let answerUiHtml = "";
+      if (q.type === "mcq") {
+        answerUiHtml = `<div class="mcq-grid">` + q.options.map((opt, optIdx) => {
+          let cls = "mcq-option";
+          if (!isChecked && val === String(optIdx)) cls += " selected";
+          if (isChecked) {
+            if (optIdx === q.correctIndex) cls += " correct-opt";
+            else if (val === String(optIdx)) cls += " wrong-opt";
+          }
+          return `<button type="button" class="${cls}" data-opt-idx="${optIdx}" ${isChecked ? "disabled" : ""}><span class="mcq-letter">${letters[optIdx]}</span><span>${escapeHtml(opt)}</span></button>`;
+        }).join("") + `</div>`;
+      } else {
+        let inputCls = "bio-input-box" + (isChecked ? (isCorrect ? " locked-correct" : " locked-incorrect") : "");
+        answerUiHtml = `<p class="q-hint">Format guide: ${escapeHtml(q.hint || "Enter your answer")}</p><input type="text" id="test-text-input" class="${inputCls}" placeholder="Type your answer here..." value="${escapeHtml(val)}" ${isChecked ? "disabled" : ""} />`;
+      }
+
+      const feedbackHtml = isChecked ? `
+        <div class="feedback-panel ${isCorrect ? "correct" : "incorrect"}">
+          <div class="feedback-heading ${isCorrect ? "correct" : "incorrect"}">${isCorrect ? `✓ Correct! (+${q.marks} / ${q.marks} marks)` : `✗ Incorrect (0 / ${q.marks} marks)`}</div>
+          ${!isCorrect ? `<div class="feedback-answer-line"><span>Correct Answer:</span><strong>${escapeHtml(getModelAnswerDisplay(q))}</strong></div>` : ""}
+          <div class="feedback-steps-title">CCEA Mark Scheme Note:</div>
+          <ol class="feedback-steps-list">${q.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol>
+        </div>` : "";
+
+      slot.innerHTML = `
+        <article class="question-card">
+          <div class="q-top-row"><div class="q-number-group"><span class="q-badge">Question ${q.qNum} / ${state.activePaper.length}</span><span class="q-topic">${escapeHtml(q.topic)}</span></div><span class="q-marks">[${q.marks} marks]</span></div>
+          <p class="q-prompt">${q.prompt}</p>${answerUiHtml}${feedbackHtml}
+          <div class="q-nav-actions">
+            <div class="q-nav-left"><button type="button" class="btn-action" id="btn-prev-q" ${idx === 0 ? "disabled" : ""}>← Back</button>${!isChecked && !isLast ? `<button type="button" class="btn-action btn-skip" id="btn-skip-q">Skip →</button>` : ""}</div>
+            <div class="q-nav-right">${!isChecked ? `<button type="button" class="btn-action btn-check" id="btn-check-q">✓ Submit Answer</button>` : ""}${!isLast && isChecked ? `<button type="button" class="btn-action btn-next" id="btn-next-q">Next Question →</button>` : ""}${isLast ? `<button type="button" class="btn-action btn-finish-test" id="btn-finish-test">🏁 Submit Test &amp; See Score</button>` : ""}</div>
+          </div>
+        </article>`;
+
+      if (q.type === "mcq") {
+        slot.querySelectorAll(".mcq-option").forEach((btn) => {
+          btn.addEventListener("click", () => { if (!state.checked[idx]) { state.responses[idx] = btn.dataset.optIdx; renderCurrentTestQuestion(); } });
+        });
+      } else {
+        const inp = document.getElementById("test-text-input");
+        if (inp) {
+          inp.addEventListener("input", (e) => { state.responses[idx] = e.target.value; });
+          inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !state.checked[idx]) document.getElementById("btn-check-q").click(); });
+        }
+      }
+
+      document.getElementById("btn-prev-q").addEventListener("click", () => goToTestQuestion(idx - 1));
+      const skipBtn = document.getElementById("btn-skip-q");
+      if (skipBtn) skipBtn.addEventListener("click", () => { if (!state.checked[idx]) state.skipped[idx] = true; goToTestQuestion(idx + 1); });
+      const checkBtn = document.getElementById("btn-check-q");
+      if (checkBtn) checkBtn.addEventListener("click", () => {
+        if (state.responses[idx] === "" || state.responses[idx] === null) return alert("Select an option or type an answer first, or press Skip → to move forward.");
+        state.checked[idx] = true; state.isCorrect[idx] = checkQuestionCorrectness(q, state.responses[idx]); state.skipped[idx] = false;
+        renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      });
+      const nextBtn = document.getElementById("btn-next-q");
+      if (nextBtn) nextBtn.addEventListener("click", () => goToTestQuestion(idx + 1));
+      const finishBtn = document.getElementById("btn-finish-test");
+      if (finishBtn) finishBtn.addEventListener("click", handleManualTestSubmit);
+    }
+
+    function startCountdownTimer() {
+      stopCountdownTimer(); renderTimer();
+      state.timerId = setInterval(() => {
+        state.timeRemaining -= 1; renderTimer();
+        if (state.timeRemaining <= 0) { stopCountdownTimer(); submitFinalTest(true); }
+      }, 1000);
+    }
+    function stopCountdownTimer() { if (state.timerId !== null) { clearInterval(state.timerId); state.timerId = null; } }
+    function renderTimer() {
+      const secs = Math.max(0, state.timeRemaining), mins = Math.floor(secs / 60), rem = secs % 60;
+      document.getElementById("timer-clock").textContent = `${String(mins).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+      const pill = document.getElementById("timer-display");
+      pill.classList.remove("warning", "critical");
+      if (secs <= 180) pill.classList.add("critical");
+      else if (secs <= 600) pill.classList.add("warning");
+    }
+
+    function handleManualTestSubmit() {
+      const unchecked = state.checked.filter((c) => !c).length;
+      if (unchecked > 0 && !confirm(`You still have ${unchecked} unchecked question(s). Submit your test now?`)) return;
+      submitFinalTest(false);
+    }
+
+    function submitFinalTest(isTimeout = false) {
+      if (state.paperSubmitted) return;
+      state.paperSubmitted = true; stopCountdownTimer();
+      let earnedMarks = 0, totalMarks = 0, correctCount = 0;
+
+      const gradedResults = state.activePaper.map((q, idx) => {
+        totalMarks += q.marks;
+        const userResp = state.responses[idx];
+        const isCorrect = state.checked[idx] ? state.isCorrect[idx] : checkQuestionCorrectness(q, userResp);
+        if (isCorrect) { earnedMarks += q.marks; correctCount += 1; }
+        return { ...q, userResp, isCorrect };
+      });
+
+      const pct = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 1000) / 10 : 0;
+      const grade = computeFoundationGrade(pct);
+      const elapsedSeconds = state.durationSeconds - Math.max(0, state.timeRemaining);
+      const timeStr = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}m ${String(elapsedSeconds % 60).padStart(2, "0")}s`;
+
+      document.getElementById("sheet-modal").classList.add("hidden");
+      showOnlyViews("results");
+
+      const modeLabel = state.examMode === "full" ? "Full Unit B2 Foundation [GDW41]" : "Quick Blitz (7 Randomised)";
+      document.getElementById("report-submission-meta").textContent = isTimeout
+        ? `${state.paperCode} • ${modeLabel} • Auto-Submitted on Timeout`
+        : `${state.paperCode} • ${modeLabel} • Completed`;
+
+      document.getElementById("stat-marks").textContent = `${earnedMarks} / ${totalMarks}`;
+      document.getElementById("stat-paper-type").textContent = modeLabel;
+      document.getElementById("stat-percent").textContent = `${pct}%`;
+      document.getElementById("stat-percent-sub").textContent = `${earnedMarks} marks out of ${totalMarks}`;
+      document.getElementById("stat-time").textContent = timeStr;
+      document.getElementById("stat-allowed-time").textContent = `Allowed: ${Math.floor(state.durationSeconds / 60)}m 00s`;
+      document.getElementById("stat-grade").textContent = grade;
+      document.getElementById("stat-q-correct").textContent = `${correctCount} / ${state.activePaper.length} questions correct`;
+
+      const sheet = document.getElementById("graded-sheet"); sheet.innerHTML = "";
+      gradedResults.forEach((item) => {
+        const card = document.createElement("article"); card.className = `graded-card ${item.isCorrect ? "correct" : "incorrect"}`;
+        card.innerHTML = `
+          <div class="graded-top"><div class="q-number-group"><span class="q-badge">Q${item.qNum}</span><span class="q-topic">${escapeHtml(item.topic)}</span></div><span class="status-pill ${item.isCorrect ? "correct" : "incorrect"}">${item.isCorrect ? `✓ Correct (+${item.marks}/${item.marks} marks)` : `✗ Incorrect (0/${item.marks} marks)`}</span></div>
+          <p class="q-prompt">${item.prompt}</p>
+          <div class="graded-answers-grid"><div class="ans-box"><div class="ans-box-label">Your Submitted Response</div><div class="ans-box-value ${item.isCorrect ? "model" : "wrong"}">${escapeHtml(getUserAnswerDisplay(item, item.userResp))}</div></div><div class="ans-box"><div class="ans-box-label">Expected Answer</div><div class="ans-box-value model">${escapeHtml(getModelAnswerDisplay(item))}</div></div></div>
+          <div class="mark-scheme-note"><div class="feedback-steps-title">Mark Scheme Note:</div><ol class="feedback-steps-list">${item.steps.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`;
+        sheet.appendChild(card);
+      });
+    }
+
+    function computeFoundationGrade(pct) {
+      if (pct >= 74) return "C*"; if (pct >= 60) return "C"; if (pct >= 48) return "D";
+      if (pct >= 36) return "E"; if (pct >= 25) return "F"; if (pct >= 15) return "G"; return "U";
+    }
+
+    const calcState = { expression: "", lastStr: "0", justEval: false };
+    const calcExprEl = document.getElementById("calc-expr"), calcOutEl = document.getElementById("calc-output");
+    document.querySelectorAll("#calculator-pane .calc-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tok = btn.dataset.calc, act = btn.dataset.action;
+        if (act === "ac") { calcState.expression = ""; calcState.justEval = false; calcExprEl.textContent = ""; calcOutEl.classList.remove("error"); calcOutEl.textContent = "0"; return; }
+        if (act === "del") { calcState.expression = calcState.justEval ? "" : calcState.expression.slice(0, -1); calcState.justEval = false; calcExprEl.textContent = calcState.expression; return; }
+        if (act === "eval") {
+          const raw = calcState.expression.trim(); if (!raw) return;
+          try {
+            const safe = raw.replace(/×/g, "*").replace(/÷/g, "/");
+            if (/[^0-9+\-*/().\s]/.test(safe)) throw new Error();
+            const val = Function(`"use strict"; return (${safe});`)();
+            if (!Number.isFinite(val)) throw new Error();
+            const rounded = String(Number(val.toFixed(6)));
+            calcState.lastStr = rounded; calcState.justEval = true; calcOutEl.classList.remove("error"); calcOutEl.textContent = rounded;
+          } catch { calcOutEl.classList.add("error"); calcOutEl.textContent = "Math Error"; calcState.justEval = true; }
+          return;
+        }
+        if (tok !== undefined) {
+          const ops = ["+", "-", "×", "÷"];
+          if (calcState.justEval) { calcState.expression = ops.includes(tok) ? calcState.lastStr : ""; calcState.justEval = false; }
+          calcState.expression += tok; calcExprEl.textContent = calcState.expression;
+        }
+      });
+    });
+
+    document.getElementById("btn-go-learn").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-go-test").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-learn-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-detail-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-test-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-results-home").addEventListener("click", () => showOnlyViews("home"));
+    document.getElementById("btn-back-to-topics").addEventListener("click", () => { renderTopicsGrid(); showOnlyViews("learnMenu"); });
+    document.getElementById("btn-new-learn-q").addEventListener("click", drawLearnPracticeQuestion);
+    document.getElementById("btn-start-full").addEventListener("click", () => startMockExam("full"));
+    document.getElementById("btn-start-blitz").addEventListener("click", () => startMockExam("blitz"));
+    document.getElementById("btn-retry-same").addEventListener("click", () => startMockExam(state.examMode));
+    document.getElementById("btn-switch-paper").addEventListener("click", () => showOnlyViews("testSelect"));
+    document.getElementById("btn-hud-submit").addEventListener("click", handleManualTestSubmit);
+
+    const sheetModal = document.getElementById("sheet-modal");
+    document.getElementById("btn-open-sheet").addEventListener("click", () => sheetModal.classList.remove("hidden"));
+    document.getElementById("btn-close-sheet").addEventListener("click", () => sheetModal.classList.add("hidden"));
+    sheetModal.addEventListener("click", (e) => { if (e.target === sheetModal) sheetModal.classList.add("hidden"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !sheetModal.classList.contains("hidden")) sheetModal.classList.add("hidden"); });
+  </script>
+</body>
+</html>
+```

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — CCEA GCSE Hub</title>
+  <style>
+    :root {
+      --bg-base: #070b14;
+      --bg-surface: #0f172a;
+      --bg-elevated: #162033;
+      --bg-input: #090f1d;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-strong: rgba(148, 163, 184, 0.32);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, Menlo, Consolas, monospace;
+      --shadow-panel: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hub-shell {
+      min-height: 100vh;
+      padding: 48px 24px 72px;
+      background:
+        radial-gradient(circle at 18% 15%, rgba(56, 189, 248, 0.12), transparent 42%),
+        radial-gradient(circle at 82% 85%, rgba(16, 185, 129, 0.11), transparent 45%),
+        var(--bg-base);
+    }
+
+    .container { max-width: 1080px; margin: 0 auto; }
+
+    .hero { text-align: center; margin-bottom: 40px; }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 16px 0 12px;
+      line-height: 1.15;
+    }
+
+    .hero-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.04rem;
+      max-width: 660px;
+      margin: 0 auto;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .filter-pill {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .filter-pill:hover { border-color: var(--border-strong); color: var(--text-primary); }
+
+    .filter-pill.active {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 22px;
+    }
+
+    .subject-card {
+      text-decoration: none;
+      color: inherit;
+      background: linear-gradient(180deg, rgba(22, 32, 51, 0.94), rgba(15, 23, 42, 0.98));
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-panel);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .subject-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--card-accent, linear-gradient(90deg, #38bdf8, #6366f1));
+    }
+
+    .subject-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--card-hover, var(--accent-blue));
+      box-shadow: 0 24px 55px rgba(0, 0, 0, 0.55);
+    }
+
+    .subject-card.theme-blue { --card-accent: linear-gradient(90deg, #38bdf8, #6366f1); --card-hover: #38bdf8; }
+    .subject-card.theme-emerald { --card-accent: linear-gradient(90deg, #10b981, #38bdf8); --card-hover: #10b981; }
+    .subject-card.theme-amber { --card-accent: linear-gradient(90deg, #f59e0b, #fbbf24); --card-hover: #f59e0b; }
+    .subject-card.theme-rose { --card-accent: linear-gradient(90deg, #f43f5e, #fb7185); --card-hover: #f43f5e; }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .subject-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      flex-shrink: 0;
+    }
+
+    .theme-emerald .subject-icon { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.32); }
+    .theme-amber .subject-icon { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.32); }
+    .theme-rose .subject-icon { background: rgba(244, 63, 94, 0.12); border-color: rgba(244, 63, 94, 0.32); }
+
+    .tier-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .subject-title { font-size: 1.38rem; font-weight: 800; margin-bottom: 6px; line-height: 1.25; }
+    .subject-spec { font-family: var(--font-mono); font-size: 0.77rem; color: var(--accent-blue); margin-bottom: 10px; }
+    .theme-emerald .subject-spec { color: #6ee7b7; }
+    .theme-amber .subject-spec { color: #fcd34d; }
+    .theme-rose .subject-spec { color: #fda4af; }
+
+    .subject-desc { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.58; }
+
+    .subject-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .stat-chip { background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 9px 12px; }
+    .stat-chip-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .stat-chip-val { font-family: var(--font-mono); font-size: 0.86rem; font-weight: 700; margin-top: 2px; }
+
+    .subject-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+      font-weight: 700;
+      font-size: 0.94rem;
+      color: var(--accent-blue);
+    }
+
+    .theme-emerald .subject-cta { color: #6ee7b7; }
+    .theme-amber .subject-cta { color: #fcd34d; }
+    .theme-rose .subject-cta { color: #fda4af; }
+
+    .footer-note { margin-top: 42px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+    .footer-note code {
+      font-family: var(--font-mono);
+      background: var(--bg-surface);
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <main class="hub-shell">
+    <div class="container">
+      <header class="hero">
+        <div class="badge-pill">CCEA Northern Ireland • GCSE Revision Portal</div>
+        <h1 class="hero-title">Calum's Revision Engine</h1>
+        <p class="hero-subtitle">
+          Choose a CCEA subject below to open its interactive topic guides, worked examples, and randomised timed mock papers.
+        </p>
+      </header>
+
+      <div class="filter-bar" id="filter-bar">
+        <button type="button" class="filter-pill active" data-cat="all">All Subjects (5)</button>
+        <button type="button" class="filter-pill" data-cat="maths">Mathematics</button>
+        <button type="button" class="filter-pill" data-cat="science">Double Award Science</button>
+        <button type="button" class="filter-pill" data-cat="tech">Technology &amp; Design</button>
+      </div>
+
+      <section id="subjects-grid" class="subjects-grid" aria-label="Available Revision Subjects"></section>
+
+      <p class="footer-note">
+        Make sure <code>index.html</code>, <code>maths.html</code>, <code>biology.html</code>, <code>chemistry.html</code>, <code>physics.html</code>, and <code>technology.html</code> are all saved in the same folder.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const SUBJECTS = [
+      {
+        title: "Mathematics — Module M8",
+        category: "maths",
+        spec: "CCEA GCSE (NI) • Higher Tier",
+        tierBadge: "Higher M8",
+        icon: "📐",
+        theme: "theme-blue",
+        href: "maths.html",
+        description:
+          "Surds, negative & fractional indices, recurring decimals, circle tangents, Sine & Cosine rules, 3D trigonometry, similar solids, and conditional probability.",
+        stat1Label: "Learn Mode",
+        stat1Val: "19 Topics + RNG",
+        stat2Label: "Exam Mode",
+        stat2Val: "P1 Non-Calc & P2 Calc"
+      },
+      {
+        title: "Biology — Unit B2",
+        category: "science",
+        spec: "CCEA Double Award (NI) • Foundation [GDW41]",
+        tierBadge: "Foundation B2",
+        icon: "🧬",
+        theme: "theme-emerald",
+        href: "biology.html",
+        description:
+          "Osmosis & plant transport, circulatory system, reproduction & contraception, DNA & cell division, Punnett squares, variation & selection, immunity & cancer.",
+        stat1Label: "Learn Mode",
+        stat1Val: "15 CCEA Topics + RNG",
+        stat2Label: "Exam Mode",
+        stat2Val: "70-Mark Paper & Blitz"
+      },
+      {
+        title: "Chemistry — Unit C2",
+        category: "science",
+        spec: "CCEA Double Award (NI) • Foundation [GDW51]",
+        tierBadge: "Foundation C2",
+        icon: "⚗️",
+        theme: "theme-amber",
+        href: "chemistry.html",
+        description:
+          "Reactivity series, redox & rusting, rates of reaction, equilibrium, alkanes/alkenes/alcohols, RFM & % mass calculations, and exothermic/endothermic changes.",
+        stat1Label: "Learn Mode",
+        stat1Val: "12 CCEA Topics + RNG",
+        stat2Label: "Exam Mode",
+        stat2Val: "70-Mark Paper & Blitz"
+      },
+      {
+        title: "Physics — Unit P2",
+        category: "science",
+        spec: "CCEA Double Award (NI) • Foundation [GDW61]",
+        tierBadge: "Foundation P2",
+        icon: "⚡",
+        theme: "theme-blue",
+        href: "physics.html",
+        description:
+          "Waves & v = fλ, EM spectrum, reflection/refraction/lenses, Ohm's law & domestic circuits, magnets & transformers, Solar System, stars & Big Bang.",
+        stat1Label: "Learn Mode",
+        stat1Val: "12 CCEA Topics + RNG",
+        stat2Label: "Exam Mode",
+        stat2Val: "70-Mark Paper & Blitz"
+      },
+      {
+        title: "Technology & Design — Unit 2",
+        category: "tech",
+        spec: "CCEA GCSE (NI) • Options A, B & C [GTY21–23]",
+        tierBadge: "Unit 2 (A/B/C)",
+        icon: "🛠️",
+        theme: "theme-rose",
+        href: "technology.html",
+        description:
+          "Option A (Electronics & 555 Timers), Option B (Mechanical & Pneumatics), and Option C (Product Design, Plastics, CAD/CAM & Sustainability).",
+        stat1Label: "Learn Mode",
+        stat1Val: "18 Topics (A/B/C)",
+        stat2Label: "Exam Mode",
+        stat2Val: "100-Mark Option Papers"
+      }
+    ];
+
+    let activeCategory = "all";
+    const grid = document.getElementById("subjects-grid");
+
+    function renderSubjects() {
+      grid.innerHTML = "";
+      const filtered = SUBJECTS.filter(function (s) {
+        return activeCategory === "all" || s.category === activeCategory;
+      });
+
+      filtered.forEach(function (subj) {
+        const card = document.createElement("a");
+        card.href = subj.href;
+        card.className = "subject-card " + subj.theme;
+        card.innerHTML =
+          '<div>' +
+            '<div class="card-top">' +
+              '<div class="subject-icon">' + subj.icon + '</div>' +
+              '<span class="tier-tag">' + subj.tierBadge + '</span>' +
+            '</div>' +
+            '<h2 class="subject-title">' + subj.title + '</h2>' +
+            '<div class="subject-spec">' + subj.spec + '</div>' +
+            '<p class="subject-desc">' + subj.description + '</p>' +
+            '<div class="subject-stats">' +
+              '<div class="stat-chip">' +
+                '<div class="stat-chip-label">' + subj.stat1Label + '</div>' +
+                '<div class="stat-chip-val">' + subj.stat1Val + '</div>' +
+              '</div>' +
+              '<div class="stat-chip">' +
+                '<div class="stat-chip-label">' + subj.stat2Label + '</div>' +
+                '<div class="stat-chip-val">' + subj.stat2Val + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="subject-cta">' +
+            '<span>Open ' + subj.title + '</span>' +
+            '<span>→</span>' +
+          '</div>';
+        grid.appendChild(card);
+      });
+    }
+
+    document.querySelectorAll("#filter-bar .filter-pill").forEach(function (pill) {
+      pill.addEventListener("click", function () {
+        activeCategory = pill.dataset.cat;
+        document.querySelectorAll("#filter-bar .filter-pill").forEach(function (p) {
+          p.classList.remove("active");
+        });
+        pill.classList.add("active");
+        renderSubjects();
+      });
+    });
+
+    renderSubjects();
+  </script>
+</body>
+</html>

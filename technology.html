@@ -1,0 +1,1027 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calum's Revision Engine — Product Design Unit 2C [GTY23]</title>
+  <style>
+    :root {
+      --bg-base:#070b14; --bg-surface:#0f172a; --bg-elevated:#162033; --bg-card:#111b2e; --bg-input:#090f1d;
+      --border-subtle:rgba(148,163,184,0.16); --border-strong:rgba(148,163,184,0.32);
+      --text-primary:#f1f5f9; --text-secondary:#94a3b8; --text-muted:#64748b;
+      --accent-blue:#38bdf8; --accent-emerald:#10b981; --accent-emerald-bg:rgba(16,185,129,0.1); --accent-emerald-border:rgba(16,185,129,0.5);
+      --accent-rose:#f43f5e; --accent-rose-bg:rgba(244,63,94,0.1); --accent-rose-border:rgba(244,63,94,0.5);
+      --accent-amber:#f59e0b; --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --font-mono:"JetBrains Mono","Fira Code",ui-monospace,Menlo,Consolas,monospace;
+      --hud-height:68px; --radius-lg:14px; --radius-md:10px; --shadow-panel:0 20px 50px rgba(0,0,0,0.45);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; background:var(--bg-base); color:var(--text-primary); font-family:var(--font-sans); line-height:1.55; }
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-track { background:var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background:#27354d; border-radius:999px; }
+    .hidden { display:none !important; }
+    .page-shell { min-height:100vh; padding:36px 24px 70px; background:radial-gradient(circle at 15% 15%,rgba(244,63,94,0.1),transparent 40%),radial-gradient(circle at 85% 85%,rgba(56,189,248,0.09),transparent 45%),var(--bg-base); }
+    .container-md { max-width:960px; margin:0 auto; }
+    .container-lg { max-width:1120px; margin:0 auto; }
+    .top-nav-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
+    .btn-ghost { padding:9px 16px; border-radius:9px; font-size:0.88rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-surface); color:var(--text-primary); display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
+    .btn-ghost:hover { background:var(--bg-elevated); }
+    .badge-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; font-size:0.76rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#fda4af; background:rgba(244,63,94,0.12); border:1px solid rgba(244,63,94,0.35); }
+    .badge-pill.blue { color:var(--accent-blue); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3); }
+    .badge-pill.amber { color:#fcd34d; background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); }
+    .badge-pill.emerald { color:#6ee7b7; background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.35); }
+    #home-view { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px 20px; background:radial-gradient(circle at 20% 20%,rgba(244,63,94,0.12),transparent 42%),radial-gradient(circle at 80% 80%,rgba(56,189,248,0.1),transparent 45%),var(--bg-base); }
+    .home-wrapper { width:100%; max-width:920px; text-align:center; }
+    .home-top-links { display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .home-title { font-size:clamp(2rem,4vw,2.9rem); font-weight:800; letter-spacing:-0.03em; margin:12px 0; line-height:1.15; }
+    .home-subtitle { color:var(--text-secondary); font-size:1.04rem; max-width:660px; margin:0 auto 36px; }
+    .mode-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:22px; text-align:left; }
+    .mode-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:32px; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:20px; box-shadow:var(--shadow-panel); transition:transform 0.16s ease,border-color 0.16s ease; position:relative; overflow:hidden; }
+    .mode-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; }
+    .mode-card.learn-card::before { background:linear-gradient(90deg,#f43f5e,#fb7185); }
+    .mode-card.test-card::before { background:linear-gradient(90deg,#38bdf8,#6366f1); }
+    .mode-card:hover { transform:translateY(-4px); border-color:var(--accent-rose); }
+    .mode-icon { width:52px; height:52px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:1.65rem; margin-bottom:14px; }
+    .learn-card .mode-icon { background:rgba(244,63,94,0.14); border:1px solid rgba(244,63,94,0.35); }
+    .test-card .mode-icon { background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.35); }
+    .mode-card h2 { font-size:1.55rem; font-weight:800; margin-bottom:8px; }
+    .mode-card p { color:var(--text-secondary); font-size:0.96rem; line-height:1.6; }
+    .mode-cta { font-weight:700; font-size:0.95rem; color:#fda4af; }
+    .test-card .mode-cta { color:var(--accent-blue); }
+    .section-header { margin-bottom:24px; }
+    .section-header h1 { font-size:clamp(1.6rem,3vw,2.15rem); font-weight:800; margin-bottom:6px; }
+    .section-header p { color:var(--text-secondary); font-size:0.96rem; }
+    .learn-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+    .filter-pill { padding:7px 14px; border-radius:999px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-secondary); font-size:0.83rem; font-weight:600; cursor:pointer; }
+    .filter-pill.active { background:rgba(244,63,94,0.16); border-color:var(--accent-rose); color:#fda4af; }
+    .topics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(265px,1fr)); gap:14px; }
+    .topic-btn { background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; text-align:left; cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px; transition:transform 0.12s ease,border-color 0.12s ease; }
+    .topic-btn:hover { transform:translateY(-2px); border-color:var(--accent-rose); background:var(--bg-elevated); }
+    .topic-btn-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .topic-num { font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); }
+    .topic-section-tag { font-family:var(--font-mono); font-size:0.69rem; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid; }
+    .tag-design { color:#bae6fd; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.35); }
+    .tag-materials { color:#fcd34d; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.35); }
+    .tag-mfg { color:#fda4af; background:rgba(244,63,94,0.1); border-color:rgba(244,63,94,0.35); }
+    .tag-social { color:#6ee7b7; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.35); }
+    .topic-btn-title { font-size:1rem; font-weight:700; color:var(--text-primary); line-height:1.35; }
+    .topic-btn-sub { font-size:0.8rem; color:var(--text-secondary); }
+    .learn-detail-grid { display:grid; grid-template-columns:1fr; gap:20px; }
+    .study-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .study-card-title { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:#fda4af; font-weight:800; margin-bottom:10px; }
+    .study-body { color:var(--text-primary); font-size:0.98rem; line-height:1.7; }
+    .study-body code,.q-prompt code { font-family:var(--font-mono); background:rgba(30,41,59,0.9); padding:2px 7px; border-radius:5px; color:#bae6fd; font-size:0.93em; }
+    .key-rule-box { margin-top:14px; padding:13px 16px; background:var(--bg-input); border-left:3px solid var(--accent-rose); border-radius:0 8px 8px 0; font-family:var(--font-mono); font-size:0.92rem; color:#ffe4e6; line-height:1.6; }
+    .diagram-box { margin-top:16px; padding:16px; background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; display:flex; justify-content:center; }
+    .steps-ol { padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+    .worked-example-box { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:18px; }
+    .worked-q { font-weight:700; color:#bae6fd; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border-subtle); }
+    .learn-practice-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .mcq-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:18px; }
+    .mcq-option { width:100%; text-align:left; padding:13px 16px; border-radius:var(--radius-md); border:1.5px solid var(--border-strong); background:var(--bg-input); color:var(--text-primary); font-size:0.97rem; cursor:pointer; display:flex; align-items:center; gap:12px; }
+    .mcq-option:hover:not(:disabled) { background:var(--bg-elevated); border-color:var(--accent-blue); }
+    .mcq-option.selected { border-color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .mcq-option.correct-opt { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.18); }
+    .mcq-option.wrong-opt { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.18); }
+    .mcq-letter { width:28px; height:28px; border-radius:7px; background:var(--bg-elevated); border:1px solid var(--border-subtle); display:inline-flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700; font-size:0.85rem; flex-shrink:0; color:var(--text-secondary); }
+    .mcq-option.selected .mcq-letter { background:var(--accent-blue); color:#031120; }
+    .mcq-option.correct-opt .mcq-letter { background:var(--accent-emerald); color:#03150e; }
+    .mcq-option.wrong-opt .mcq-letter { background:var(--accent-rose); color:#fff; }
+    .bio-input-box { width:100%; padding:14px 16px; background:var(--bg-input); border:1.5px solid var(--border-strong); border-radius:var(--radius-md); font-family:var(--font-mono); font-size:1.08rem; color:var(--text-primary); outline:none; margin-bottom:14px; }
+    .bio-input-box.locked-correct { border-color:var(--accent-emerald-border); background:rgba(16,185,129,0.08); }
+    .bio-input-box.locked-incorrect { border-color:var(--accent-rose-border); background:rgba(244,63,94,0.08); }
+    .paper-choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; }
+    .paper-card { background:linear-gradient(180deg,rgba(22,32,51,0.94),rgba(15,23,42,0.98)); border:1px solid var(--border-strong); border-radius:18px; padding:30px; display:flex; flex-direction:column; justify-content:space-between; gap:22px; box-shadow:var(--shadow-panel); }
+    .paper-specs { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .paper-spec-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:8px; padding:11px 13px; }
+    .paper-spec-label { font-size:0.72rem; text-transform:uppercase; color:var(--text-muted); }
+    .paper-spec-val { font-family:var(--font-mono); font-weight:700; font-size:1rem; margin-top:2px; }
+    .btn-primary-lg { width:100%; padding:15px 22px; font-size:1rem; font-weight:700; color:#fff; background:linear-gradient(135deg,#f43f5e,#e11d48); border:none; border-radius:11px; cursor:pointer; }
+    .btn-primary-lg.blue { color:#04101d; background:linear-gradient(135deg,#38bdf8,#60a5fa); }
+    #hud-bar { position:fixed; top:0; left:0; right:0; height:var(--hud-height); background:rgba(15,23,42,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-strong); padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; z-index:100; }
+    .hud-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .hud-dot { width:10px; height:10px; border-radius:50%; background:var(--accent-rose); box-shadow:0 0 10px var(--accent-rose); flex-shrink:0; }
+    .hud-title { font-weight:700; font-size:0.96rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hud-meta { font-size:0.76rem; color:var(--text-secondary); font-family:var(--font-mono); }
+    .hud-controls { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .timer-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 15px; background:var(--bg-input); border:1px solid var(--border-strong); border-radius:10px; font-family:var(--font-mono); font-size:1.05rem; font-weight:700; color:var(--accent-blue); min-width:120px; justify-content:center; }
+    .timer-pill.warning { color:var(--accent-amber); border-color:rgba(245,158,11,0.55); }
+    .timer-pill.critical { color:var(--accent-rose); border-color:rgba(244,63,94,0.65); }
+    .btn-hud { padding:9px 14px; border-radius:9px; font-size:0.86rem; font-weight:600; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); text-decoration:none; }
+    .btn-submit { background:linear-gradient(135deg,#10b981,#059669); border-color:rgba(16,185,129,0.6); color:#03150e; font-weight:700; }
+    #workspace-view { padding-top:var(--hud-height); height:100vh; display:grid; grid-template-columns:minmax(0,1fr) 360px; overflow:hidden; }
+    #questions-pane { height:calc(100vh - var(--hud-height)); overflow-y:auto; padding:24px 34px 56px; }
+    .exam-shell { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+    .q-progress-bar { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 18px; display:flex; flex-direction:column; gap:12px; }
+    .q-progress-meta { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; font-size:0.85rem; color:var(--text-secondary); }
+    .q-progress-meta strong { color:var(--text-primary); font-family:var(--font-mono); }
+    .q-dots-row { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; }
+    .q-dot-btn { height:32px; border-radius:7px; border:1px solid var(--border-subtle); background:var(--bg-input); color:var(--text-secondary); font-family:var(--font-mono); font-size:0.8rem; font-weight:700; cursor:pointer; }
+    .q-dot-btn.current { border-color:var(--accent-blue); color:var(--accent-blue); background:rgba(56,189,248,0.14); }
+    .q-dot-btn.correct { background:rgba(16,185,129,0.2); border-color:rgba(16,185,129,0.55); color:#6ee7b7; }
+    .q-dot-btn.incorrect { background:rgba(244,63,94,0.2); border-color:rgba(244,63,94,0.55); color:#fda4af; }
+    .q-dot-btn.skipped { background:rgba(245,158,11,0.14); border-color:rgba(245,158,11,0.45); color:#fcd34d; }
+    .question-card { background:var(--bg-card); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:26px; }
+    .q-top-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .q-number-group { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+    .q-badge { background:rgba(244,63,94,0.14); color:#fda4af; border:1px solid rgba(244,63,94,0.32); font-family:var(--font-mono); font-weight:700; font-size:0.84rem; padding:4px 11px; border-radius:6px; }
+    .q-topic { font-size:0.82rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; }
+    .q-marks { font-family:var(--font-mono); font-size:0.82rem; color:var(--text-secondary); background:var(--bg-elevated); border:1px solid var(--border-subtle); padding:4px 11px; border-radius:999px; }
+    .q-prompt { font-size:1.07rem; margin-bottom:10px; line-height:1.65; }
+    .q-hint { font-size:0.84rem; color:var(--accent-amber); margin-bottom:14px; }
+    .feedback-panel { border-radius:var(--radius-md); padding:18px 20px; margin-bottom:18px; border:1.5px solid; }
+    .feedback-panel.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .feedback-panel.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .feedback-heading { font-weight:800; font-size:1.05rem; margin-bottom:10px; }
+    .feedback-heading.correct { color:#6ee7b7; }
+    .feedback-heading.incorrect { color:#fda4af; }
+    .feedback-answer-line { background:rgba(9,15,29,0.72); border:1px solid var(--border-subtle); border-radius:8px; padding:10px 14px; margin-bottom:12px; font-family:var(--font-mono); font-size:0.96rem; display:flex; flex-wrap:wrap; gap:10px; }
+    .feedback-answer-line strong { color:#6ee7b7; }
+    .feedback-steps-title { font-size:0.78rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom:6px; font-weight:700; }
+    .feedback-steps-list { padding-left:20px; font-size:0.94rem; display:flex; flex-direction:column; gap:5px; }
+    .q-nav-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding-top:6px; }
+    .q-nav-left,.q-nav-right { display:flex; flex-wrap:wrap; gap:10px; }
+    .btn-action { padding:11px 18px; border-radius:9px; font-size:0.92rem; font-weight:700; cursor:pointer; border:1px solid var(--border-strong); background:var(--bg-elevated); color:var(--text-primary); }
+    .btn-action:disabled { opacity:0.38; cursor:not-allowed; }
+    .btn-skip { background:rgba(245,158,11,0.1); color:#fcd34d; border-color:rgba(245,158,11,0.35); }
+    .btn-check { background:linear-gradient(135deg,#38bdf8,#3b82f6); color:#031120; border:none; }
+    .btn-next,.btn-finish-test { background:linear-gradient(135deg,#10b981,#059669); color:#03150e; border:none; }
+    #calculator-pane { height:calc(100vh - var(--hud-height)); background:var(--bg-surface); border-left:1px solid var(--border-strong); padding:18px 20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+    .calc-header { display:flex; align-items:center; justify-content:space-between; }
+    .calc-title { font-size:0.82rem; font-weight:700; text-transform:uppercase; color:var(--text-secondary); }
+    .calc-badge { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:5px; background:rgba(244,63,94,0.14); color:#fda4af; border:1px solid rgba(244,63,94,0.35); }
+    .calc-screen { background:var(--bg-input); border:1px solid var(--border-strong); border-radius:var(--radius-md); padding:13px 16px; min-height:98px; display:flex; flex-direction:column; justify-content:space-between; word-break:break-all; }
+    .calc-expr { font-family:var(--font-mono); font-size:0.95rem; color:var(--text-secondary); text-align:right; min-height:22px; }
+    .calc-output { font-family:var(--font-mono); font-size:1.65rem; font-weight:700; text-align:right; }
+    .calc-output.error { color:var(--accent-rose); font-size:1.2rem; }
+    .calc-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .calc-btn { height:43px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-primary); font-family:var(--font-mono); font-size:0.95rem; font-weight:600; cursor:pointer; }
+    .calc-btn.op { background:rgba(56,189,248,0.12); color:var(--accent-blue); }
+    .calc-btn.sci { background:rgba(99,102,241,0.14); color:#c7d2fe; }
+    .calc-btn.danger { background:rgba(244,63,94,0.14); color:#fda4af; }
+    .calc-btn.equals { background:linear-gradient(135deg,#f43f5e,#e11d48); color:#fff; font-weight:800; border:none; }
+    .calc-tip { font-size:0.76rem; color:var(--text-muted); }
+    .report-card { background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:18px; padding:32px; box-shadow:var(--shadow-panel); margin-bottom:32px; }
+    .report-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding-bottom:22px; border-bottom:1px solid var(--border-subtle); margin-bottom:24px; }
+    .report-title { font-size:1.65rem; font-weight:800; }
+    .report-sub { color:var(--text-secondary); font-size:0.92rem; margin-top:4px; }
+    .report-actions { display:flex; flex-wrap:wrap; gap:10px; }
+    .report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; }
+    .stat-tile { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:18px; }
+    .stat-tile-label { font-size:0.74rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+    .stat-tile-value { font-family:var(--font-mono); font-size:1.55rem; font-weight:800; }
+    .stat-tile-value.highlight { color:#fda4af; }
+    .stat-tile-sub { font-size:0.76rem; color:var(--text-muted); margin-top:4px; }
+    .graded-sheet-title { font-size:1.1rem; font-weight:700; margin-bottom:16px; color:var(--text-secondary); text-transform:uppercase; }
+    .graded-list { display:flex; flex-direction:column; gap:18px; }
+    .graded-card { border-radius:var(--radius-lg); padding:22px 24px; border:1.5px solid; }
+    .graded-card.correct { background:var(--accent-emerald-bg); border-color:var(--accent-emerald-border); }
+    .graded-card.incorrect { background:var(--accent-rose-bg); border-color:var(--accent-rose-border); }
+    .graded-top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .status-pill { font-family:var(--font-mono); font-size:0.78rem; font-weight:700; padding:4px 11px; border-radius:999px; text-transform:uppercase; }
+    .status-pill.correct { background:rgba(16,185,129,0.22); color:#6ee7b7; border:1px solid rgba(16,185,129,0.5); }
+    .status-pill.incorrect { background:rgba(244,63,94,0.22); color:#fda4af; border:1px solid rgba(244,63,94,0.5); }
+    .graded-answers-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:14px; }
+    .ans-box { background:rgba(9,15,29,0.78); border:1px solid var(--border-subtle); border-radius:8px; padding:12px 14px; }
+    .ans-box-label { font-size:0.73rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+    .ans-box-value { font-family:var(--font-mono); font-size:1.02rem; font-weight:700; }
+    .ans-box-value.model { color:#6ee7b7; }
+    .ans-box-value.wrong { color:#fda4af; }
+    .mark-scheme-note { margin-top:14px; font-size:0.9rem; color:var(--text-secondary); padding-top:12px; border-top:1px solid rgba(148,163,184,0.16); }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(4,7,15,0.78); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:200; }
+    .modal-panel { width:100%; max-width:760px; max-height:86vh; overflow-y:auto; background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:16px; padding:28px; }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--border-subtle); margin-bottom:18px; }
+    .modal-close { background:var(--bg-elevated); border:1px solid var(--border-subtle); color:var(--text-primary); width:34px; height:34px; border-radius:8px; font-size:1.2rem; cursor:pointer; }
+    .formula-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+    .formula-item { background:var(--bg-input); border:1px solid var(--border-subtle); border-radius:10px; padding:14px 16px; }
+    .formula-name { font-size:0.78rem; text-transform:uppercase; color:#fda4af; margin-bottom:6px; font-weight:700; }
+    .formula-expr { font-family:var(--font-mono); font-size:0.85rem; line-height:1.55; }
+    @media (max-width:980px) { #workspace-view{grid-template-columns:1fr;height:auto;overflow:visible;} #questions-pane{height:auto;overflow-y:visible;padding:20px 16px 32px;} #calculator-pane{height:auto;border-left:none;border-top:1px solid var(--border-strong);} .hud-meta{display:none;} }
+  </style>
+</head>
+<body>
+
+  <!-- 1. HOME SCREEN -->
+  <section id="home-view">
+    <div class="home-wrapper">
+      <div class="home-top-links">
+        <a href="index.html" class="btn-ghost">← All Subjects</a>
+        <div class="badge-pill">CCEA (NI) Year 12 GCSE • Unit 2 Option C: Product Design [GTY23]</div>
+      </div>
+      <h1 class="home-title">Product Design Unit 2C Engine</h1>
+      <p class="home-subtitle">
+        Tailored for <strong>CCEA GCSE Unit 2 Option C: Product Design (<code>[GTY23]</code>)</strong> — Design &amp; Innovation, Named Designers, Materials &amp; Stock Profiles, CAD/CAM, Plastic Moulding, and Sustainability.
+      </p>
+      <div class="mode-grid">
+        <button type="button" class="mode-card learn-card" id="btn-go-learn">
+          <div>
+            <div class="mode-icon">🛠️</div>
+            <h2>Learn</h2>
+            <p>Browse all 14 CCEA Option C Product Design topics — including Barber &amp; Osgerby, Philippe Starck, Bethan Gray, plastic profiles, smart materials &amp; 6 Rs — with non-repeating RNG practice.</p>
+          </div>
+          <span class="mode-cta">Open 14 Product Design Topics →</span>
+        </button>
+        <button type="button" class="mode-card test-card" id="btn-go-test">
+          <div>
+            <div class="mode-icon">📝</div>
+            <h2>Test</h2>
+            <p>Sit a fresh randomised 100-mark, 1h 30m CCEA <code>[GTY23]</code> Product Design mock paper (8 structured RNG questions) or a quick 4-question Blitz test.</p>
+          </div>
+          <span class="mode-cta">Start [GTY23] Mock Exam →</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. LEARN TOPICS DIRECTORY -->
+  <section id="learn-menu-view" class="page-shell hidden">
+    <div class="container-lg">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+          <button type="button" class="btn-ghost" id="btn-learn-home">← Product Design Home</button>
+        </div>
+        <span class="badge-pill">CCEA Unit 2 Option C [GTY23] • Learn Hub</span>
+      </div>
+      <div class="section-header">
+        <h1>Unit 2 Option C: Product Design (14 Topics)</h1>
+        <p>Every section of the CCEA Year 12 Product Design specification (<code>[GTY23]</code>), including synoptic Unit 1 manufacturing &amp; materials.</p>
+      </div>
+      <div class="learn-filter-bar">
+        <button type="button" class="filter-pill active" data-filter="all">All 14 Topics</button>
+        <button type="button" class="filter-pill" data-filter="design">Design, Ergonomics &amp; Designers</button>
+        <button type="button" class="filter-pill" data-filter="materials">Materials, Profiles &amp; Joining</button>
+        <button type="button" class="filter-pill" data-filter="mfg">Manufacturing, Plastics &amp; CAD/CAM</button>
+        <button type="button" class="filter-pill" data-filter="social">Social Responsibility &amp; 6 Rs</button>
+      </div>
+      <div id="topics-grid" class="topics-grid"></div>
+    </div>
+  </section>
+
+  <!-- 3. LEARN TOPIC DETAIL VIEW -->
+  <section id="learn-detail-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-back-to-topics">← All Topics</button>
+          <button type="button" class="btn-ghost" id="btn-detail-home">🛠️ PD Home</button>
+          <a href="index.html" class="btn-ghost">🏠 Subjects</a>
+        </div>
+        <span id="detail-section-badge" class="badge-pill">Topic</span>
+      </div>
+      <div class="section-header"><h1 id="detail-title">Topic Title</h1><p id="detail-subtitle">CCEA Unit 2 Option C [GTY23]</p></div>
+      <div class="learn-detail-grid">
+        <div class="study-card"><div class="study-card-title">1. What You Need to Know</div><div id="detail-what" class="study-body"></div><div id="detail-rule" class="key-rule-box"></div><div id="detail-diagram" class="diagram-box hidden"></div></div>
+        <div class="study-card"><div class="study-card-title">2. Key Exam Points (CCEA Mark Scheme)</div><ol id="detail-howto" class="steps-ol"></ol></div>
+        <div class="study-card"><div class="study-card-title">3. Worked Exam-Style Example</div><div class="worked-example-box"><div id="detail-example-q" class="worked-q"></div><ol id="detail-example-steps" class="steps-ol"></ol></div></div>
+        <div class="study-card"><div class="learn-practice-header"><div><div class="study-card-title" style="margin-bottom:2px;">4. Topic RNG Practice</div><p style="font-size:0.86rem;color:var(--text-secondary);">Freshly randomised CCEA <code>[GTY23]</code> practice questions on this topic.</p></div><button type="button" class="btn-action btn-next" id="btn-new-learn-q">🎲 New Random Question</button></div><div id="learn-practice-slot"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. TEST PAPER SELECTION VIEW -->
+  <section id="test-select-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="top-nav-row">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn-ghost" id="btn-test-home">← Product Design Home</button>
+          <a href="index.html" class="btn-ghost">🏠 All Subjects</a>
+        </div>
+        <span class="badge-pill blue">CCEA [GTY23] • Exam Mode</span>
+      </div>
+      <div class="section-header">
+        <h1>Choose Your Product Design Mock Paper</h1>
+        <p>Built exclusively for <strong>CCEA Unit 2 Option C: Product Design (<code>[GTY23]</code>)</strong> — shuffled question order, non-repeating decks, shuffled options, and dynamic dimensions/tolerances.</p>
+      </div>
+      <div class="paper-choice-grid">
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill" style="margin-bottom:14px;">Full Paper • [GTY23]</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Unit 2 Option C Full Paper</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">Matches the official CCEA <code>[GTY23]</code> exam: 100 marks, 1h 30m (90:00), 8 structured RNG questions covering profiles/area maths, designers, plastics, CAD/CAM &amp; sustainability.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">100 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">1h 30m (90:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">8 Structured</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg" id="btn-start-full">🛠️ Start Full 100-Mark [GTY23] Paper</button>
+        </div>
+
+        <div class="paper-card">
+          <div>
+            <div class="badge-pill blue" style="margin-bottom:14px;">Rapid Revision</div>
+            <h2 style="font-size:1.45rem;margin-bottom:10px;">Option C Quick Blitz (4 Qs)</h2>
+            <p style="color:var(--text-secondary);font-size:0.94rem;margin-bottom:20px;">Short revision session: draws 4 randomised Option C questions (~50 marks) in 35 minutes with immediate CCEA mark-scheme feedback.</p>
+            <div class="paper-specs">
+              <div class="paper-spec-item"><div class="paper-spec-label">Total Marks</div><div class="paper-spec-val">~50 Marks</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Time Limit</div><div class="paper-spec-val">35m (35:00)</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Questions</div><div class="paper-spec-val">4 Randomised</div></div>
+              <div class="paper-spec-item"><div class="paper-spec-label">Calculator</div><div class="paper-spec-val" style="color:#6ee7b7;">Enabled</div></div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-lg blue" id="btn-start-blitz">⚡ Start Quick Option C Blitz</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. PINNED HUD BAR -->
+  <header id="hud-bar" class="hidden">
+    <div class="hud-brand"><div class="hud-dot"></div><div><div class="hud-title" id="hud-title">CCEA Product Design [GTY23]</div><div class="hud-meta" id="hud-paper-id">PAPER ID: GTY23-0000</div></div></div>
+    <div class="hud-controls">
+      <div id="timer-display" class="timer-pill"><span>⏱</span><span id="timer-clock">90:00</span></div>
+      <button id="btn-open-sheet" class="btn-hud" type="button">📐 Option C Reference</button>
+      <button id="btn-hud-submit" class="btn-hud btn-submit" type="button">Submit Test</button>
+    </div>
+  </header>
+
+  <!-- 6. EXAM WORKSPACE -->
+  <main id="workspace-view" class="hidden">
+    <section id="questions-pane">
+      <div class="exam-shell">
+        <div class="q-progress-bar">
+          <div class="q-progress-meta"><span>Question <strong id="prog-current">1</strong> of <strong id="prog-total">8</strong></span><span>Paper: <strong>Unit 2 Option C [GTY23]</strong></span><span>Checked: <strong id="prog-checked">0 / 8</strong></span><span>Score: <strong id="prog-score">0 / 100</strong></span></div>
+          <div id="q-dots-row" class="q-dots-row"></div>
+        </div>
+        <div id="active-question-slot"></div>
+      </div>
+    </section>
+    <aside id="calculator-pane">
+      <div class="calc-header"><span class="calc-title">Product Design Calc</span><span class="calc-badge">CCEA GTY23 ALLOWED</span></div>
+      <div class="calc-screen"><div id="calc-expr" class="calc-expr"></div><div id="calc-output" class="calc-output">0</div></div>
+      <div class="calc-grid">
+        <button class="calc-btn sci" data-calc="(">(</button><button class="calc-btn sci" data-calc=")">)</button><button class="calc-btn danger" data-action="del">DEL</button><button class="calc-btn danger" data-action="ac">AC</button>
+        <button class="calc-btn" data-calc="7">7</button><button class="calc-btn" data-calc="8">8</button><button class="calc-btn" data-calc="9">9</button><button class="calc-btn op" data-calc="÷">÷</button>
+        <button class="calc-btn" data-calc="4">4</button><button class="calc-btn" data-calc="5">5</button><button class="calc-btn" data-calc="6">6</button><button class="calc-btn op" data-calc="×">×</button>
+        <button class="calc-btn" data-calc="1">1</button><button class="calc-btn" data-calc="2">2</button><button class="calc-btn" data-calc="3">3</button><button class="calc-btn op" data-calc="-">−</button>
+        <button class="calc-btn" data-calc="0">0</button><button class="calc-btn" data-calc=".">.</button><button class="calc-btn equals" data-action="eval">=</button><button class="calc-btn op" data-calc="+">+</button>
+      </div>
+      <p class="calc-tip">Use for <strong>Cross-Sectional Area (mm²)</strong>, <strong>Material Volume/Waste %</strong>, <strong>Tolerances (± mm)</strong>, and <strong>Batch Costs</strong>.</p>
+    </aside>
+  </main>
+
+  <!-- 7. FINAL REPORT CARD -->
+  <section id="results-view" class="page-shell hidden">
+    <div class="container-md">
+      <div class="report-card">
+        <div class="report-header">
+          <div><h2 class="report-title">Product Design Unit 2C Report Card</h2><p class="report-sub" id="report-submission-meta">Submitted</p></div>
+          <div class="report-actions"><button id="btn-retry-same" class="btn-hud btn-submit" type="button">⚡ New Random Paper</button><button id="btn-switch-paper" class="btn-hud" type="button">Switch Mode</button><button id="btn-results-home" class="btn-hud" type="button">🛠️ PD Home</button><a href="index.html" class="btn-hud">🏠 All Subjects</a></div>
+        </div>
+        <div class="report-stats">
+          <div class="stat-tile"><div class="stat-tile-label">Paper Score</div><div class="stat-tile-value highlight" id="stat-marks">0 / 100</div><div class="stat-tile-sub" id="stat-paper-type">Unit 2C [GTY23]</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Percentage</div><div class="stat-tile-value" id="stat-percent">0%</div><div class="stat-tile-sub" id="stat-percent-sub">Overall</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Time Taken</div><div class="stat-tile-value" id="stat-time">00m 00s</div><div class="stat-tile-sub" id="stat-allowed-time">Allowed: 90m 00s</div></div>
+          <div class="stat-tile"><div class="stat-tile-label">Indicative CCEA Grade</div><div class="stat-tile-value" id="stat-grade">—</div><div class="stat-tile-sub" id="stat-q-correct">0 / 8 correct</div></div>
+        </div>
+      </div>
+      <h3 class="graded-sheet-title">Full Question Review &amp; CCEA Mark Scheme Notes</h3>
+      <div id="graded-sheet" class="graded-list"></div>
+    </div>
+  </section>
+
+  <!-- 8. OPTION C REFERENCE SHEET MODAL -->
+  <div id="sheet-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-panel">
+      <div class="modal-header"><h3>📐 CCEA Unit 2 Option C [GTY23] Quick Reference</h3><button id="btn-close-sheet" class="modal-close" type="button">×</button></div>
+      <div class="formula-grid">
+        <div class="formula-item"><div class="formula-name">Profile Cross-Sectional Area</div><div class="formula-expr">L-Angle / U-Channel / I-Beam:<br/>Split into rectangles (Area = L × W) OR Outer Area − Cutout</div></div>
+        <div class="formula-item"><div class="formula-name">3 Named CCEA Designers (2.42)</div><div class="formula-expr">• Barber &amp; Osgerby (Olympic Torch, Tip Ton)<br/>• Philippe Starck (Juicy Salif, Ghost Chair)<br/>• Bethan Gray (craft timber, marble, brass)</div></div>
+        <div class="formula-item"><div class="formula-name">Plastic Forming Processes</div><div class="formula-expr">Extrusion: long profiles (angle/pipe)<br/>Injection: complex 3D casings (pin marks)<br/>Blow: hollow bottles | Vacuum: thin trays</div></div>
+        <div class="formula-item"><div class="formula-name">Thermoplastics vs Thermosets</div><div class="formula-expr">Thermoplastics (ABS, Acrylic, HDPE, PVC): reheat &amp; recycle<br/>Thermosets (Urea/Melamine, Epoxy): heat-resistant, won't remelt</div></div>
+        <div class="formula-item"><div class="formula-name">Tolerance &amp; QA / QC</div><div class="formula-expr">Tolerance = upper limit to lower limit (e.g. 50 mm ± 0.5 mm → 49.5 to 50.5 mm)<br/>Go/No-Go gauges check tolerance rapidly</div></div>
+        <div class="formula-item"><div class="formula-name">6 Rs of Sustainability</div><div class="formula-expr">Rethink • Refuse • Reduce • Reuse • Repair • Recycle<br/>LCA = Cradle-to-Grave environmental impact</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* ============================================================
+       ANTI-REPEAT CRYPTO RNG ENGINE (Persisted in localStorage)
+       ============================================================ */
+    const DECK_STORAGE_KEY = "calum_tech_2c_decks_v1";
+    const PAPER_HISTORY_KEY = "calum_tech_2c_history_v1";
+    const memDecks = {};
+    const memHistory = {};
+
+    function cryptoFloat() {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+      }
+      return Math.random();
+    }
+    function randInt(min, max) { return Math.floor(cryptoFloat() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = randInt(0, i);
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadStore(key) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+          const obj = JSON.parse(raw);
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) return obj;
+        }
+      } catch (_) {}
+      return null;
+    }
+    function saveStore(key, obj) {
+      try { window.localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
+    }
+
+    function resolveEntry(entry) {
+      const q = typeof entry === "function" ? entry() : { ...entry };
+      if (q.type === "mcq" && Array.isArray(q.options)) {
+        const mixed = shuffle(q.options.map((opt, idx) => ({ opt, ok: idx === q.correctIndex })));
+        q.options = mixed.map((x) => x.opt);
+        q.correctIndex = mixed.findIndex((x) => x.ok);
+      }
+      return q;
+    }
+
+    function drawFromDeck(deckKey, pool) {
+      if (!pool || !pool.length) return null;
+      const decks = loadStore(DECK_STORAGE_KEY) || memDecks;
+      let deck = decks[deckKey];
+      const valid = deck && deck.len === pool.length && Array.isArray(deck.remaining) &&
+        deck.remaining.every((i) => Number.isInteger(i) && i >= 0 && i < pool.length) &&
+        new Set(deck.remaining).size === deck.remaining.length;
+
+      if (!valid) deck = { len: pool.length, remaining: [], last: null };
+      if (deck.remaining.length === 0) {
+        deck.remaining = shuffle(Array.from({ length: pool.length }, (_, i) => i));
+        if (pool.length > 1 && deck.remaining[deck.remaining.length - 1] === deck.last) {
+          const last = deck.remaining.length - 1;
+          [deck.remaining[last], deck.remaining[0]] = [deck.remaining[0], deck.remaining[last]];
+        }
+      }
+      const idx = deck.remaining.pop();
+      deck.last = idx;
+      decks[deckKey] = deck;
+      memDecks[deckKey] = deck;
+      saveStore(DECK_STORAGE_KEY, decks);
+      return resolveEntry(pool[idx]);
+    }
+
+    function buildUniquePaper(mode, pools, count) {
+      const history = loadStore(PAPER_HISTORY_KEY) || memHistory;
+      const recentPrompts = Array.isArray(history.recentPrompts) ? history.recentPrompts : [];
+      const lastFirstPool = history["firstPool_" + mode];
+
+      let ordered = shuffle(Array.from({ length: pools.length }, (_, i) => i));
+      if (ordered.length > 1 && ordered[0] === lastFirstPool) {
+        ordered.push(ordered.shift());
+      }
+      if (count && count < ordered.length) ordered = ordered.slice(0, count);
+
+      const paper = ordered.map((poolIdx, pos) => {
+        const pool = pools[poolIdx];
+        let q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        for (let attempt = 0; attempt < 5; attempt++) {
+          if (!recentPrompts.includes(q.prompt)) break;
+          q = drawFromDeck(`${mode}:pool${poolIdx}`, pool);
+        }
+        return { qNum: pos + 1, ...q };
+      });
+
+      history.recentPrompts = paper.map((q) => q.prompt).concat(recentPrompts).slice(0, 32);
+      history["firstPool_" + mode] = ordered[0];
+      memHistory.recentPrompts = history.recentPrompts;
+      memHistory["firstPool_" + mode] = ordered[0];
+      saveStore(PAPER_HISTORY_KEY, history);
+      return paper;
+    }
+
+    /* ============================================================
+       PROCEDURAL PRODUCT DESIGN [GTY23] QUESTION GENERATORS
+       ============================================================ */
+    function genProfileArea(marks = 10) {
+      const kind = randInt(0, 3);
+      if (kind === 0) {
+        const h = randInt(24, 46), w = randInt(20, 40), t = pick([4, 5, 6]);
+        const area = h * t + (w - t) * t;
+        return {
+          topic: "Q1: Stock Profiles & Area (mm²)", marks, type: "input",
+          prompt: `An L-shaped plastic angle section has total height <code>${h} mm</code>, total width <code>${w} mm</code>, and uniform wall thickness <code>${t} mm</code>. Calculate its cross-sectional area in mm².`,
+          hint: "Split into 2 rectangles without double-counting the corner",
+          modelAnswer: String(area), acceptedAnswers: [String(area), area + "mm2"],
+          steps: [`Vertical leg = ${h} × ${t} = ${h * t} mm².`, `Remaining horizontal leg = (${w} − ${t}) × ${t} = ${(w - t) * t} mm².`, `Total = ${area} mm².`]
+        };
+      }
+      if (kind === 1) {
+        const W = randInt(34, 56), H = randInt(22, 36), t = pick([4, 5, 6]);
+        const inW = W - 2 * t, inH = H - t;
+        const area = W * H - inW * inH;
+        return {
+          topic: "Q1: U-Channel Cross-Sectional Area", marks, type: "input",
+          prompt: `A plastic U-channel has outer width <code>${W} mm</code>, outer height <code>${H} mm</code>, and a hollow inner cut-out of <code>${inW} mm × ${inH} mm</code>. Calculate the solid cross-sectional area in mm².`,
+          hint: "Outer rectangle − inner cutout",
+          modelAnswer: String(area), acceptedAnswers: [String(area), area + "mm2"],
+          steps: [`(${W} × ${H}) − (${inW} × ${inH}) = ${W * H} − ${inW * inH} = ${area} mm².`]
+        };
+      }
+      if (kind === 2) {
+        const fW = randInt(18, 30), fT = pick([3, 4, 5]), wH = randInt(10, 20), wT = pick([3, 4, 5]);
+        const area = 2 * fW * fT + wH * wT;
+        return {
+          topic: "Q1: I-Beam Cross-Sectional Area", marks, type: "input",
+          prompt: `An I-shaped beam profile has top and bottom flanges each measuring <code>${fW} mm × ${fT} mm</code>, connected by a central vertical web measuring <code>${wH} mm × ${wT} mm</code>. Calculate total cross-sectional area in mm².`,
+          hint: "2 flanges + 1 web",
+          modelAnswer: String(area), acceptedAnswers: [String(area), area + "mm2"],
+          steps: [`2 × (${fW} × ${fT}) + (${wH} × ${wT}) = ${2 * fW * fT} + ${wH * wT} = ${area} mm².`]
+        };
+      }
+      const W = randInt(30, 50), H = randInt(22, 36), t = pick([3, 4, 5]);
+      const inW = W - 2 * t, inH = H - 2 * t;
+      const area = W * H - inW * inH;
+      return {
+        topic: "Q1: Hollow Box Cross-Sectional Area", marks, type: "input",
+        prompt: `A hollow rectangular box section has outer dimensions <code>${W} mm × ${H} mm</code> and inner hollow dimensions <code>${inW} mm × ${inH} mm</code>. Calculate the solid cross-sectional area in mm².`,
+        hint: "Outer rectangle − inner hollow",
+        modelAnswer: String(area), acceptedAnswers: [String(area), area + "mm2"],
+        steps: [`(${W} × ${H}) − (${inW} × ${inH}) = ${W * H} − ${inW * inH} = ${area} mm².`]
+      };
+    }
+
+    function genTolerance(marks = 12) {
+      const nom = pick([25, 30, 40, 50, 60, 75, 80]);
+      const tol = pick([0.2, 0.3, 0.4, 0.5, 0.8, 1.2]);
+      const mode = randInt(0, 2);
+      if (mode === 0) {
+        const maxVal = Number((nom + tol).toFixed(1));
+        return {
+          topic: "Q7: Tolerances", marks, type: "input",
+          prompt: `A machined metal pin has a specification of <code>${nom}.0 mm ± ${tol} mm</code>. Calculate the MAXIMUM acceptable length in mm.`,
+          hint: `${nom}.0 + ${tol}`, modelAnswer: String(maxVal), acceptedAnswers: [String(maxVal), maxVal + "mm"],
+          steps: [`Upper limit = ${nom}.0 + ${tol} = ${maxVal} mm.`]
+        };
+      } else if (mode === 1) {
+        const minVal = Number((nom - tol).toFixed(1));
+        return {
+          topic: "Q7: Tolerances", marks, type: "input",
+          prompt: `A plastic housing component is specified as <code>${nom}.0 mm ± ${tol} mm</code>. Calculate the MINIMUM acceptable length in mm.`,
+          hint: `${nom}.0 − ${tol}`, modelAnswer: String(minVal), acceptedAnswers: [String(minVal), minVal + "mm"],
+          steps: [`Lower limit = ${nom}.0 − ${tol} = ${minVal} mm.`]
+        };
+      }
+      const range = Number((2 * tol).toFixed(1));
+      return {
+        topic: "Q7: Tolerance Range", marks, type: "input",
+        prompt: `A batch component has a target length of <code>${nom}.0 mm ± ${tol} mm</code>. Calculate the total tolerance range (difference between maximum and minimum acceptable sizes) in mm.`,
+        hint: "Max − Min (or 2 × tolerance)", modelAnswer: String(range), acceptedAnswers: [String(range), range + "mm"],
+        steps: [`Max = ${Number((nom + tol).toFixed(1))} mm, Min = ${Number((nom - tol).toFixed(1))} mm.`, `Total tolerance range = ${range} mm.`]
+      };
+    }
+
+    /* ============================================================
+       PART A: 14 CCEA YEAR 12 UNIT 2 OPTION C [GTY23] TOPICS
+       ============================================================ */
+    const LEARN_TOPICS = [
+      {
+        id:"design-process", title:"The Design Process & Specification", section:"design", sectionLabel:"Design",
+        shortDesc:"Design brief, research, measurable specification (ACCESS FM), prototyping, testing & evaluation.",
+        whatItIs:"A structured <strong>design process</strong> takes an idea from identifying a problem to a tested commercial product: <em>Problem → Research → Design Brief → Product Specification → Concept Sketches → Development &amp; Modelling → Manufacture → Testing &amp; Evaluation</em>.",
+        keyRule:"Specification points must be measurable (e.g. 'must hold 500 ml' or 'must weigh under 400 g', not just 'be strong').",
+        howToSolve:[
+          "Explain why physical prototypes/models are made before mass manufacture: test ergonomics, check aesthetics, find assembly faults before spending thousands on steel moulds.",
+          "Testing against the specification verifies whether every requirement was actually met."
+        ],
+        workedExample:{ q:"Why do product designers build physical card/foam/3D-printed models before making injection moulds?", steps:["1. To test ergonomics and user comfort in real hands.", "2. To spot design flaws early before committing to expensive steel injection moulds."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which stage of the design process comes directly AFTER researching the target market and existing products to list exact measurable requirements?", options:["Mass manufacture","Writing a Product Design Specification","Packaging disposal","Injection moulding"], correctIndex:1, steps:["Research informs a detailed, measurable Product Specification before generating ideas."] },
+          { type:"mcq", prompt:"Why is making a physical prototype important before investing in steel injection-mould tooling?", options:["It guarantees the product is biodegradable","It lets designers test ergonomics, proportions, and fit before paying for expensive moulds","It replaces the need for a client","It speeds up continuous production"], correctIndex:1, steps:["Prototypes catch faults cheaply before costly tooling is machined."] },
+          { type:"mcq", prompt:"Which specification point is written in the BEST measurable way?", options:["The bottle must be nice to hold","The bottle must be strong","The bottle must have a capacity of 750 ml and fit a standard 74 mm bike cage","The bottle should look cool"], correctIndex:2, steps:["Good specifications include specific numbers/units that can be tested."] }
+        ]
+      },
+      {
+        id:"stakeholders", title:"Roles: Client, User, Designer & Maker", section:"design", sectionLabel:"Design",
+        shortDesc:"Distinguishing the responsibilities of the Client, End-User, Designer, and Maker/Manufacturer.",
+        whatItIs:"Every commercial product involves four stakeholders: the <strong>Client</strong> (funds/commissions), the <strong>Designer</strong> (researches, sketches, specifies, models), the <strong>Maker/Manufacturer</strong> (fabricates physical parts), and the <strong>User</strong> (buys and uses it).",
+        keyRule:"Client = Money & Brief | Designer = Concepts & Specs | Maker = Production | User = Feedback & Experience",
+        howToSolve:["CCEA mark schemes penalise confusing Designer with Maker: a designer produces drawings, CAD files, and specifications; a maker operates machines/tools to produce physical items."],
+        workedExample:{ q:"State two responsibilities of the CLIENT in a product design project.", steps:["1. Funds the project and sets the budget/target price.", "2. Agrees the design brief and approves final concepts."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which stakeholder funds the project, sets the budget, and agrees the original design brief?", options:["The end-user","The client","The CNC operator","The maker"], correctIndex:1, steps:["The client commissions and finances the design project."] },
+          { type:"mcq", prompt:"What is the primary role of the DESIGNER as opposed to the MAKER?", options:["Operating factory injection moulders 24/7","Researching user needs, sketching concepts, ergonomic modelling, and specifying materials","Driving delivery lorries","Selling raw crude oil"], correctIndex:1, steps:["Designers solve the problem visually and technically; makers manufacture the parts."] },
+          { type:"mcq", prompt:"Why is consulting the END-USER essential during product development?", options:["Users pay for the steel moulds","User feedback reveals comfort, safety, and usability issues designers might miss","Users program the CNC router","Users set the factory wages"], correctIndex:1, steps:["End-users test ergonomics and practical usability."] }
+        ]
+      },
+      {
+        id:"ergonomics-anthropometrics", title:"Ergonomics, Anthropometrics & Aesthetics", section:"design", sectionLabel:"Design",
+        shortDesc:"5th–95th percentile body data, comfort, safety, inclusive design & form vs function.",
+        whatItIs:"<strong>Anthropometrics</strong> is the collection of human body measurements (heights, hand grips, reach). <strong>Ergonomics</strong> applies that data—along with weight, grip texture, and button layout—so a product is comfortable, safe, and easy to use.",
+        keyRule:"Design for 5th to 95th percentile (covers 90% of people) OR add adjustability (straps, sliding seats).",
+        howToSolve:["Form Follows Function = shape is driven by practical job; Form Over Function = looks/style prioritised over practicality.", "Inclusive design ensures products work for elderly or disabled users."],
+        workedExample:{ q:"Why are adjustable height levers fitted to office chairs?", steps:["To accommodate users across the 5th to 95th percentile of leg/body heights without needing custom chairs for each person."] },
+        practicePool:[
+          { type:"mcq", prompt:"What is 'anthropometrics'?", options:["Testing plastics with a hammer","The study and collection of human body measurements (heights, grip widths, etc.)","Making products out of recycled wood","Drawing in isometric projection"], correctIndex:1, steps:["Anthropometrics = body measurement data; Ergonomics = applying it for comfort & ease of use."] },
+          { type:"mcq", prompt:"Why do most non-adjustable products design for the 5th to 95th percentile?", options:["To exclude 50% of adults","It comfortably fits 90% of the population without expensive extreme sizing","It uses less electricity","It makes plastic stronger"], correctIndex:1, steps:["The 5th–95th range covers 90% of users economically."] },
+          { type:"mcq", prompt:"What does 'Form Follows Function' mean?", options:["Appearance/novelty is more important than working well","A product's shape and appearance are driven primarily by how effectively it performs its job","The product must be brightly coloured","The product uses thermoset plastics only"], correctIndex:1, steps:["Form Follows Function prioritises practical utility over unnecessary decoration."] }
+        ]
+      },
+      {
+        id:"named-designers", title:"CCEA Named Designers (Option C 2.42)", section:"design", sectionLabel:"Designers",
+        shortDesc:"Edward Barber & Jay Osgerby, Philippe Starck, and Bethan Gray — key works & styles.",
+        whatItIs:"CCEA Option C specifically assesses three contemporary designers: <strong>Edward Barber &amp; Jay Osgerby</strong> (British functional minimalism, Tip Ton chair, 2012 Olympic Torch), <strong>Philippe Starck</strong> (French playful postmodernism, Juicy Salif, Ghost Chair), and <strong>Bethan Gray</strong> (British craft luxury blending traditional wood/brass/marble with modern manufacture).",
+        keyRule:"Barber & Osgerby = functional innovation | Philippe Starck = sculptural/form-over-function | Bethan Gray = luxury craft + natural materials",
+        howToSolve:[
+          "Barber & Osgerby: research-led engineering, Tip Ton tilting polypropylene chair (100% recyclable), London 2012 Olympic Torch (8000 laser-cut holes in aluminium alloy).",
+          "Philippe Starck: Juicy Salif lemon squeezer (sculptural cast aluminium — form over function) & Louis Ghost chair (injection-moulded polycarbonate).",
+          "Bethan Gray: natural materials (solid oak/walnut, marble, brass) and traditional craftsmanship paired with ethical sourcing."
+        ],
+        workedExample:{ q:"Name one iconic product by Philippe Starck and explain why it is often described as 'form over function'.", steps:["The Juicy Salif lemon squeezer.", "Its sculptural cast-aluminium appearance takes priority over practicality (juice splashes and acid can corrode it)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which CCEA-named designers created the London 2012 Olympic Torch and the tilting 'Tip Ton' polypropylene chair?", options:["Philippe Starck","Edward Barber and Jay Osgerby","Bethan Gray","James Dyson"], correctIndex:1, steps:["Barber & Osgerby designed both the 2012 Olympic Torch and the Tip Ton chair."] },
+          { type:"mcq", prompt:"Which designer is famous for the sculptural cast-aluminium 'Juicy Salif' lemon squeezer and injection-moulded 'Louis Ghost' chair?", options:["Bethan Gray","Philippe Starck","Edward Barber","Jay Osgerby"], correctIndex:1, steps:["Philippe Starck is famous for Juicy Salif and the transparent polycarbonate Ghost chair."] },
+          { type:"mcq", prompt:"Which CCEA-named designer is best known for blending traditional craft joinery with natural materials like solid timber, marble, and brass?", options:["Philippe Starck","Bethan Gray","Edward Barber","Henry Ford"], correctIndex:1, steps:["Bethan Gray focuses on craft heritage and rich natural materials."] }
+        ]
+      },
+      {
+        id:"communication-cad", title:"Communication Drawings & CAD Modelling", section:"design", sectionLabel:"Design",
+        shortDesc:"Isometric, orthographic (3rd angle), exploded views, sectional views & CAD advantages.",
+        whatItIs:"Designers communicate ideas using <strong>freehand sketching</strong>, <strong>isometric 3D drawing</strong> (30° angles), <strong>orthographic projection</strong> (Front, Plan, End views with exact dimensions), <strong>exploded views</strong> (how parts fit together), and <strong>CAD</strong>.",
+        keyRule:"Orthographic = exact 2D dimensions for maker | Exploded = assembly order | Isometric = 30° 3D pictorial",
+        howToSolve:["Advantages of CAD over hand drawing: easy to edit/undo, rotate in 3D, render realistic materials, send electronically to CAM machines or clients."],
+        workedExample:{ q:"Why is an exploded isometric drawing included in flat-pack furniture instructions?", steps:["It separates components along their assembly axes so the user can clearly see the order and position of every part and screw."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which type of technical drawing shows separate 2D Front, Plan, and End views with exact dimensions for a manufacturer?", options:["Perspective sketch","Orthographic projection","Exploded view","Mood board"], correctIndex:1, steps:["Orthographic projection provides accurate 2D views and dimensions for manufacture."] },
+          { type:"mcq", prompt:"In an ISOMETRIC drawing, at what angle to the horizontal are the receding 3D axes drawn?", options:["15°","30°","45°","90°"], correctIndex:1, steps:["Isometric axes sit at 30° to the horizontal."] },
+          { type:"mcq", prompt:"Which drawing type separates components along their alignment lines to show how a product is assembled?", options:["Sectional view","Exploded view","Plan view","Flowchart"], correctIndex:1, steps:["Exploded diagrams clarify assembly order and hidden internal parts."] }
+        ]
+      },
+      {
+        id:"stock-profiles-area", title:"Stock Plastic Profiles & Area Calculations", section:"materials", sectionLabel:"Materials",
+        shortDesc:"Angle, I-shaped section, U-shaped channel, sheet & tube profiles + cross-sectional area maths.",
+        whatItIs:"Plastics and metals are supplied in standard <strong>stock profiles</strong> (Angle, I-section, U-channel, Sheet, Rod, Tube) to reduce waste and machining time. CCEA <code>[GTY23]</code> Question 1 regularly tests identifying profiles and calculating <strong>cross-sectional area in mm²</strong>.",
+        keyRule:"L-Section / U-Channel Area: split carefully into non-overlapping rectangles (or Outer Area − Cutout)",
+        diagramSvg:`<svg width="240" height="120" viewBox="0 0 240 120" xmlns="http://www.w3.org/2000/svg"><polygon points="35,20 55,20 55,82 115,82 115,102 35,102" fill="rgba(244,63,94,0.18)" stroke="#f43f5e" stroke-width="2"/><text x="64" y="65" fill="#fda4af" font-size="10" font-family="monospace">Angle (L)</text><polygon points="150,20 170,20 170,82 200,82 200,20 220,20 220,102 150,102" fill="rgba(56,189,248,0.18)" stroke="#38bdf8" stroke-width="2"/><text x="155" y="116" fill="#bae6fd" font-size="10" font-family="monospace">U-Channel</text></svg>`,
+        howToSolve:["Never double-count the corner overlap when splitting an L-angle into 2 rectangles! Subtract the wall thickness from one leg's length.", "For a U-channel, Outer Rectangle (W × H) minus Inner Cutout (w × h) is quickest and safest."],
+        workedExample:{ q:"An angle section has total height 30 mm, total base 25 mm, and thickness 5 mm. Calculate its cross-sectional area.", steps:["Vertical leg = 30 × 5 = 150 mm².", "Remaining horizontal leg = (25 − 5) × 5 = 100 mm².", "Total = 250 mm²."] },
+        practicePool:[() => genProfileArea(10)]
+      },
+      {
+        id:"polymers-smart", title:"Polymers & Smart Materials", section:"materials", sectionLabel:"Materials",
+        shortDesc:"Thermoplastics vs thermosets, acrylic/ABS/HDPE/urea formaldehyde, and smart materials.",
+        whatItIs:"<strong>Thermoplastics</strong> (acrylic, ABS, HDPE, PP, PVC) soften when heated so can be moulded and recycled. <strong>Thermosets</strong> (urea formaldehyde, melamine, epoxy) have rigid cross-links so NEVER melt once set. <strong>Smart materials</strong> react reversibly to stimuli.",
+        keyRule:"Thermoplastics = soften with heat (recyclable) | Thermosets = cross-linked, heat-resistant insulators",
+        howToSolve:[
+          "Match polymers to uses: ABS (tough casings/Lego), Acrylic/PMMA (transparent, brittle if dropped), HDPE (milk bottles/Tip Ton), Urea Formaldehyde (3-pin plug casings).",
+          "Smart materials: Thermochromic (temperature), Photochromic (UV light), Shape Memory Alloy / Nitinol (returns to shape when heated)."
+        ],
+        workedExample:{ q:"Why is ABS chosen for power-tool and games-controller casings?", steps:["It is tough, impact-resistant, lightweight, an electrical insulator, and easily injection-moulded in bright colours."] },
+        practicePool:[
+          { type:"mcq", prompt:"Why is urea formaldehyde (a thermosetting plastic) used for 3-pin electrical plug casings?", options:["It can be melted down easily","It has cross-linked chains so will NOT soften if hot, and is a good electrical insulator","It is transparent","It conducts electricity"], correctIndex:1, steps:["Thermosets resist heat distortion and insulate electricity safely."] },
+          { type:"mcq", prompt:"Which smart material returns to its pre-set shape when warmed (used in flexible glasses frames and medical stents)?", options:["Thermochromic ink","Shape Memory Alloy (Nitinol)","Acrylic","MDF"], correctIndex:1, steps:["Shape Memory Alloy (Nitinol) remembers and returns to its original shape when heated."] },
+          { type:"mcq", prompt:"Which thermoplastic is tough, impact-resistant, and widely injection-moulded for safety helmets and Lego bricks?", options:["ABS","Urea formaldehyde","Melamine formaldehyde","Plywood"], correctIndex:0, steps:["ABS (Acrylonitrile Butadiene Styrene) is tough and ideal for injection moulding."] }
+        ]
+      },
+      {
+        id:"timbers-metals", title:"Timbers, Manufactured Boards & Metals", section:"materials", sectionLabel:"Materials",
+        shortDesc:"Hardwoods, softwoods, MDF/plywood; ferrous vs non-ferrous metals & alloys (brass, stainless steel).",
+        whatItIs:"<strong>Hardwoods</strong> (oak, beech, ash — deciduous) grow slowly and are dense. <strong>Softwoods</strong> (pine, cedar — coniferous) grow faster and are cheaper. <strong>Manufactured boards</strong> (MDF, plywood) come in large flat sheets. <strong>Ferrous metals</strong> contain iron and rust; <strong>non-ferrous</strong> do not.",
+        keyRule:"Plywood = odd number of veneers glued at 90° for strength | Alloy = mixture of metals (e.g. Brass = Cu + Zn)",
+        howToSolve:["'Hardwood' vs 'Softwood' refers to tree seed type, NOT actual hardness (balsa is a soft hardwood!).", "Aluminium is non-ferrous, lightweight, corrosion-resistant."],
+        workedExample:{ q:"Give two advantages of using plywood instead of solid pine for a cabinet back or shelf.", steps:["1. Large flat sheets with uniform strength in both directions (cross-laminated veneers).", "2. Less likely to warp, twist, or split, and has no knots."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which metal is FERROUS (contains iron) and will rust outdoors unless painted or galvanised?", options:["Aluminium","Copper","Mild steel","Brass"], correctIndex:2, steps:["Mild steel contains iron and corrodes in air/moisture unless protected."] },
+          { type:"mcq", prompt:"Why are the thin wood veneers in PLYWOOD glued with their grains running at 90° to each other?", options:["To make it cheaper","To give equal strength in all directions and prevent warping","To make it flexible like rubber","To make it conduct electricity"], correctIndex:1, steps:["Cross-grain lamination prevents warping and strengthens both directions."] },
+          { type:"mcq", prompt:"Which non-ferrous metal is lightweight, corrosion-resistant, and used for drink cans and aircraft bodies?", options:["Cast iron","Mild steel","Aluminium","High-carbon steel"], correctIndex:2, steps:["Aluminium has a low density and forms a protective oxide layer."] }
+        ]
+      },
+      {
+        id:"joining-finishes", title:"Fabrication, Joining & Surface Finishes", section:"materials", sectionLabel:"Materials",
+        shortDesc:"Permanent vs temporary joints, knock-down fittings, adhesives & protective/aesthetic finishes.",
+        whatItIs:"<strong>Permanent joints</strong> (welding, brazing, soldering, pop rivets, adhesives) cannot be undone without damage. <strong>Temporary joints</strong> (nuts/bolts, screws, knock-down fittings) allow disassembly.",
+        keyRule:"KD fittings = flat-pack furniture | Galvanising = zinc coat on steel | Anodising = tough oxide coat on aluminium",
+        howToSolve:["Adhesives: PVA (wood), Tensol cement (acrylic—dissolves & welds surfaces), Epoxy resin (2-part strong bond for metal/mixed materials)."],
+        workedExample:{ q:"Why is galvanising used on outdoor steel railings or street-lamp posts?", steps:["Zinc coats the steel to block water/oxygen and provides sacrificial protection even if scratched."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which joining method is TEMPORARY so flat-pack furniture can be disassembled for moving?", options:["MIG welding","Pop riveting","Knock-down (KD) cam-lock fittings","Epoxy resin"], correctIndex:2, steps:["KD fittings allow quick assembly and disassembly with simple tools."] },
+          { type:"mcq", prompt:"Which adhesive chemically welds two pieces of acrylic together?", options:["PVA glue","Tensol cement (solvent weld)","Pritt stick","Hot-melt glue"], correctIndex:1, steps:["Tensol solvent softens acrylic edges so they fuse as it evaporates."] },
+          { type:"mcq", prompt:"What surface finish involves dipping steel in molten zinc to prevent rusting?", options:["Varnishing","Galvanising","Anodising","Polishing"], correctIndex:1, steps:["Galvanising coats steel in zinc for barrier + sacrificial rust protection."] }
+        ]
+      },
+      {
+        id:"cad-cam-cnc", title:"CAD / CAM, CNC & 3D Printing", section:"mfg", sectionLabel:"Manufacturing",
+        shortDesc:"Virtual CAD testing, additive 3D printing vs subtractive CNC routing/laser cutting & scales.",
+        whatItIs:"<strong>CAM</strong> machines (laser cutters, CNC routers, 3D printers) read CAD files to produce parts automatically with high repeatability. <strong>3D printing</strong> is <em>additive</em>; <strong>CNC milling/laser cutting</strong> is <em>subtractive</em>.",
+        keyRule:"Scales: One-off (bespoke) → Batch (10s–1000s) → Mass / Continuous (24/7 automated line)",
+        howToSolve:["Contrast high initial setup cost of CAM/automated lines against very low unit cost at high volume."],
+        workedExample:{ q:"State two advantages of laser cutting acrylic keyrings instead of cutting them by hand with a coping saw.", steps:["1. Much faster and produces clean, polished edges automatically.", "2. Every keyring in the batch is identical to tight tolerances."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which manufacturing method is an ADDITIVE process building a 3D prototype layer by layer from CAD?", options:["CNC milling","Laser cutting","3D printing","Turning on a lathe"], correctIndex:2, steps:["3D printing deposits material layer by layer."] },
+          { type:"mcq", prompt:"Which scale of production manufactures millions of identical plastic bottles 24/7 on a dedicated automated line?", options:["One-off production","Batch production","Continuous / Mass production","Bespoke craft"], correctIndex:2, steps:["Continuous production runs 24/7 for huge volumes."] },
+          { type:"mcq", prompt:"Which is an advantage of CAD over traditional paper drawing?", options:["Designs cannot be saved","Models can be rotated in 3D, edited instantly, and sent directly to CAM machines","Requires physical wood first","Always more expensive per edit"], correctIndex:1, steps:["CAD allows fast edits, 3D visualisation, and direct CAM export."] }
+        ]
+      },
+      {
+        id:"plastic-forming", title:"Industrial Plastic Forming Processes", section:"mfg", sectionLabel:"Manufacturing",
+        shortDesc:"Extrusion, injection moulding, blow moulding, vacuum forming & rotational moulding.",
+        whatItIs:"CCEA Option C tests matching everyday plastic products to the exact industrial process used to make them, and identifying visual clues like ejector pin marks or mould split lines.",
+        keyRule:"Extrusion = long profiles | Injection = complex 3D solids | Blow = hollow bottles | Vacuum = thin trays | Rotational = large hollow tanks",
+        howToSolve:["Draft angles (slightly sloped sides) allow moulded plastic parts to release cleanly from the mould without sticking."],
+        workedExample:{ q:"Why must a vacuum-forming mould have slightly sloped sides (draft angles) and smooth rounded corners?", steps:["Draft angles allow the cooled plastic shell to lift off the mould easily without tearing or jamming."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which industrial process forces molten thermoplastic continuously through a shaped die to make guttering, pipes, or L-angle profiles?", options:["Vacuum forming","Extrusion","Blow moulding","Rotational moulding"], correctIndex:1, steps:["Extrusion creates continuous uniform cross-sections."] },
+          { type:"mcq", prompt:"Small circular ejector-pin marks and a mould split line on a games-controller casing show it was manufactured by:", options:["Extrusion","Injection moulding","Vacuum forming","Line bending"], correctIndex:1, steps:["Injection moulding uses two-part steel moulds and ejector pins."] },
+          { type:"mcq", prompt:"Which process manufactures thin-walled hollow plastic drinks bottles?", options:["Injection moulding","Blow moulding","Vacuum forming","Compression moulding"], correctIndex:1, steps:["Blow moulding inflates warm plastic inside a hollow bottle mould."] }
+        ]
+      },
+      {
+        id:"qa-qc-jigs", title:"Quality Assurance, QC, Jigs & Tolerances", section:"mfg", sectionLabel:"Manufacturing",
+        shortDesc:"QA vs QC, tolerances (± mm), Go/No-Go gauges, jigs & templates in batch production.",
+        whatItIs:"<strong>Quality Assurance (QA)</strong> plans checks throughout every stage of manufacture to prevent faults; <strong>Quality Control (QC)</strong> inspects finished parts at the end (e.g. using a <strong>Go/No-Go gauge</strong>) to check they fall within <strong>tolerance</strong>.",
+        keyRule:"Tolerance = allowed size range (e.g. 40 mm ± 0.5 mm → 39.5 mm to 40.5 mm) | Jig = holds part & guides tool",
+        howToSolve:["Calculate upper and lower limits by adding and subtracting the ± tolerance value."],
+        workedExample:{ q:"A metal shaft has specification 25.0 mm ± 0.4 mm. State the minimum and maximum acceptable diameters.", steps:["Minimum = 24.6 mm.", "Maximum = 25.4 mm."] },
+        practicePool:[
+          () => genTolerance(12),
+          { type:"mcq", prompt:"What is the main purpose of a drilling JIG in batch production?", options:["To melt plastic","To hold the workpiece and guide the drill bit to the exact same position on every item","To polish edges","To paint steel"], correctIndex:1, steps:["Jigs remove repeated measuring and ensure consistent accuracy."] },
+          { type:"mcq", prompt:"Which inspection tool quickly tests if a batch-produced part is within tolerance without reading a scale?", options:["Go / No-Go gauge","Pencil","Try square","Coping saw"], correctIndex:0, steps:["A Go/No-Go gauge gives an instant pass/fail tolerance check."] }
+        ]
+      },
+      {
+        id:"sustainability-6rs", title:"Sustainability, 6 Rs & Life Cycle (LCA)", section:"social", sectionLabel:"Social Resp.",
+        shortDesc:"The 6 Rs, Life Cycle Assessment (cradle-to-grave), FSC timber, recycling codes & carbon footprint.",
+        whatItIs:"Socially responsible designers use <strong>Life Cycle Assessment (LCA)</strong> to measure environmental impact from raw material extraction through manufacture, transport, use, and disposal, guided by the <strong>6 Rs</strong>.",
+        keyRule:"6 Rs: Rethink, Refuse, Reduce, Reuse, Repair, Recycle | FSC = sustainably managed replanted forests",
+        howToSolve:["Link specific design choices to concrete impacts (e.g. snap-fit clips instead of glue → easier disassembly for repair & recycling; local manufacture → lower transport CO₂)."],
+        workedExample:{ q:"How does designing a toaster with screws instead of permanent rivets or glue support the 6 Rs?", steps:["It allows easy disassembly for REPAIR (extending life) and RECYCLING (separating steel, copper, and plastics cleanly)."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which of the '6 Rs' involves using less material, thinner walls, or less packaging?", options:["Refuse","Reduce","Repair","Rethink"], correctIndex:1, steps:["Reduce minimises raw material and energy consumption."] },
+          { type:"mcq", prompt:"What does the FSC logo on a timber product guarantee?", options:["The wood is fireproof","The wood comes from responsibly managed, replanted forests","The wood is a thermoset plastic","The wood was made by 3D printing"], correctIndex:1, steps:["FSC (Forest Stewardship Council) certifies sustainable forestry."] },
+          { type:"mcq", prompt:"What does a Life Cycle Assessment (LCA) evaluate?", options:["Only the shop retail price","Environmental impact across a product's whole life: raw materials, manufacture, transport, use, and disposal","Only the ergonomics of the handle","Only the colour scheme"], correctIndex:1, steps:["LCA examines cradle-to-grave environmental impacts."] }
+        ]
+      },
+      {
+        id:"ethics-obsolescence", title:"Planned Obsolescence, Fair Trade & Safety", section:"social", sectionLabel:"Social Resp.",
+        shortDesc:"Planned obsolescence, e-waste, Fair Trade, CE/UKCA safety marks & inclusive design.",
+        whatItIs:"<strong>Planned obsolescence</strong> deliberately designs a product with a short lifespan (e.g. glued-in batteries) so customers replace it sooner—creating e-waste. Safety marks (<strong>UKCA / CE / Lion Mark</strong>) certify products meet legal safety standards.",
+        keyRule:"Planned obsolescence → more e-waste & wasted finite resources | CE/UKCA = meets legal safety standards",
+        howToSolve:["Discuss safe working conditions & fair wages (Fair Trade), accessibility for elderly/disabled users, and avoiding toxic materials."],
+        workedExample:{ q:"Give two ways a smartphone manufacturer could reduce planned obsolescence.", steps:["1. Make the battery easy for users to replace with screws instead of glue.", "2. Provide long-term software updates and modular spare parts."] },
+        practicePool:[
+          { type:"mcq", prompt:"Which term describes designing a product to wear out or become outdated quickly so consumers have to buy a replacement?", options:["Life Cycle Assessment","Planned obsolescence","Ergonomics","Quality Assurance"], correctIndex:1, steps:["Planned obsolescence shortens product life to boost repeat sales."] },
+          { type:"mcq", prompt:"Why do plastic parts carry recycling resin numbers (e.g. 1 PET, 2 HDPE, 5 PP)?", options:["To show the retail price","To identify and sort different polymers cleanly before recycling","To show the factory shift","To measure voltage"], correctIndex:1, steps:["Sorting polymers by resin code prevents mixed-plastic contamination."] },
+          { type:"mcq", prompt:"What does the BSI Kitemark or CE/UKCA mark on a consumer product indicate?", options:["It is the cheapest on the market","It has been tested to meet strict safety and quality standards","It is made from hardwood","It is a one-off craft item"], correctIndex:1, steps:["Safety marks confirm compliance with recognised safety standards."] }
+        ]
+      }
+    ];
+
+    /* ============================================================
+       PART B: 8 CCEA [GTY23] EXAM POOLS (10+12+12+12+12+14+12+16 = 100 MARKS)
+       ============================================================ */
+    const OPTC_POOLS = [
+      // Q1: Stock Profiles & Cross-Sectional Area (10 marks)
+      [() => genProfileArea(10)],
+      // Q2: Materials & Smart Materials (12 marks)
+      [
+        { topic:"Q2: Thermosets vs Thermoplastics", marks:12, type:"mcq", prompt:"Why is urea formaldehyde (a thermosetting plastic) chosen for 3-pin electrical plug casings instead of a thermoplastic?", options:["It can be melted down easily","Its cross-linked chains resist heat and do not soften if warm, and it insulates electricity","It is transparent","It conducts electricity"], correctIndex:1, steps:["Thermosets stay rigid under heat and act as safe electrical insulators."] },
+        { topic:"Q2: Smart Materials", marks:12, type:"mcq", prompt:"Which smart material changes colour when its temperature changes (e.g. on baby spoons or battery testers)?", options:["Shape memory alloy (Nitinol)","Thermochromic pigment","Photochromic glass","Mild steel"], correctIndex:1, steps:["Thermochromic materials respond to temperature changes by changing colour."] },
+        { topic:"Q2: Ferrous Metals & Plywood", marks:12, type:"mcq", prompt:"Why are the thin wood veneers in PLYWOOD glued with alternating grains at 90° to each other?", options:["To reduce cost","To give equal strength in both directions and prevent warping","To make it flexible like rubber","To make it magnetic"], correctIndex:1, steps:["Cross-lamination balances grain stresses, preventing warping and increasing strength."] },
+        { topic:"Q2: Thermoplastics (ABS)", marks:12, type:"mcq", prompt:"Which thermoplastic is tough, impact-resistant, and widely injection-moulded for power-tool and games-controller casings?", options:["ABS","Urea formaldehyde","Melamine formaldehyde","Cast iron"], correctIndex:0, steps:["ABS is tough, impact-resistant, and ideal for injection-moulded casings."] }
+      ],
+      // Q3: Industrial Plastic Forming (12 marks)
+      [
+        { topic:"Q3: Extrusion", marks:12, type:"mcq", prompt:"Which industrial process forces molten thermoplastic continuously through a shaped die to make pipes, guttering, or L-angle profiles?", options:["Vacuum forming","Extrusion","Blow moulding","Rotational moulding"], correctIndex:1, steps:["Extrusion produces long, uniform cross-section profiles."] },
+        { topic:"Q3: Injection Moulding", marks:12, type:"mcq", prompt:"Small circular ejector-pin marks and a mould split line on a TV remote casing show it was manufactured by:", options:["Extrusion","Injection moulding","Vacuum forming","Line bending"], correctIndex:1, steps:["Injection moulding uses two-part steel moulds and ejector pins to push out complex 3D solids."] },
+        { topic:"Q3: Blow Moulding", marks:12, type:"mcq", prompt:"Which industrial plastic forming process manufactures thin-walled hollow drinks bottles?", options:["Injection moulding","Blow moulding","Vacuum forming","Compression moulding"], correctIndex:1, steps:["Blow moulding inflates a warm plastic parison inside a hollow bottle mould."] },
+        { topic:"Q3: Vacuum Forming", marks:12, type:"mcq", prompt:"Why must a wooden vacuum-forming mould have slightly sloped sides (draft angles)?", options:["To increase plastic thickness","So the cooled plastic shell can be lifted off the mould easily without sticking or tearing","To melt the wood","To conduct electricity"], correctIndex:1, steps:["Draft angles allow easy release of the moulded plastic tray."] }
+      ],
+      // Q4: Designers & Innovation (12 marks)
+      [
+        { topic:"Q4: Barber & Osgerby (2.42)", marks:12, type:"mcq", prompt:"Which CCEA-named designers created the London 2012 Olympic Torch and the tilting 'Tip Ton' polypropylene chair?", options:["Philippe Starck","Edward Barber and Jay Osgerby","Bethan Gray","James Dyson"], correctIndex:1, steps:["Edward Barber & Jay Osgerby designed the 2012 Olympic Torch and Tip Ton chair."] },
+        { topic:"Q4: Philippe Starck (2.42)", marks:12, type:"mcq", prompt:"Philippe Starck's 'Juicy Salif' lemon squeezer is a famous example of which design philosophy?", options:["Strict anthropometrics","Form over function (sculptural visual appeal prioritised over practicality)","Batch jig manufacturing","Thermoset lamination"], correctIndex:1, steps:["Juicy Salif prioritises iconic sculptural form over practical ease of juicing."] },
+        { topic:"Q4: Bethan Gray (2.42)", marks:12, type:"mcq", prompt:"Which CCEA-named designer is best known for blending traditional craft joinery with natural materials such as solid timber, marble, and brass?", options:["Philippe Starck","Bethan Gray","Edward Barber","Henry Ford"], correctIndex:1, steps:["Bethan Gray celebrates craft heritage and rich natural materials."] },
+        { topic:"Q4: Louis Ghost Chair (2.42)", marks:12, type:"mcq", prompt:"Philippe Starck's transparent 'Louis Ghost' chair is mass-produced in a single piece using which plastic forming process?", options:["Vacuum forming","Injection moulding of polycarbonate","Extrusion","Wood turning"], correctIndex:1, steps:["The Ghost chair is injection-moulded from transparent polycarbonate."] }
+      ],
+      // Q5: Ergonomics, Stakeholders & Communication (12 marks)
+      [
+        { topic:"Q5: Ergonomics & Anthropometrics", marks:12, type:"mcq", prompt:"What is 'anthropometrics' in Product Design?", options:["Testing plastics for impact","Collecting human body measurements (heights, hand grip widths, reach, etc.)","Laser cutting acrylic","Pricing products for retail"], correctIndex:1, steps:["Anthropometrics is human measurement data; ergonomics applies it to improve comfort and safety."] },
+        { topic:"Q5: Client vs Designer", marks:12, type:"mcq", prompt:"Which stakeholder funds the product, sets the budget, and agrees the original design brief?", options:["The end-user","The client","The CNC operator","The maker"], correctIndex:1, steps:["The client commissions and finances the design project."] },
+        { topic:"Q5: Technical Drawings", marks:12, type:"mcq", prompt:"Which drawing style separates components along their alignment lines to show assembly order?", options:["Orthographic projection","Exploded isometric view","Mood board","Flowchart"], correctIndex:1, steps:["Exploded views clarify how parts fit together during assembly."] },
+        { topic:"Q5: Percentile Range", marks:12, type:"mcq", prompt:"Why do designers normally use the 5th to 95th percentile range of anthropometric data?", options:["It fits 90% of the target population without making products overly expensive for extreme sizes","It only fits teenagers","It eliminates all ergonomics","It doubles manufacturing speed"], correctIndex:0, steps:["Designing for the 5th–95th percentile covers 90% of users economically."] }
+      ],
+      // Q6: CAD/CAM, CNC & 3D Printing (14 marks)
+      [
+        { topic:"Q6: Additive vs Subtractive CAM", marks:14, type:"mcq", prompt:"Which CAM process is an ADDITIVE method that builds a 3D prototype layer by layer directly from a CAD file?", options:["CNC milling","Laser cutting","3D printing","Centre-lathe turning"], correctIndex:2, steps:["3D printing deposits material layer by layer (additive manufacture)."] },
+        { topic:"Q6: Scales of Production", marks:14, type:"mcq", prompt:"Which scale of production manufactures millions of identical plastic bottles 24/7 on a dedicated automated line?", options:["One-off production","Batch production","Continuous / Mass production","Bespoke prototyping"], correctIndex:2, steps:["Continuous production runs 24/7 for massive quantities at low unit cost."] },
+        { topic:"Q6: Advantages of CAD", marks:14, type:"mcq", prompt:"Which is a key advantage of using CAD software before manufacturing?", options:["It physically cuts the wood itself","Designs can be rotated in 3D, edited quickly, stress-tested, and exported straight to CAM","It requires zero electricity","It replaces all materials"], correctIndex:1, steps:["CAD speeds up edits, virtual testing, and direct CAM file export."] },
+        { topic:"Q6: Prototyping Value", marks:14, type:"mcq", prompt:"Why do companies make physical prototypes before paying for steel injection-mould tooling?", options:["To increase plastic waste","To test ergonomics, fit, and appearance early so costly tooling mistakes are avoided","To slow down the client","To avoid writing a specification"], correctIndex:1, steps:["Prototypes catch faults cheaply before expensive steel moulds are machined."] }
+      ],
+      // Q7: QA/QC, Tolerances, Jigs & Joining (12 marks)
+      [
+        () => genTolerance(12),
+        { topic:"Q7: Jigs in Batch Production", marks:12, type:"mcq", prompt:"What is the main purpose of using a drilling JIG in batch production?", options:["To melt plastic sheets","To hold the workpiece and guide the drill bit to the exact same position on every item","To varnish timber","To test aesthetics"], correctIndex:1, steps:["Jigs remove repeated measuring and ensure consistent accuracy across a batch."] },
+        { topic:"Q7: Temporary Joining", marks:12, type:"mcq", prompt:"Which joining method is TEMPORARY so flat-pack furniture can be disassembled later?", options:["MIG welding","Pop riveting","Knock-down (KD) cam-lock fittings","Epoxy resin adhesive"], correctIndex:2, steps:["KD fittings allow assembly and disassembly with simple tools."] },
+        { topic:"Q7: Go/No-Go Gauges", marks:12, type:"mcq", prompt:"Which Quality Control tool rapidly checks if a batch-produced part lies within tolerance without reading a vernier scale?", options:["Go / No-Go gauge","Tenon saw","Heat gun","PVA adhesive"], correctIndex:0, steps:["Go/No-Go gauges allow fast pass/fail tolerance inspection."] }
+      ],
+      // Q8: Social Responsibilities, 6 Rs & Sustainability (16 marks - CCEA Q8 Focus)
+      [
+        { topic:"Q8: Planned Obsolescence", marks:16, type:"mcq", prompt:"Which term describes designing a product with a limited lifespan (e.g. glued-in batteries) so consumers have to buy a replacement sooner?", options:["Life Cycle Assessment","Planned obsolescence","Ergonomics","Quality Assurance"], correctIndex:1, steps:["Planned obsolescence shortens product life and creates e-waste."] },
+        { topic:"Q8: The 6 Rs & Materials", marks:16, type:"mcq", prompt:"Which of the '6 Rs' involves minimising the amount of raw material, packaging, and energy used to make a product?", options:["Refuse","Reduce","Repair","Rethink"], correctIndex:1, steps:["Reduce minimises materials, packaging, and energy use."] },
+        { topic:"Q8: Sustainable Forestry & LCA", marks:16, type:"mcq", prompt:"What does the FSC logo on timber furniture guarantee?", options:["The wood is fireproof","The timber is sourced from responsibly managed, replanted forests","The wood is a thermoset plastic","The furniture was 3D printed"], correctIndex:1, steps:["FSC certification ensures responsible forest management and replanting."] },
+        { topic:"Q8: Life Cycle Assessment (LCA)", marks:16, type:"mcq", prompt:"What does a 'cradle-to-grave' Life Cycle Assessment (LCA) measure?", options:["Only the shop retail price","Environmental impact from raw material extraction, manufacture, transport, and use through to disposal","Only the colour scheme","Only the factory lighting cost"], correctIndex:1, steps:["LCA evaluates environmental impact across every stage of a product's life."] }
+      ]
+    ];
+
+    /* ============================================================
+       APP STATE & UI LOGIC
+       ============================================================ */
+    const state = {
+      examMode:"full", durationSeconds:90*60, activePaper:[], responses:[], checked:[], isCorrect:[], skipped:[],
+      currentIdx:0, timeRemaining:90*60, timerId:null, paperSubmitted:false, paperCode:"",
+      learnFilter:"all", activeTopic:null, learnQuestion:null, learnResponse:"", learnChecked:false, learnIsCorrect:false
+    };
+
+    const views = { home:document.getElementById("home-view"), learnMenu:document.getElementById("learn-menu-view"), learnDetail:document.getElementById("learn-detail-view"), testSelect:document.getElementById("test-select-view"), hud:document.getElementById("hud-bar"), workspace:document.getElementById("workspace-view"), results:document.getElementById("results-view") };
+    function showOnlyViews(...keys) { stopCountdownTimer(); Object.entries(views).forEach(([k,el])=>el.classList.toggle("hidden",!keys.includes(k))); window.scrollTo({top:0,behavior:"auto"}); }
+    function escapeHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+    function normAns(s) { return String(s||"").toLowerCase().replace(/mm2|mm²|mm|\s+/g,"").trim(); }
+    function isRight(q, r) { return q.type==="mcq" ? r!==""&&r!==null&&Number(r)===q.correctIndex : Boolean(normAns(r)) && q.acceptedAnswers.some(a=>normAns(a)===normAns(r)); }
+    function modelDisp(q) { return q.type==="mcq" ? `${["A","B","C","D"][q.correctIndex]}: ${q.options[q.correctIndex]}` : q.modelAnswer; }
+    function userDisp(q, r) { return q.type==="mcq" ? (r===""||r===null?"[No Option Selected]":`${["A","B","C","D"][Number(r)]}: ${q.options[Number(r)]}`) : (String(r||"").trim()||"[No Response]"); }
+
+    function renderTopicsGrid() {
+      const grid=document.getElementById("topics-grid"); grid.innerHTML="";
+      LEARN_TOPICS.filter(t=>state.learnFilter==="all"||t.section===state.learnFilter).forEach(topic=>{
+        const idx=LEARN_TOPICS.indexOf(topic)+1, btn=document.createElement("button");
+        btn.type="button"; btn.className="topic-btn";
+        btn.innerHTML=`<div><div class="topic-btn-top"><span class="topic-num">TOPIC ${String(idx).padStart(2,"0")}</span><span class="topic-section-tag tag-${topic.section}">${escapeHtml(topic.sectionLabel)}</span></div><div class="topic-btn-title" style="margin-top:8px;">${escapeHtml(topic.title)}</div></div><div class="topic-btn-sub">${escapeHtml(topic.shortDesc)}</div>`;
+        btn.addEventListener("click",()=>openLearnTopic(topic.id)); grid.appendChild(btn);
+      });
+    }
+
+    document.querySelectorAll(".filter-pill").forEach(p=>p.addEventListener("click",()=>{ state.learnFilter=p.dataset.filter; document.querySelectorAll(".filter-pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); renderTopicsGrid(); }));
+
+    function openLearnTopic(id) {
+      const t=LEARN_TOPICS.find(x=>x.id===id); if(!t)return; state.activeTopic=t; showOnlyViews("learnDetail");
+      const badge=document.getElementById("detail-section-badge"); badge.textContent=t.sectionLabel; badge.className="badge-pill "+(t.section==="design"?"blue":t.section==="materials"?"amber":t.section==="social"?"emerald":"");
+      document.getElementById("detail-title").textContent=t.title; document.getElementById("detail-subtitle").textContent=t.shortDesc;
+      document.getElementById("detail-what").innerHTML=t.whatItIs; document.getElementById("detail-rule").textContent=t.keyRule;
+      const d=document.getElementById("detail-diagram"); if(t.diagramSvg){d.innerHTML=t.diagramSvg;d.classList.remove("hidden");}else{d.innerHTML="";d.classList.add("hidden");}
+      document.getElementById("detail-howto").innerHTML=t.howToSolve.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+      document.getElementById("detail-example-q").textContent=t.workedExample.q;
+      document.getElementById("detail-example-steps").innerHTML=t.workedExample.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+      drawLearnPracticeQuestion();
+    }
+
+    function drawLearnPracticeQuestion() {
+      const t=state.activeTopic; if(!t)return;
+      state.learnQuestion = drawFromDeck(`learn:${t.id}`, t.practicePool);
+      state.learnResponse=""; state.learnChecked=false; state.learnIsCorrect=false; renderLearnPracticeCard();
+    }
+
+    function renderLearnPracticeCard() {
+      const slot=document.getElementById("learn-practice-slot"), q=state.learnQuestion; if(!q)return;
+      const isC=state.learnChecked, isOk=state.learnIsCorrect, letters=["A","B","C","D"];
+      let ui=q.type==="mcq"
+        ? `<div class="mcq-grid">`+q.options.map((o,i)=>{let cls="mcq-option"; if(!isC&&state.learnResponse===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(state.learnResponse===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`;}).join("")+`</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="learn-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(state.learnResponse)}" ${isC?"disabled":""} />`;
+
+      const fb=isC?`<div class="feedback-panel ${isOk?"correct":"incorrect"}" style="margin-top:16px;margin-bottom:0;"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?"✓ Correct!":"✗ Incorrect — check the CCEA mark scheme:"}</div>${!isOk?`<div class="feedback-answer-line"><span>Right Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">Explanation:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`:"";
+      slot.innerHTML=`<div class="worked-example-box"><p class="q-prompt">${q.prompt}</p>${ui}<div class="q-nav-actions"><div></div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-learn-q">✓ Check Answer</button>`:`<button type="button" class="btn-action btn-next" id="btn-next-learn-q">🎲 Another Random Question</button>`}</div></div>${fb}</div>`;
+
+      if(q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach(b=>b.addEventListener("click",()=>{if(!state.learnChecked){state.learnResponse=b.dataset.optIdx;renderLearnPracticeCard();}}));
+      else { const inp=document.getElementById("learn-text-input"); if(inp){inp.addEventListener("input",e=>state.learnResponse=e.target.value); inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!state.learnChecked)document.getElementById("btn-check-learn-q").click();});} }
+
+      const cb=document.getElementById("btn-check-learn-q"); if(cb)cb.addEventListener("click",()=>{if(state.learnResponse==="")return alert("Enter or select an answer first."); state.learnChecked=true; state.learnIsCorrect=isRight(q,state.learnResponse); renderLearnPracticeCard();});
+      const nb=document.getElementById("btn-next-learn-q"); if(nb)nb.addEventListener("click",drawLearnPracticeQuestion);
+    }
+
+    function startMockExam(mode) {
+      state.examMode = mode;
+      state.durationSeconds = mode==="full" ? 90*60 : 35*60;
+      const count = mode==="full" ? OPTC_POOLS.length : 4;
+      state.activePaper = buildUniquePaper(mode, OPTC_POOLS, count);
+
+      const n = state.activePaper.length;
+      state.responses=new Array(n).fill(""); state.checked=new Array(n).fill(false); state.isCorrect=new Array(n).fill(false); state.skipped=new Array(n).fill(false);
+      state.currentIdx=0; state.timeRemaining=state.durationSeconds; state.paperSubmitted=false;
+      state.paperCode = (mode==="full"?"GTY23-":"BLITZ-") + randInt(1000,9999);
+
+      const tot = state.activePaper.reduce((s,q)=>s+q.marks,0);
+      document.getElementById("hud-title").textContent = mode==="full"
+        ? `CCEA Product Design [GTY23] (${tot} Marks)`
+        : `Product Design Quick Blitz (${tot} Marks)`;
+      document.getElementById("hud-paper-id").textContent = "PAPER ID: "+state.paperCode;
+      document.getElementById("prog-total").textContent = n;
+      showOnlyViews("hud","workspace"); renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta(); startCountdownTimer();
+    }
+
+    function updateTestProgressMeta() {
+      const tot=state.activePaper.reduce((s,q)=>s+q.marks,0), chk=state.checked.filter(Boolean).length;
+      const earn=state.activePaper.reduce((s,q,i)=>s+(state.checked[i]&&state.isCorrect[i]?q.marks:0),0);
+      document.getElementById("prog-current").textContent=state.currentIdx+1;
+      document.getElementById("prog-checked").textContent=`${chk} / ${state.activePaper.length}`;
+      document.getElementById("prog-score").textContent=`${earn} / ${tot}`;
+    }
+
+    function renderQuestionDots() {
+      const row=document.getElementById("q-dots-row"); row.innerHTML="";
+      state.activePaper.forEach((q,i)=>{
+        const d=document.createElement("button"); d.type="button"; d.className="q-dot-btn"; d.textContent=q.qNum;
+        if(i===state.currentIdx)d.classList.add("current");
+        if(state.checked[i])d.classList.add(state.isCorrect[i]?"correct":"incorrect"); else if(state.skipped[i])d.classList.add("skipped");
+        d.addEventListener("click",()=>goToTestQuestion(i)); row.appendChild(d);
+      });
+    }
+
+    function goToTestQuestion(i) {
+      if(i<0||i>=state.activePaper.length)return;
+      state.currentIdx=i; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();
+      document.getElementById("questions-pane").scrollTop=0;
+    }
+
+    function renderCurrentTestQuestion() {
+      const slot=document.getElementById("active-question-slot"), idx=state.currentIdx, q=state.activePaper[idx];
+      const isLast=idx===state.activePaper.length-1, isC=state.checked[idx], isOk=state.isCorrect[idx], val=state.responses[idx], letters=["A","B","C","D"];
+      let ui=q.type==="mcq"
+        ? `<div class="mcq-grid">`+q.options.map((o,i)=>{let cls="mcq-option"; if(!isC&&val===String(i))cls+=" selected"; if(isC){if(i===q.correctIndex)cls+=" correct-opt"; else if(val===String(i))cls+=" wrong-opt";} return `<button type="button" class="${cls}" data-opt-idx="${i}" ${isC?"disabled":""}><span class="mcq-letter">${letters[i]}</span><span>${escapeHtml(o)}</span></button>`;}).join("")+`</div>`
+        : `<p class="q-hint">Format: ${escapeHtml(q.hint||"Enter answer")}</p><input type="text" id="test-text-input" class="bio-input-box ${isC?(isOk?"locked-correct":"locked-incorrect"):""}" placeholder="Type your answer..." value="${escapeHtml(val)}" ${isC?"disabled":""} />`;
+
+      const fb=isC?`<div class="feedback-panel ${isOk?"correct":"incorrect"}"><div class="feedback-heading ${isOk?"correct":"incorrect"}">${isOk?`✓ Correct! (+${q.marks}/${q.marks} marks)`:`✗ Incorrect (0/${q.marks} marks)`}</div>${!isOk?`<div class="feedback-answer-line"><span>Correct Answer:</span><strong>${escapeHtml(modelDisp(q))}</strong></div>`:""}<div class="feedback-steps-title">CCEA Mark Scheme Note:</div><ol class="feedback-steps-list">${q.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`:"";
+      slot.innerHTML=`<article class="question-card"><div class="q-top-row"><div class="q-number-group"><span class="q-badge">Question ${q.qNum} / ${state.activePaper.length}</span><span class="q-topic">${escapeHtml(q.topic)}</span></div><span class="q-marks">[${q.marks} marks]</span></div><p class="q-prompt">${q.prompt}</p>${ui}${fb}<div class="q-nav-actions"><div class="q-nav-left"><button type="button" class="btn-action" id="btn-prev-q" ${idx===0?"disabled":""}>← Back</button>${!isC&&!isLast?`<button type="button" class="btn-action btn-skip" id="btn-skip-q">Skip →</button>`:""}</div><div class="q-nav-right">${!isC?`<button type="button" class="btn-action btn-check" id="btn-check-q">✓ Submit Answer</button>`:""}${!isLast&&isC?`<button type="button" class="btn-action btn-next" id="btn-next-q">Next Question →</button>`:""}${isLast?`<button type="button" class="btn-action btn-finish-test" id="btn-finish-test">🏁 Submit Test &amp; See Score</button>`:""}</div></div></article>`;
+
+      if(q.type==="mcq") slot.querySelectorAll(".mcq-option").forEach(b=>b.addEventListener("click",()=>{if(!state.checked[idx]){state.responses[idx]=b.dataset.optIdx;renderCurrentTestQuestion();}}));
+      else { const inp=document.getElementById("test-text-input"); if(inp){inp.addEventListener("input",e=>state.responses[idx]=e.target.value); inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!state.checked[idx])document.getElementById("btn-check-q").click();});} }
+
+      document.getElementById("btn-prev-q").addEventListener("click",()=>goToTestQuestion(idx-1));
+      const sb=document.getElementById("btn-skip-q"); if(sb)sb.addEventListener("click",()=>{if(!state.checked[idx])state.skipped[idx]=true;goToTestQuestion(idx+1);});
+      const cb=document.getElementById("btn-check-q"); if(cb)cb.addEventListener("click",()=>{if(state.responses[idx]==="")return alert("Select or type an answer, or Skip →."); state.checked[idx]=true; state.isCorrect[idx]=isRight(q,state.responses[idx]); state.skipped[idx]=false; renderQuestionDots(); renderCurrentTestQuestion(); updateTestProgressMeta();});
+      const nb=document.getElementById("btn-next-q"); if(nb)nb.addEventListener("click",()=>goToTestQuestion(idx+1));
+      const fbBtn=document.getElementById("btn-finish-test"); if(fbBtn)fbBtn.addEventListener("click",handleManualTestSubmit);
+    }
+
+    function startCountdownTimer(){ stopCountdownTimer(); renderTimer(); state.timerId=setInterval(()=>{state.timeRemaining-=1;renderTimer();if(state.timeRemaining<=0){stopCountdownTimer();submitFinalTest(true);}},1000); }
+    function stopCountdownTimer(){ if(state.timerId!==null){clearInterval(state.timerId);state.timerId=null;} }
+    function renderTimer(){ const s=Math.max(0,state.timeRemaining),m=Math.floor(s/60),r=s%60; document.getElementById("timer-clock").textContent=`${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`; const p=document.getElementById("timer-display"); p.classList.remove("warning","critical"); if(s<=180)p.classList.add("critical"); else if(s<=600)p.classList.add("warning"); }
+    function handleManualTestSubmit(){ const u=state.checked.filter(c=>!c).length; if(u>0&&!confirm(`You have ${u} unchecked question(s). Submit now?`))return; submitFinalTest(false); }
+
+    function submitFinalTest(isTimeout=false){
+      if(state.paperSubmitted)return; state.paperSubmitted=true; stopCountdownTimer();
+      let earn=0,tot=0,cnt=0;
+      const res=state.activePaper.map((q,i)=>{ tot+=q.marks; const ur=state.responses[i],ok=state.checked[i]?state.isCorrect[i]:isRight(q,ur); if(ok){earn+=q.marks;cnt++;} return {...q,ur,ok}; });
+      const pct=tot>0?Math.round((earn/tot)*1000)/10:0;
+      const grade=pct>=85?"A*":pct>=75?"A":pct>=65?"B":pct>=56?"C*":pct>=48?"C":pct>=38?"D":pct>=28?"E":pct>=18?"F":pct>=10?"G":"U";
+      const el=state.durationSeconds-Math.max(0,state.timeRemaining), tStr=`${String(Math.floor(el/60)).padStart(2,"0")}m ${String(el%60).padStart(2,"0")}s`;
+      document.getElementById("sheet-modal").classList.add("hidden"); showOnlyViews("results");
+      const ml=state.examMode==="full"?"Full Option C [GTY23]":"Quick Blitz (4 Randomised)";
+      document.getElementById("report-submission-meta").textContent=`${state.paperCode} • ${ml} • ${isTimeout?"Auto-Submitted":"Completed"}`;
+      document.getElementById("stat-marks").textContent=`${earn} / ${tot}`; document.getElementById("stat-paper-type").textContent=ml;
+      document.getElementById("stat-percent").textContent=`${pct}%`; document.getElementById("stat-percent-sub").textContent=`${earn} marks out of ${tot}`;
+      document.getElementById("stat-time").textContent=tStr; document.getElementById("stat-allowed-time").textContent=`Allowed: ${Math.floor(state.durationSeconds/60)}m 00s`;
+      document.getElementById("stat-grade").textContent=grade; document.getElementById("stat-q-correct").textContent=`${cnt} / ${state.activePaper.length} correct`;
+      const sheet=document.getElementById("graded-sheet"); sheet.innerHTML="";
+      res.forEach(item=>{
+        const c=document.createElement("article"); c.className=`graded-card ${item.ok?"correct":"incorrect"}`;
+        c.innerHTML=`<div class="graded-top"><div class="q-number-group"><span class="q-badge">Q${item.qNum}</span><span class="q-topic">${escapeHtml(item.topic)}</span></div><span class="status-pill ${item.ok?"correct":"incorrect"}">${item.ok?`✓ Correct (+${item.marks}/${item.marks})`:`✗ Incorrect (0/${item.marks})`}</span></div><p class="q-prompt">${item.prompt}</p><div class="graded-answers-grid"><div class="ans-box"><div class="ans-box-label">Your Response</div><div class="ans-box-value ${item.ok?"model":"wrong"}">${escapeHtml(userDisp(item,item.ur))}</div></div><div class="ans-box"><div class="ans-box-label">Expected Answer</div><div class="ans-box-value model">${escapeHtml(modelDisp(item))}</div></div></div><div class="mark-scheme-note"><div class="feedback-steps-title">Mark Scheme Note:</div><ol class="feedback-steps-list">${item.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join("")}</ol></div>`;
+        sheet.appendChild(c);
+      });
+    }
+
+    const calcState={expression:"",lastStr:"0",justEval:false}, calcExprEl=document.getElementById("calc-expr"), calcOutEl=document.getElementById("calc-output");
+    document.querySelectorAll("#calculator-pane .calc-btn").forEach(b=>b.addEventListener("click",()=>{
+      const t=b.dataset.calc,a=b.dataset.action;
+      if(a==="ac"){calcState.expression="";calcState.justEval=false;calcExprEl.textContent="";calcOutEl.classList.remove("error");calcOutEl.textContent="0";return;}
+      if(a==="del"){calcState.expression=calcState.justEval?"":calcState.expression.slice(0,-1);calcState.justEval=false;calcExprEl.textContent=calcState.expression;return;}
+      if(a==="eval"){try{const safe=calcState.expression.replace(/×/g,"*").replace(/÷/g,"/");if(/[^0-9+\-*/().\s]/.test(safe))throw 0;const v=Function(`"use strict";return(${safe});`)();if(!Number.isFinite(v))throw 0;calcState.lastStr=String(Number(v.toFixed(6)));calcState.justEval=true;calcOutEl.classList.remove("error");calcOutEl.textContent=calcState.lastStr;}catch{calcOutEl.classList.add("error");calcOutEl.textContent="Math Error";calcState.justEval=true;}return;}
+      if(t!==undefined){if(calcState.justEval){calcState.expression=["+","-","×","÷"].includes(t)?calcState.lastStr:"";calcState.justEval=false;}calcState.expression+=t;calcExprEl.textContent=calcState.expression;}
+    }));
+
+    document.getElementById("btn-go-learn").addEventListener("click",()=>{renderTopicsGrid();showOnlyViews("learnMenu");});
+    document.getElementById("btn-go-test").addEventListener("click",()=>showOnlyViews("testSelect"));
+    document.getElementById("btn-learn-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-detail-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-test-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-results-home").addEventListener("click",()=>showOnlyViews("home"));
+    document.getElementById("btn-back-to-topics").addEventListener("click",()=>{renderTopicsGrid();showOnlyViews("learnMenu");});
+    document.getElementById("btn-new-learn-q").addEventListener("click",drawLearnPracticeQuestion);
+    document.getElementById("btn-start-full").addEventListener("click",()=>startMockExam("full"));
+    document.getElementById("btn-start-blitz").addEventListener("click",()=>startMockExam("blitz"));
+    document.getElementById("btn-retry-same").addEventListener("click",()=>startMockExam(state.examMode));
+    document.getElementById("btn-switch-paper").addEventListener("click",()=>showOnlyViews("testSelect"));
+    document.getElementById("btn-hud-submit").addEventListener("click",handleManualTestSubmit);
+    const sheetModal=document.getElementById("sheet-modal");
+    document.getElementById("btn-open-sheet").addEventListener("click",()=>sheetModal.classList.remove("hidden"));
+    document.getElementById("btn-close-sheet").addEventListener("click",()=>sheetModal.classList.add("hidden"));
+    sheetModal.addEventListener("click",e=>{if(e.target===sheetModal)sheetModal.classList.add("hidden");});
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheetModal.classList.contains("hidden"))sheetModal.classList.add("hidden");});
+  </script>
+</body>
+</html>
+```
